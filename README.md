@@ -15,7 +15,7 @@ Thanks <a href="https://twitter.com/aonsager" target="_blank"> @aonsager </a> fo
 
 Creator of => <a href="https://pokemon.alexonsager.net/" target="_blank"> https://pokemon.alexonsager.net/ </a>  
 
-Source of the pokemon fusions images used in this project uses.
+Source of the pokemon fusions images used in this project.
   <br>
   <a><img src="https://images.alexonsager.net/pokemon/fused/34/34.103.png" width="75"></a>
   <img src="https://images.alexonsager.net/pokemon/fused/25/25.77.png" width="75"></a>
