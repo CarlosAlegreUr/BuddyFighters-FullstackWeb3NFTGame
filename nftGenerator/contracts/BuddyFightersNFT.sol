@@ -20,7 +20,7 @@ contract BuddyFighterNFT is ERC721URIStorage {
 
     /* State variables */
 
-    uint256 public s_ntfCounter = 0;
+    uint256 internal s_ntfCounter = 0;
     mapping (uint256 => nftTraits) s_nftToAttributes;
 
     uint8 constant TRAITS_NUM = 7;
@@ -105,6 +105,11 @@ contract BuddyFighterNFT is ERC721URIStorage {
     function getStats(uint256 _nftID) public view nftDoesntExist(_nftID) returns(nftTraits memory) {
         if(bytes(s_nftToAttributes[_nftID].name).length != 0) { revert NftStatsAreNotInBlockchain(); }
         return s_nftToAttributes[_nftID];
+    }
+
+
+    function getLastNFTId() public view returns(uint256) {
+        return s_ntfCounter;
     }
 
 

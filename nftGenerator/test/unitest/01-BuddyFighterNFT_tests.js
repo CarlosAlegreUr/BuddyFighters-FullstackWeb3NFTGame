@@ -1,18 +1,27 @@
-const chai = require("chai")
+const { assert } = require("chai")
+const { ethers } = require("hardhat")
+const {collectionName, collecitonSymbol} = require("../../utils/appVariables")
 
+const contractFileOnTest = "BuddyFighterNFT"
 
-describe("BuddyFigtherNFT.sol tests", () => {
+describe("BuddyFigthersNFT.sol tests", () => {
 
-    beforeEach(async () =>{
-
+    let buddyFightersNFTFactory 
+    let buddyFightersNFTContract
+    
+    beforeEach(async () => {
+        const buddyFightersNFTFactory = await ethers.getContractFactory(contractFileOnTest)
+        const buddyFightersNFTContract = await buddyFightersNFTFactory.deploy(collectionName, collecitonSymbol)
     })
     
 
-    
     /* Minting tests */
 
-    it("Mints NFT's with different ID's (both blockchain and in IPFS)", () => {
-
+    it("Mints NFT's with different ID's (both blockchain and in IPFS)", async () => {
+        first_ID = await buddyFightersNFTContract.getLastNFTId() 
+        await buddyFightersNFTContract.mintNFT("Fake_URI", "Fake_Name", True)
+        second_ID = await buddyFightersNFTContract.getLastNFTId()
+        assert(first_ID.toString(), second_ID.toString())
     })
 
 
