@@ -3,7 +3,7 @@
   <br>
   <a><img src="https://image.shutterstock.com/image-photo/pattaya-thailand-2-sep-2016-600w-477402835.jpg" width="200"></a>
   <br>
-  BuddyFighters
+  BuddyFighters (NOT FINISHED, DON'T USE)
   <br>
 </h1>
 
