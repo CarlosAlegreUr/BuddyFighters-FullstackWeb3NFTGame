@@ -17,29 +17,35 @@ error NameTooLong();
 error NftStatsAreNotInBlockchain();
 
 contract BuddyFighterNFT is ERC721URIStorage {
-    
+
+    /* Constants */
+
+    uint8 constant TRAITS_NUM = 7;
+    uint256 constant MINIMUM_MINT_PRICE = 10000000000000000;
+    uint256 constant MINIMUM_STATS_CHANGE_PRICE = 10000000000000;
+    uint8 constant MAX_STATS_VALUE = 255;
+
+
     /* Type declarations */
 
-    struct nftAttributes {
+    struct nftTraits {
         string name;
 
-        uint8 hp; uint8 attck; uint8 spclAttck; 
-        uint8 def; uint8 spclDef; uint8 vel;
+        // [0] -> hp; [1] -> attck; [2] -> spclAttck; 
+        // [3] -> def; [4] -> spclDef; [5] -> vel;
+        uint8[TRAITS_NUM - 1] stats;
     }
 
 
     /* State variables */
 
     uint256 public s_ntfCounter = 0;
-    mapping (uint256 => nftAttributes) s_nftToAttributes;
-    uint256 constant MINIMUM_PRICE = 10000000000000000;
-    uint8 constant TRAITS_NUM = 7;
-    uint8 constant MAX_STATS_VALUE = 255;
+    mapping (uint256 => nftTraits) s_nftToAttributes;
 
 
     /* Events */
 
-    event NFTminted(address indexed owner, uint256 indexed nft_ID, nftAttributes indexed attributes);
+    event NFTminted(address indexed owner, uint256 indexed nft_ID, nftTraits indexed attributes);
 
 
     /* Modifiers */
@@ -66,11 +72,11 @@ contract BuddyFighterNFT is ERC721URIStorage {
         URI which results in cheaper minting price.
     */
     function mintNFT(string memory _tokenURI, string memory _name, bool _onBlockhain) public payable
-                                    returns(nftAttributes memory) {
-        if(msg.value < MINIMUM_PRICE) { revert  MinimumPriceNotPayed(); }
+                                    returns(nftTraits memory) {
+        if(msg.value < MINIMUM_MINT_PRICE) { revert  MinimumPriceNotPayed(); }
         if(bytes(_name).length > 30) { revert NameTooLong(); }
 
-        nftAttributes memory stats = generateRandomStats(_name);
+        nftTraits memory stats = generateRandomStats(_name);
         _safeMint(msg.sender, s_ntfCounter);
         _setTokenURI(s_ntfCounter, _tokenURI);
         if(_onBlockhain)
@@ -81,28 +87,35 @@ contract BuddyFighterNFT is ERC721URIStorage {
     }   
 
 
-    // function improveStats(uint256[] memory improvements) public payable {
-    // 
-    // }
+    function improveStat(uint256 _nftID, uint256 _attribute, uint8 _quantity) public payable {
+        if(msg.value < MINIMUM_STATS_CHANGE_PRICE) { revert MinimumPriceNotPayed(); }
+
+        if((s_nftToAttributes[_nftID].stats[_attribute] + _quantity) > 255){
+            s_nftToAttributes[_nftID].stats[_attribute] = 255;
+        }else {
+            s_nftToAttributes[_nftID].stats[_attribute] += _quantity;
+        }
+    }
 
 
    // Stores an already minted NFT attributes to the blockchain.
-    function storeStatsInBlockchain(uint256 _nftID, nftAttributes memory _nftAttributes) public nftDoesntExist(_nftID) {
-        s_nftToAttributes[_nftID] = _nftAttributes;
+    function storeStatsInBlockchain(uint256 _nftID, nftTraits memory _nftTraits) public nftDoesntExist(_nftID) {
+        s_nftToAttributes[_nftID] = _nftTraits;
     }
 
 
     // Returns stats of NFT whose stats are stored in the blockchain.
-    function getStats(uint256 _nftID) public view nftDoesntExist(_nftID) returns(nftAttributes memory) {
+    function getStats(uint256 _nftID) public view nftDoesntExist(_nftID) returns(nftTraits memory) {
         if(bytes(s_nftToAttributes[_nftID].name).length != 0) { revert NftStatsAreNotInBlockchain(); }
         return s_nftToAttributes[_nftID];
     }
 
 
     // This function will call ChainLink functions to generate random values.
-    function generateRandomStats(string memory nameOfNft) private returns(nftAttributes memory) {
+    function generateRandomStats(string memory nameOfNft) private returns(nftTraits memory) {
         // uint8[TRAITS_NUM - 1] memory rndmStats = [255, 255, 255, 255, 255, 255]; 
-        nftAttributes memory stats = nftAttributes(nameOfNft, 255, 255, 255, 255, 255, 255);
+        uint8[TRAITS_NUM - 1] memory rndmStats = [255, 255, 255, 255, 255, 255];
+        nftTraits memory stats = nftTraits(nameOfNft, rndmStats);
         return stats;
     }   
 }
