@@ -18,7 +18,10 @@ error NftStatsAreNotInBlockchain();
 
 contract BuddyFighterNFT is ERC721URIStorage {
 
-    /* Constants */
+    /* State variables */
+
+    uint256 public s_ntfCounter = 0;
+    mapping (uint256 => nftTraits) s_nftToAttributes;
 
     uint8 constant TRAITS_NUM = 7;
     uint256 constant MINIMUM_MINT_PRICE = 10000000000000000;
@@ -36,13 +39,7 @@ contract BuddyFighterNFT is ERC721URIStorage {
         uint8[TRAITS_NUM - 1] stats;
     }
 
-
-    /* State variables */
-
-    uint256 public s_ntfCounter = 0;
-    mapping (uint256 => nftTraits) s_nftToAttributes;
-
-
+    
     /* Events */
 
     event NFTminted(address indexed owner, uint256 indexed nft_ID, nftTraits indexed attributes);
