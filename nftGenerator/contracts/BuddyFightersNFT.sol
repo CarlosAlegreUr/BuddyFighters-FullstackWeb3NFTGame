@@ -16,7 +16,7 @@ error MinimumPriceNotPayed();
 error NameTooLong();
 error NftStatsAreNotInBlockchain();
 
-contract BuddyFighterNFT is ERC721URIStorage {
+contract BuddyFightersNFT is ERC721URIStorage {
 
     /* State variables */
 
