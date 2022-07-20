@@ -1,18 +1,19 @@
 const { assert } = require("chai")
 const { ethers } = require("hardhat")
-const {collectionName, collecitonSymbol} = require("../../utils/appVariables")
+// const {collectionName, collecitonSymbol} = require("../../utils/appVariables")
+
+const { deployBuddyFightersNFT } = require("../../scripts/01-deployBuddyFighterNFT")
 
 const contractName = "BuddyFightersNFT"
 
+
 describe("BuddyFigthersNFT.sol tests", function () {
 
-    let buddyFightersNFTFactory 
+    // let buddyFightersNFTFactory 
     let buddyFightersNFTContract
     
     beforeEach(async () => {
-        buddyFightersNFTFactory = await ethers.getContractFactory(contractName)
-        buddyFightersNFTContract = await buddyFightersNFTFactory.deploy(collectionName, collecitonSymbol)
-        await buddyFightersNFTContract.deployed()
+        buddyFightersNFTContract = await deployBuddyFightersNFT()
     })
     
 
