@@ -1,4 +1,4 @@
-const { ethers, network, config } = require("hardhat");
+const { ethers, network } = require("hardhat");
 require("dotenv").config()
 
 const {collectionName, collecitonSymbol} = require("../utils/appVariables")
@@ -8,7 +8,7 @@ const { verify } = require("../utils/etherscanVerifyContract")
 
 /* 
 	Deploys contract with name BuddyFightersNFT (BuddyFightersNFT.sol) and returns it's
-	Contract (ethers.js) object. 
+	Contract (ethers.js). 
 */ 
 async function deployBuddyFightersNFT() {
 
@@ -34,7 +34,7 @@ async function deployBuddyFightersNFT() {
 
 
 deployBuddyFightersNFT().then(() => {
-	console.log("Deployment code run successfully!\n")
+	console.log("Deployment code of BuddyFightersNFT contract run successfully!\n")
 	process.exitCode = 0
 }).catch((error) => {
   console.error(error)

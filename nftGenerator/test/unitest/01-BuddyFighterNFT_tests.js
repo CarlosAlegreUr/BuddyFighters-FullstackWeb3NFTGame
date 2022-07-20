@@ -1,8 +1,7 @@
 const { assert } = require("chai")
 const { ethers } = require("hardhat")
-// const {collectionName, collecitonSymbol} = require("../../utils/appVariables")
+const { deployBuddyFightersNFT } = require("../../deploy/01-deployBuddyFighterNFT")
 
-const { deployBuddyFightersNFT } = require("../../scripts/01-deployBuddyFighterNFT")
 
 const contractName = "BuddyFightersNFT"
 
