@@ -12,12 +12,13 @@ describe("BuddyFigthersNFT.sol tests", () => {
     beforeEach(async () => {
         const buddyFightersNFTFactory = await ethers.getContractFactory(contractName)
         const buddyFightersNFTContract = await buddyFightersNFTFactory.deploy(collectionName, collecitonSymbol)
+        await buddyFightersNFTContract.deployed()
     })
     
 
     /* Minting tests */
 
-    it("Mints NFT's with different ID's (both blockchain and in IPFS)", async () => {
+    it("Mints NFT's with different ID's (in blockchain and IPFS)", async () => {
         first_ID = await buddyFightersNFTContract.getLastNFTId() 
         await buddyFightersNFTContract.mintNFT("Fake_URI", "Fake_Name", True)
         second_ID = await buddyFightersNFTContract.getLastNFTId()

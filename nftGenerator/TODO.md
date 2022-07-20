@@ -5,6 +5,7 @@
 Packages installed after hardhat default ones:
 
     -dotenv
+    -@nomiclabs/hardhat-etherscan
 
 
 (check and complete list later, also check if some packages are not needed or hasn't been used)
