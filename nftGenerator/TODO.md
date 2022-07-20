@@ -9,3 +9,8 @@ Packages installed after hardhat default ones:
 
 
 (check and complete list later, also check if some packages are not needed or hasn't been used)
+
+
+Complete BuddyFightersNFT.sol
+Test deployment of BuddyFightersNFT.sol
+Test functionality of BuddyFightersNFT.sol
