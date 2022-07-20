@@ -3,10 +3,8 @@ require("dotenv").config()
 
 const {collectionName, collecitonSymbol} = require("../utils/appVariables")
 const { networkConfig, developmentNets } = require("../helper-hardhat-config");
-const { networks } = require("../hardhat.config");
 const { verify } = require("../utils/etherscanVerifyContract")
  
-
 
 async function main() {
 
