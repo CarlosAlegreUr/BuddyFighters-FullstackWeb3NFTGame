@@ -4,39 +4,49 @@ const {collectionName, collecitonSymbol} = require("../../utils/appVariables")
 
 const contractName = "BuddyFightersNFT"
 
-describe("BuddyFigthersNFT.sol tests", () => {
+describe("BuddyFigthersNFT.sol tests", function () {
 
     let buddyFightersNFTFactory 
     let buddyFightersNFTContract
     
     beforeEach(async () => {
-        const buddyFightersNFTFactory = await ethers.getContractFactory(contractName)
-        const buddyFightersNFTContract = await buddyFightersNFTFactory.deploy(collectionName, collecitonSymbol)
+        buddyFightersNFTFactory = await ethers.getContractFactory(contractName)
+        buddyFightersNFTContract = await buddyFightersNFTFactory.deploy(collectionName, collecitonSymbol)
         await buddyFightersNFTContract.deployed()
     })
     
 
     /* Minting tests */
 
-    it("Mints NFT's with different ID's (in blockchain and IPFS)", async () => {
+    it("Mints NFT's with different ID's, each ID=previous ID+1 (both blockchain and IPFS)", async () => {
+        // NFT minted and traits saved on chain
         first_ID = await buddyFightersNFTContract.getLastNFTId() 
         await buddyFightersNFTContract.mintNFT("Fake_URI", "Fake_Name", true)
         second_ID = await buddyFightersNFTContract.getLastNFTId()
-        assert(first_ID.toString(), second_ID.toString())
+
+        assert.notEqual(first_ID.toString(), second_ID.toString())
+        assert.equal(first_ID.add(1).toString(), second_ID.toString())
+
+        // NFT minted and traits saved on IPFS
+        await buddyFightersNFTContract.mintNFT("Fake_URI", "Fake_Name", false)
+        third_ID = await buddyFightersNFTContract.getLastNFTId()
+
+        assert.notEqual(second_ID.toString(), third_ID.toString())
+        assert.equal(second_ID.add(1).toString(), third_ID.toString())
     })
 
 
-    it("Saves NFT's stats in blockchain if desired.", () => {
+    it("Saves NFT's stats in blockchain if desired.", function () {
 
     })
 
 
-    it("If minimum amount not payed, NFT not minted.", () => {
+    it("If minimum amount not payed, NFT not minted.", function () {
 
     })
 
 
-    it("If name too long, NFT not minted.", () => {
+    it("If name too long, NFT not minted.", function () {
 
     })
 
@@ -44,12 +54,12 @@ describe("BuddyFigthersNFT.sol tests", () => {
 
     /* Improving stats tests */
 
-    it("When improvig stats quantity is added.", () => {
+    it("When improvig stats quantity is added.", function () {
 
     })
 
 
-    it("When improvig stats exceeds 255, 255 is set as value.", () => {
+    it("When improvig stats exceeds 255, 255 is set as value.", function () {
 
     })
 
@@ -57,7 +67,7 @@ describe("BuddyFigthersNFT.sol tests", () => {
 
     /* Random number generation tests */
 
-    it("Stats are in range [0, 255]", () => {
+    it("Stats are in range [0, 255]", function () {
 
     })
 }) 
