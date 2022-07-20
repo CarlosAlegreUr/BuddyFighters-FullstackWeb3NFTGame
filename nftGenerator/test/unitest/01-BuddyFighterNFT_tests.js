@@ -20,7 +20,7 @@ describe("BuddyFigthersNFT.sol tests", () => {
 
     it("Mints NFT's with different ID's (in blockchain and IPFS)", async () => {
         first_ID = await buddyFightersNFTContract.getLastNFTId() 
-        await buddyFightersNFTContract.mintNFT("Fake_URI", "Fake_Name", True)
+        await buddyFightersNFTContract.mintNFT("Fake_URI", "Fake_Name", true)
         second_ID = await buddyFightersNFTContract.getLastNFTId()
         assert(first_ID.toString(), second_ID.toString())
     })

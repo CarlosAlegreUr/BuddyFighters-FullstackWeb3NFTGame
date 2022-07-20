@@ -70,7 +70,7 @@ contract BuddyFightersNFT is ERC721URIStorage {
     */
     function mintNFT(string memory _tokenURI, string memory _name, bool _onBlockhain) public payable
                                     returns(nftTraits memory) {
-        if(msg.value < MINIMUM_MINT_PRICE) { revert  MinimumPriceNotPayed(); }
+        // if(msg.value < MINIMUM_MINT_PRICE) { revert  MinimumPriceNotPayed(); }
         if(bytes(_name).length > 30) { revert NameTooLong(); }
 
         nftTraits memory stats = generateRandomStats(_name);

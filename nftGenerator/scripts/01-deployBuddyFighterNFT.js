@@ -11,7 +11,7 @@ const { verify } = require("../utils/etherscanVerifyContract")
 async function main() {
 
 	const [owner] = await ethers.getSigners()
-	const buddyFightersNFTFactory = await ethers.getContractFactory("BuddyFighterNFT")
+	const buddyFightersNFTFactory = await ethers.getContractFactory("BuddyFightersNFT")
 	const buddyFightersNFTContract = await buddyFightersNFTFactory.deploy(collectionName, collecitonSymbol)
 	await buddyFightersNFTContract.deployed()
 
@@ -19,8 +19,7 @@ async function main() {
 	// Testnet or local network?
 	if(developmentNets.includes(networkConfig[network.config.chainId]["name"])) {
 		// Local network => Deploy mocks
-
-
+		
 	} else {
 		// Testnet => get Chainlink contracts, verify in etherscan
 		if(process.env.ETHERSCAN_API_KEY) {
