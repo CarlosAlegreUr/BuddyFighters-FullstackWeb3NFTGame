@@ -14,3 +14,7 @@ Packages installed after hardhat default ones:
 Complete BuddyFightersNFT.sol
 Test deployment of BuddyFightersNFT.sol
 Test functionality of BuddyFightersNFT.sol
+
+
+
+(FUTURE) => Rarity if pokemons, legendary mixes more rare.

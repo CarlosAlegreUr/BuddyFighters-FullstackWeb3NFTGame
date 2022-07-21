@@ -91,7 +91,7 @@ contract BuddyFightersNFT is ERC721URIStorage {
         return stats;
     }   
 
-
+    //TODO
     function improveStat(uint256 _nftID, uint256 _attribute, uint8 _quantity) public payable {
         if(msg.value < MINIMUM_STATS_CHANGE_PRICE) { revert MinimumPriceNotPayed(); }
 
@@ -120,7 +120,7 @@ contract BuddyFightersNFT is ERC721URIStorage {
         return s_ntfCounter;
     }
 
-
+    //TODO
     // This function will call ChainLink functions to generate random values.
     function generateRandomStats(string memory nameOfNft) private returns(nftTraits memory) {
         // uint8[TRAITS_NUM - 1] memory rndmStats = [255, 255, 255, 255, 255, 255]; 
