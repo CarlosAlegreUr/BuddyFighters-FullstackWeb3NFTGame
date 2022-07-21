@@ -34,7 +34,6 @@ async function deployBuddyFightersNFT() {
 
 
 deployBuddyFightersNFT().then(() => {
-	console.log("Deployment code of BuddyFightersNFT contract run successfully!\n")
 	process.exitCode = 0
 }).catch((error) => {
   console.error(error)
