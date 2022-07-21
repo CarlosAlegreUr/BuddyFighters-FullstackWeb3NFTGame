@@ -1,20 +1,17 @@
-1.- Complete README
+# TODO 
+    1.- Complete README
 
-2.- Design and arrange program code.
+    2.- Finish design of BuddyFightersNFT contract.
+        2.1.- Add rarity to NFTs.
+        2.2.- Breeding system.
+        2.3.- Improve stats function.
+    3.- Tests for BuddyFightersNFT contract.
+    4.- Code for BuddyFightersNFT contract
+        4.1.-Code for Mocks contracts.
 
-Packages installed after hardhat default ones:
+    6.- Finish design of Fight contract.
+    7.- Tests for Fight contract.
+    8.- Code for Fight contract
 
-    -dotenv
-    -@nomiclabs/hardhat-etherscan
-
-
-(check and complete list later, also check if some packages are not needed or hasn't been used)
-
-
-Complete BuddyFightersNFT.sol
-Test deployment of BuddyFightersNFT.sol
-Test functionality of BuddyFightersNFT.sol
-
-
-
-(FUTURE) => Rarity if pokemons, legendary mixes more rare.
+    9.-IPFS usage.
+    10.- RVG images usage.
