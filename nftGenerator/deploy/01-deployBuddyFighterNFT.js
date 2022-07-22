@@ -58,6 +58,7 @@ async function deployBuddyFightersNFT() {
 }
 
 
+// Testing execution
 deployBuddyFightersNFT().then(() => {
 	process.exitCode = 0
 }).catch((error) => {
