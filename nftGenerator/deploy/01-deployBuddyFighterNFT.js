@@ -1,6 +1,8 @@
 const { ethers, network } = require("hardhat");
+const { networks } = require("../hardhat.config")
 require("dotenv").config()
 
+const { deployer } = require("../hardhat.config")
 const {collectionName, collecitonSymbol} = require("../utils/appVariables")
 const { networkConfig, developmentNets } = require("../helper-hardhat-config");
 const { verify } = require("../utils/etherscanVerifyContract")
@@ -11,24 +13,43 @@ const { verify } = require("../utils/etherscanVerifyContract")
 	Contract (ethers.js). 
 */ 
 async function deployBuddyFightersNFT() {
-
-	const buddyFightersNFTFactory = await ethers.getContractFactory("BuddyFightersNFT")
-	const buddyFightersNFTContract = await buddyFightersNFTFactory.deploy(collectionName, collecitonSymbol)
-	await buddyFightersNFTContract.deployed()
-
+	let coordinatorAddress, vrfSubsId
 
 	// Testnet or local network?
 	if(developmentNets.includes(networkConfig[network.config.chainId]["name"])) {
 		// Local network => Deploy mocks
 		
 	} else {
-		// Testnet => get Chainlink contracts, verify in etherscan
-		if(process.env.ETHERSCAN_API_KEY) {
-			await buddyFightersNFTContract.deployTransaction.wait(6)
-			await verify(buddyFightersNFTContract.address, [collectionName, collecitonSymbol])
+		// Testnet 	
+		// Rinkeby => Get coordinator and subscription ID
+		if(network.config.chainId == networks.rinkeby.chainId){ 
+			coordinatorAddress = networkConfig[networks.rinkeby.chainId]["vrfCoordinator"]
+			vrfSubsId = networkConfig[networks.rinkeby.chainId]["vrfSubsId"]
 		}
 	}
-	
+
+	arg = [collectionName, 
+			collecitonSymbol, 
+			coordinatorAddress, 
+			vrfSubsId, 
+			networkConfig[network.chainId]["keyHashGasLimit"],
+			networkConfig[network.chainId]["callBackHashLimit"]]
+
+	const buddyFightersNFTFactory = await ethers.getContractFactory("BuddyFightersNFT")
+	const buddyFightersNFTContract = await buddyFightersNFTFactory.deploy({
+		from: deployer[network.chainId],
+		args: arg, 
+		log: true,
+		}
+	)
+	await buddyFightersNFTContract.deployed()
+
+	// Verify on Etherscan if deployed on Rinkeby.
+	if(process.env.ETHERSCAN_API_KEY && network.config.chainId == networks.rinkeby.chainId) {
+		await buddyFightersNFTContract.deployTransaction.wait(6)
+		await verify(buddyFightersNFTContract.address, [collectionName, collecitonSymbol])
+	}
+
 	return buddyFightersNFTContract
 }
 

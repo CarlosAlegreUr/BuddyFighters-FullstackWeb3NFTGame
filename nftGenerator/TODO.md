@@ -15,3 +15,6 @@
 
     9.-IPFS usage.
     10.- RVG images usage.
+
+    11.-In BuddyFightersNFT contract ponder about internal variables. 
+        Will they be needed in the future to children  contracts?

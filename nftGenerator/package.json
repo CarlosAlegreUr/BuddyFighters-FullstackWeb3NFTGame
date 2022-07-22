@@ -19,6 +19,7 @@
     "typechain": "^8.1.0"
   },
   "dependencies": {
+    "@chainlink/contracts": "^0.4.1",
     "@openzeppelin/contracts": "^4.7.0",
     "image-downloader": "^4.3.0"
   }
