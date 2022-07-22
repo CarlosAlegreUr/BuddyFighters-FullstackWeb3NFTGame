@@ -38,7 +38,7 @@ async function deployBuddyFightersNFT() {
 	}
 
 	const buddyFightersNFTFactory = await ethers.getContractFactory("BuddyFightersNFT")
-	const buddyFightersNFTContract = await buddyFightersNFTFactory.deploy(
+	var buddyFightersNFTContract = await buddyFightersNFTFactory.deploy(
 		collectionName, 
 		collecitonSymbol, 
 		coordinatorAddress, 
