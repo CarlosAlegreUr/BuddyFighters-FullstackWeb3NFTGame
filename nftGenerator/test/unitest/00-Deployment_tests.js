@@ -8,8 +8,8 @@ describe("Deployment tests", function () {
     let contract, contractName
 
     it("Mocks contracts are deployed correctly", async function () {
-        contractName = ""
-        contract = await deployer.deployMockContracts()
+        contractName = "VRFCoordinatorV2Mock"
+        contract = await deployer.deployMocks()
         const contractDeployed = await ethers.getContractAt(contractName, contract.address)
         assert.equal(contractDeployed.address, contract.address)
     })
