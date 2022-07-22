@@ -64,6 +64,7 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
 
     event BuddyFightersNFTNftMinted(address indexed owner, string indexed tokenURI, uint256 indexed tokenId);
     event BuddyFightersNFTPokemonMixNumbersGenerated(uint256[] indexed numbers);
+    event BuddyFightersNFTStatsGenerated(uint256[] indexed stats);
 
 
     /* Modifiers */
@@ -89,8 +90,6 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
     ) 
     ERC721(name, symbol) VRFConsumerBaseV2(coordinatorAddress) {
         i_vrfCoordinator = VRFCoordinatorV2Interface(coordinatorAddress);
-        // vrfCoordinator.createSubscription()
-        // i_vrfCoordinator.addConsumer(vrfSubsId, this.address);
         i_vrfSubsId = vrfSubsId;
         i_keyHashGasLimit = keyHashGasLimit;
         i_callBackGasLimit = callBackGasLimit;
@@ -127,9 +126,9 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
 
 
     function generatePokemonFusionNumbers() external payable returns(uint256[] memory) {
-        /*uint256 requestId =*/ i_vrfCoordinator.requestRandomWords(i_keyHashGasLimit, i_vrfSubsId, 3, i_callBackGasLimit, 2);
+        uint256 requestId = i_vrfCoordinator.requestRandomWords(i_keyHashGasLimit, i_vrfSubsId, 3, i_callBackGasLimit, 2);
         uint256[] memory rndmNum;
-        fulfillRandomWords(i_vrfSubsId, rndmNum);
+        fulfillRandomWords(requestId, rndmNum);
         rndmNum[0] = rndmNum[0]%MAX_POKEMON_NUM; 
         rndmNum[1] = rndmNum[1]%MAX_POKEMON_NUM; 
         emit BuddyFightersNFTPokemonMixNumbersGenerated(rndmNum);
@@ -163,22 +162,21 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
     }
 
 
-    function getLastNFTId() public view returns(uint256) {
-        return s_ntfCounter;
-    }
+    function getLastNFTId() public view returns(uint256) { return s_ntfCounter; }
 
 
-    function fulfillRandomWords(uint256 /*requestId*/, uint256[] memory randomWords) internal virtual override {
-
-    }
+    function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal virtual override {}
 
 
-    //TODO
-    // This function will call ChainLink functions to generate random values.
     function generateRandomStats(string memory nameOfNft) private returns(nftTraits memory) {
-        // uint8[TRAITS_NUM - 1] memory rndmStats = [255, 255, 255, 255, 255, 255];
-        uint8[TRAITS_NUM - 1] memory rndmStats = [255, 255, 255, 255, 255, 255];
-        nftTraits memory stats = nftTraits(nameOfNft, rndmStats);
-        return stats;
+        uint256 requestId = i_vrfCoordinator.requestRandomWords(i_keyHashGasLimit, i_vrfSubsId, 3, i_callBackGasLimit, 6);
+        nftTraits memory traits;
+        uint256[] memory rndmNum;
+        fulfillRandomWords(requestId, rndmNum);
+        for(uint8 i = 0; i < 6; i++)
+            traits.stats[i] = uint8(rndmNum[i]%MAX_STATS_VALUE); 
+        traits.name = nameOfNft;
+        emit BuddyFightersNFTStatsGenerated(rndmNum);
+        return traits;
     }   
 }

@@ -1,24 +1,33 @@
 const { ethers, network } = require("hardhat");
 const { networks } = require("../hardhat.config")
+const { deployer } = require("../hardhat.config")
+const { networkConfig, developmentNets } = require("../helper-hardhat-config");
 require("dotenv").config()
 
-const { deployer } = require("../hardhat.config")
+const { deployMocks } = require("./00-deployMocks")
+
 const {collectionName, collecitonSymbol} = require("../utils/appVariables")
-const { networkConfig, developmentNets } = require("../helper-hardhat-config");
 const { verify } = require("../utils/etherscanVerifyContract")
  
 
 /* 
 	Deploys contract with name BuddyFightersNFT (BuddyFightersNFT.sol) and returns it's
 	Contract (ethers.js). 
-*/ 
+*/
 async function deployBuddyFightersNFT() {
 	let coordinatorAddress, vrfSubsId
 
 	// Testnet or local network?
-	if(developmentNets.includes(networkConfig[network.config.chainId]["name"])) {
+	if(developmentNets.includes(network.name)) {
+
 		// Local network => Deploy mocks
-		
+		VRFCoordinatorV2MockContract = await deployMocks()
+		coordinatorAddress = VRFCoordinatorV2MockContract.address
+		const transactionResponse = await VRFCoordinatorV2MockContract.createSubscription()
+		const transactionReceipt = await transactionResponse.wait(1)
+		vrfSubsId = await transactionReceipt.events[0].args.subId
+		await VRFCoordinatorV2MockContract.fundSubscription(vrfSubsId, ethers.utils.parseEther("25"))
+
 	} else {
 		// Testnet 	
 		// Rinkeby => Get coordinator and subscription ID
@@ -28,19 +37,14 @@ async function deployBuddyFightersNFT() {
 		}
 	}
 
-	arg = [collectionName, 
-			collecitonSymbol, 
-			coordinatorAddress, 
-			vrfSubsId, 
-			networkConfig[network.chainId]["keyHashGasLimit"],
-			networkConfig[network.chainId]["callBackHashLimit"]]
-
 	const buddyFightersNFTFactory = await ethers.getContractFactory("BuddyFightersNFT")
-	const buddyFightersNFTContract = await buddyFightersNFTFactory.deploy({
-		from: deployer[network.chainId],
-		args: arg, 
-		log: true,
-		}
+	const buddyFightersNFTContract = await buddyFightersNFTFactory.deploy(
+		collectionName, 
+		collecitonSymbol, 
+		coordinatorAddress, 
+		vrfSubsId, 
+		networkConfig[network.config.chainId]["keyHashGasLimit"],
+		networkConfig[network.config.chainId]["callBackHashLimit"]
 	)
 	await buddyFightersNFTContract.deployed()
 
