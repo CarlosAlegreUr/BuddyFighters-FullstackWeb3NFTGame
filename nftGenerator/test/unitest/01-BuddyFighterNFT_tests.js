@@ -12,6 +12,7 @@ describe("BuddyFigthersNFT.sol tests", function () {
     
     beforeEach(async () => {
         buddyFightersNFTContract = await deployBuddyFightersNFT()
+        await buddyFightersNFTContract.deployed()
     })
     
 

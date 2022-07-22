@@ -11,6 +11,7 @@ async function deployMocks() {
             ethers.utils.parseEther(networkConfig[network.config.chainId]["linkBaseFeeMock"]),
             networkConfig[network.config.chainId]["gasPriceLinkMock"]
         )
+        await VRFCoordinatorV2MockContract.deployed()
         return VRFCoordinatorV2MockContract;
     }
 }

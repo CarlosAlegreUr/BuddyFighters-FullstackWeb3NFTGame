@@ -17,18 +17,17 @@ error NftDoesntExist();
 error MinimumPriceNotPayed();
 error NameTooLong();
 error NameTooShort();
-error NftStatsAreNotInBlockchain();
 
 contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
 
     /* State variables */
 
     uint256 internal s_ntfCounter = 0;
-    mapping (uint256 => string) private s_nftIdToURI;
     mapping (uint256 => nftTraits) private s_nftIdToAttributes;
 
-    uint8 constant private TRAITS_NUM = 7;
+    uint8 constant private TRAITS_NUM = 9;
     uint256 constant private MINIMUM_MINT_PRICE = 10000000000000000;
+    uint256 constant private MINIMUM_IMAGE_STORE_PRICE = 10000000000000000;
     uint256 constant private MINIMUM_STATS_CHANGE_PRICE = 10000000000000;
     uint8 constant private MAX_STATS_VALUE = 255;
     uint64 constant private MAX_POKEMON_NUM = 151;
@@ -42,27 +41,26 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
 
     /* Type declarations */
 
-    enum Rarirty {
-        COMMON,
-        SEMILEGENDARY,
-        LEGENDARY,
-        GOD
-    }
-
     struct nftTraits {
-
         // Add SVG image value for the NFT image representation (may add outside attributes???)
         string name;
+        bytes32 svgImgae;
+        // SVG image
+
+        // n1 -> Face . n2 -> Boddy
+        uint8 pkm_n1; 
+        uint8 pkm_n2;
+        uint8 rarity;
 
         // [0] -> hp; [1] -> attck; [2] -> spclAttck; 
         // [3] -> def; [4] -> spclDef; [5] -> vel;
-        uint8[TRAITS_NUM - 1] stats;
+        uint8[6] stats;
     }
 
     
     /* Events */
 
-    event BuddyFightersNFTNftMinted(address indexed owner, string indexed tokenURI, uint256 indexed tokenId);
+    event BuddyFightersNFTNftMinted(address indexed owner, uint8[6] indexed tknStats, uint256 indexed tokenId);
     event BuddyFightersNFTPokemonMixNumbersGenerated(uint256[] indexed numbers);
     event BuddyFightersNFTStatsGenerated(uint256[] indexed stats);
 
@@ -99,42 +97,58 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
     /*
         Mints NFT.
 
-        _onBlockhain == True: NFT's attributes will be stored on the blockchain which
+        _onBlockhain == True: NFT's image (svg version) will be stored on the blockchain which
         results in a higher price of minting.
 
-        _onBlockchain == False: NFT's attributes will be stored in an IPFS network 
-        URI which results in cheaper minting price.
+        _onBlockchain == False: NFT's image will be stored in the IPFS network 
+        which results in cheaper minting price.
     */
-    function mintNFT(string memory _tokenURI, string memory _name, bool _onBlockhain) external payable
+    function mintNFT(string memory _tokenURI, string memory _name, bytes32 _svgImage, uint8[2] memory _pkmonNumbers, bool _onBlockhain) external payable
                                     returns(nftTraits memory) {
         if(msg.value < MINIMUM_MINT_PRICE) { revert  MinimumPriceNotPayed(); }
         if(bytes(_name).length > 30) { revert NameTooLong(); }
         if(bytes(_name).length < 1) { revert NameTooShort(); }
 
-        nftTraits memory stats = generateRandomStats(_name);
+        nftTraits memory attributes;
+        
+        attributes.name = _name;
+        attributes.pkm_n1 = _pkmonNumbers[0];
+        attributes.pkm_n2 = _pkmonNumbers[1];
+        attributes.rarity = setRarity(_pkmonNumbers);
+        if(_onBlockhain)
+            attributes.svgImgae = _svgImage;
+
+        s_nftIdToAttributes[s_ntfCounter] = attributes;
+        i_vrfCoordinator.requestRandomWords(i_keyHashGasLimit, i_vrfSubsId, 3, i_callBackGasLimit, 6);
+
         _safeMint(msg.sender, s_ntfCounter);
         _setTokenURI(s_ntfCounter, _tokenURI);
 
-        if(_onBlockhain)
-            s_nftIdToAttributes[s_ntfCounter] = stats;
-        s_nftIdToURI[s_ntfCounter] = _tokenURI;
-
-        emit BuddyFightersNFTNftMinted(msg.sender,  _tokenURI, s_ntfCounter);
+        emit BuddyFightersNFTNftMinted(msg.sender, attributes.stats, s_ntfCounter);
         s_ntfCounter += 1;
-        return stats;
+        return attributes;
     }   
 
 
-    function generatePokemonFusionNumbers() external payable returns(uint256[] memory) {
-        uint256 requestId = i_vrfCoordinator.requestRandomWords(i_keyHashGasLimit, i_vrfSubsId, 3, i_callBackGasLimit, 2);
-        uint256[] memory rndmNum;
-        fulfillRandomWords(requestId, rndmNum);
-        rndmNum[0] = rndmNum[0]%MAX_POKEMON_NUM; 
-        rndmNum[1] = rndmNum[1]%MAX_POKEMON_NUM; 
-        emit BuddyFightersNFTPokemonMixNumbersGenerated(rndmNum);
-        return rndmNum;
+     // Stores an already minted NFT svg_image to the blockchain.
+    function storeSvgImageInBlockchain(uint256 _nftID, bytes32 _svgImage) external payable nftDoesntExist(_nftID) {
+        if(msg.value < MINIMUM_IMAGE_STORE_PRICE) { revert  MinimumPriceNotPayed(); }
+        s_nftIdToAttributes[_nftID].svgImgae = _svgImage;
     }
 
+
+    // Returns stats of NFT whose stats are stored in the blockchain. 
+    function getStats(uint256 _nftID) external view nftDoesntExist(_nftID) returns(uint8[6] memory) {
+        return s_nftIdToAttributes[_nftID].stats;
+    }
+
+
+    function getRarity(uint256 _nftId) external view returns(uint8){
+        return s_nftIdToAttributes[_nftId].rarity;
+    }
+
+
+    function getLastNFTId() external view returns(uint256) { return s_ntfCounter - 1; }
 
 
     //TODO
@@ -149,34 +163,32 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
     }
 
 
-   // Stores an already minted NFT attributes to the blockchain.
-    function storeStatsInBlockchain(uint256 _nftID, nftTraits memory _nftTraits) external nftDoesntExist(_nftID) {
-        s_nftIdToAttributes[_nftID] = _nftTraits;
+    function fulfillRandomWords(uint256 /*requestId*/, uint256[] memory randomWords) internal virtual override {
+        s_nftIdToAttributes[s_ntfCounter].stats[0] = uint8(randomWords[0]%MAX_POKEMON_NUM);
+        s_nftIdToAttributes[s_ntfCounter].stats[1] = uint8(randomWords[1]%MAX_POKEMON_NUM); 
+        s_nftIdToAttributes[s_ntfCounter].stats[2] = uint8(randomWords[2]%MAX_POKEMON_NUM); 
+        s_nftIdToAttributes[s_ntfCounter].stats[3] = uint8(randomWords[3]%MAX_POKEMON_NUM); 
+        s_nftIdToAttributes[s_ntfCounter].stats[4] = uint8(randomWords[4]%MAX_POKEMON_NUM); 
+        s_nftIdToAttributes[s_ntfCounter].stats[5] = uint8(randomWords[5]%MAX_POKEMON_NUM); 
     }
 
 
-    // Returns stats of NFT whose stats are stored in the blockchain. 
-    function getStats(uint256 _nftID) external view nftDoesntExist(_nftID) returns(nftTraits memory) {
-        if(bytes(s_nftIdToAttributes[_nftID].name).length != 0) { revert NftStatsAreNotInBlockchain(); }
-        return s_nftIdToAttributes[_nftID];
+    function setRarity(uint8[2] memory _pkmonNumbers) private pure returns(uint8){
+        uint8 rarity = 1;
+        if(_pkmonNumbers[0] == 144 || _pkmonNumbers[0] == 145 || _pkmonNumbers[0] == 146 || _pkmonNumbers[0] == 150) {
+            rarity *= 3;
+        }else {
+            if(_pkmonNumbers[0] == 0 || _pkmonNumbers[0] == 151) {
+                rarity *= 5;
+            }
+        }
+        if(_pkmonNumbers[1] == 144 || _pkmonNumbers[1] == 145 || _pkmonNumbers[1] == 146 || _pkmonNumbers[1] == 150) {
+            rarity *= 3;
+        }else {
+            if(_pkmonNumbers[1] == 0 || _pkmonNumbers[1] == 151) {
+                rarity *= 5;
+            }
+        }
+        return rarity;
     }
-
-
-    function getLastNFTId() public view returns(uint256) { return s_ntfCounter; }
-
-
-    function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal virtual override {}
-
-
-    function generateRandomStats(string memory nameOfNft) private returns(nftTraits memory) {
-        uint256 requestId = i_vrfCoordinator.requestRandomWords(i_keyHashGasLimit, i_vrfSubsId, 3, i_callBackGasLimit, 6);
-        nftTraits memory traits;
-        uint256[] memory rndmNum;
-        fulfillRandomWords(requestId, rndmNum);
-        for(uint8 i = 0; i < 6; i++)
-            traits.stats[i] = uint8(rndmNum[i]%MAX_STATS_VALUE); 
-        traits.name = nameOfNft;
-        emit BuddyFightersNFTStatsGenerated(rndmNum);
-        return traits;
-    }   
 }

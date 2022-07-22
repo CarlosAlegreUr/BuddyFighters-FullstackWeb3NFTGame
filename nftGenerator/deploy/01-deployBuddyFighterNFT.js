@@ -47,13 +47,13 @@ async function deployBuddyFightersNFT() {
 		networkConfig[network.config.chainId]["callBackHashLimit"]
 	)
 	await buddyFightersNFTContract.deployed()
-
+	
 	// Verify on Etherscan if deployed on Rinkeby.
 	if(process.env.ETHERSCAN_API_KEY && network.config.chainId == networks.rinkeby.chainId) {
 		await buddyFightersNFTContract.deployTransaction.wait(6)
 		await verify(buddyFightersNFTContract.address, [collectionName, collecitonSymbol])
 	}
-
+	
 	return buddyFightersNFTContract
 }
 
