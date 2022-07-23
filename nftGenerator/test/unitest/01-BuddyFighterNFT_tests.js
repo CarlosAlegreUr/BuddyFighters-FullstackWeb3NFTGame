@@ -119,7 +119,7 @@ describe("BuddyFigthersNFT.sol tests", function () {
                 expect(allRarities).to.include(stats.rarity)
             }
         })
-        
+
     })
 
 
@@ -139,8 +139,10 @@ describe("BuddyFigthersNFT.sol tests", function () {
 
     describe("Improving stats tests", function () {
 
+        let minPriceImproveStat
+
         beforeEach(async function () {
-            minimumPriceToImproveStats = ethers.utils.parseEther("0.01")
+            minPriceImproveStat = ethers.utils.parseEther("0.01")
         })
 
 
@@ -153,7 +155,7 @@ describe("BuddyFigthersNFT.sol tests", function () {
             // Adding median quantity
             quanitityAdded = 127
             for(i = 0; i < prevStats.length; i++) {
-                await buddyFightersNFTContract.improveStat("0", i, quanitityAdded, {value: minimumPriceToImproveStats})
+                await buddyFightersNFTContract.improveStat("0", i, quanitityAdded, {value: minPriceImproveStat})
             }
             
             newStats = await buddyFightersNFTContract.getStats("0")
@@ -167,13 +169,13 @@ describe("BuddyFigthersNFT.sol tests", function () {
             // Trying to exceed 255
             quanitityAdded = 254
             for(i = 0; i < prevStats.length; i++) {
-                await buddyFightersNFTContract.improveStat("0", i, quanitityAdded, {value: minimumPriceToImproveStats})
-                await buddyFightersNFTContract.improveStat("0", i, quanitityAdded, {value: minimumPriceToImproveStats})
+                await buddyFightersNFTContract.improveStat("0", i, quanitityAdded, {value: minPriceImproveStat})
+                await buddyFightersNFTContract.improveStat("0", i, quanitityAdded, {value: minPriceImproveStat})
             }
             
             newStats = await buddyFightersNFTContract.getStats("0")
             for(i = 0; i < prevStats.length; i++) 
-                    assert.equal(prevStats[i], "254")
+                assert.equal(prevStats[i], "254")
         })
 
 
@@ -181,10 +183,9 @@ describe("BuddyFigthersNFT.sol tests", function () {
             await buddyFightersNFTContract.mintNFT("Fake_URI", "Fake_Name", 
             svgImage, [100,101], true, {value: minimumPriceToMint})
 
-            stats = await buddyFightersNFTContract.getStats("0")
             quanitityAdded = 127
             for(i = 0; i < stats.length; i++) {
-                expect(buddyFightersNFTContract.improveStat("0", i, quanitityAdded, {value: minimumPriceToImproveStats})
+                expect(buddyFightersNFTContract.improveStat("0", i, quanitityAdded, {value: ethers.utils.parseEther("0.001")})
                 ).revertedWithCustomError(buddyFightersNFTContract, "MinimumPriceNotPayed")
             }
         })

@@ -29,8 +29,8 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
     uint256 constant private MINIMUM_MINT_PRICE = 10000000000000000;
     uint256 constant private MINIMUM_IMAGE_STORE_PRICE = 10000000000000000;
     uint256 constant private MINIMUM_STATS_CHANGE_PRICE = 10000000000000;
-    uint8 constant private MAX_STATS_VALUE = 255;
-    uint64 constant private MAX_POKEMON_NUM = 151;
+    uint8 constant private MAX_STATS_VALUE = 254;
+
 
     // To generate random numbers
     VRFCoordinatorV2Interface immutable private i_vrfCoordinator;
@@ -61,8 +61,8 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
     /* Events */
 
     event BuddyFightersNFTNftMinted(address indexed owner, uint8[6] indexed tknStats, uint256 indexed tokenId);
-    event BuddyFightersNFTPokemonMixNumbersGenerated(uint256[] indexed numbers);
-    event BuddyFightersNFTStatsGenerated(uint256[] indexed stats);
+    event BuddyFightersNFTStatsGenerated(uint8[6] indexed stats, uint256 indexed tokenID);
+    event BuddyFightersNFTStatsImproved(uint8[6] indexed newStats, uint8 quantityAdded, uint256 indexed tokenID);
 
 
     /* Modifiers */
@@ -157,7 +157,6 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
     function getLastNFTId() external view returns(uint256) { return s_ntfCounter - 1; }
 
 
-    //TODO
     function improveStat(uint256 _nftID, uint256 _attribute, uint8 _quantity) public payable {
         if(msg.value < MINIMUM_STATS_CHANGE_PRICE) { revert MinimumPriceNotPayed(); }
 
@@ -166,16 +165,18 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
         }else {
             s_nftIdToAttributes[_nftID].stats[_attribute] += _quantity;
         }
+        emit BuddyFightersNFTStatsImproved(s_nftIdToAttributes[_nftID].stats, _quantity, s_ntfCounter);
     }
 
 
     function fulfillRandomWords(uint256 /*requestId*/, uint256[] memory randomWords) internal virtual override {
-        s_nftIdToAttributes[s_ntfCounter].stats[0] = uint8(randomWords[0]%(MAX_STATS_VALUE-1)) + 1;
-        s_nftIdToAttributes[s_ntfCounter].stats[1] = uint8(randomWords[1]%(MAX_STATS_VALUE-1)) + 1; 
-        s_nftIdToAttributes[s_ntfCounter].stats[2] = uint8(randomWords[2]%(MAX_STATS_VALUE-1)) + 1; 
-        s_nftIdToAttributes[s_ntfCounter].stats[3] = uint8(randomWords[3]%(MAX_STATS_VALUE-1)) + 1; 
-        s_nftIdToAttributes[s_ntfCounter].stats[4] = uint8(randomWords[4]%(MAX_STATS_VALUE-1)) + 1; 
-        s_nftIdToAttributes[s_ntfCounter].stats[5] = uint8(randomWords[5]%(MAX_STATS_VALUE-1)) + 1; 
+        s_nftIdToAttributes[s_ntfCounter].stats[0] = uint8(randomWords[0]%(MAX_STATS_VALUE)) + 1;
+        s_nftIdToAttributes[s_ntfCounter].stats[1] = uint8(randomWords[1]%(MAX_STATS_VALUE)) + 1; 
+        s_nftIdToAttributes[s_ntfCounter].stats[2] = uint8(randomWords[2]%(MAX_STATS_VALUE)) + 1; 
+        s_nftIdToAttributes[s_ntfCounter].stats[3] = uint8(randomWords[3]%(MAX_STATS_VALUE)) + 1; 
+        s_nftIdToAttributes[s_ntfCounter].stats[4] = uint8(randomWords[4]%(MAX_STATS_VALUE)) + 1; 
+        s_nftIdToAttributes[s_ntfCounter].stats[5] = uint8(randomWords[5]%(MAX_STATS_VALUE)) + 1; 
+        emit BuddyFightersNFTStatsGenerated(s_nftIdToAttributes[s_ntfCounter].stats, s_ntfCounter);
     }
 
 
