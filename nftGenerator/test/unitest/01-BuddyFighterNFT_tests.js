@@ -185,8 +185,8 @@ describe("BuddyFigthersNFT.sol tests", function () {
 
             quanitityAdded = 127
             for(i = 0; i < stats.length; i++) {
-                expect(buddyFightersNFTContract.improveStat("0", i, quanitityAdded, {value: ethers.utils.parseEther("0.001")})
-                ).revertedWithCustomError(buddyFightersNFTContract, "MinimumPriceNotPayed")
+                expect(buddyFightersNFTContract.improveStat("0", i, quanitityAdded, {value: ethers.utils.parseEther("0.01")})
+                ).to.be.revertedWithCustomError(buddyFightersNFTContract, "MinimumPriceNotPayed")
             }
         })
 
