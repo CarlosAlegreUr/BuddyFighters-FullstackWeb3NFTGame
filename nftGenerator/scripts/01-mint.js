@@ -2,6 +2,8 @@ const { ethers } = require("hardhat")
 // const { deployer } = require("../deploy/deployer")
 const { buddyFightersNFTContract } = require("../deploy/01-deployBuddyFighterNFT")
 
+
+/* Mints NFT and if desired, stores NFT's image on IPFS. */
 async function mintNFT() {
     let buddyFightersNFTContract = await ethers.getContractAt("BuddyFightersNFT", buddyFightersNFTContract.address)
     console.log(buddyFightersNFTContract)

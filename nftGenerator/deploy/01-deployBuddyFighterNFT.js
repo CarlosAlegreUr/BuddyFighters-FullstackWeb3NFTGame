@@ -47,7 +47,10 @@ async function deployBuddyFightersNFT() {
 		networkConfig[network.config.chainId]["callBackHashLimit"]
 	)
 	await buddyFightersNFTContract.deployed()
-	
+
+	// subs = await VRFCoordinatorV2MockContract.getSubscription(ethers.utils.formatUnits(vrfSubsId, 0))
+	// response = await VRFCoordinatorV2MockContract.addConsumer(ethers.utils.formatUnits(vrfSubsId, 0), buddyFightersNFTContract.address)
+
 	// Verify on Etherscan if deployed on Rinkeby.
 	if(process.env.ETHERSCAN_API_KEY && network.config.chainId == networks.rinkeby.chainId) {
 		await buddyFightersNFTContract.deployTransaction.wait(6)

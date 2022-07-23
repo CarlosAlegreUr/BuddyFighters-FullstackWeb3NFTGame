@@ -48,8 +48,8 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
         // SVG image
 
         // n1 -> Face . n2 -> Boddy
-        uint8 pkm_n1; 
-        uint8 pkm_n2;
+        uint8 pkmN1; 
+        uint8 pkmN2;
         uint8 rarity;
 
         // [0] -> hp; [1] -> attck; [2] -> spclAttck; 
@@ -112,8 +112,8 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
         nftTraits memory attributes;
         
         attributes.name = _name;
-        attributes.pkm_n1 = _pkmonNumbers[0];
-        attributes.pkm_n2 = _pkmonNumbers[1];
+        attributes.pkmN1 = _pkmonNumbers[0];
+        attributes.pkmN2 = _pkmonNumbers[1];
         attributes.rarity = setRarity(_pkmonNumbers);
         if(_onBlockhain)
             attributes.svgImgae = _svgImage;
@@ -143,6 +143,12 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
     }
 
 
+    // Returns attributes of NFT stored in the blockchain. 
+    function getAttributes(uint256 _nftID) external view nftDoesntExist(_nftID) returns(nftTraits memory) {
+        return s_nftIdToAttributes[_nftID];
+    }
+
+
     function getRarity(uint256 _nftId) external view returns(uint8){
         return s_nftIdToAttributes[_nftId].rarity;
     }
@@ -155,8 +161,8 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
     function improveStat(uint256 _nftID, uint256 _attribute, uint8 _quantity) public payable {
         if(msg.value < MINIMUM_STATS_CHANGE_PRICE) { revert MinimumPriceNotPayed(); }
 
-        if((s_nftIdToAttributes[_nftID].stats[_attribute] + _quantity) > 255){
-            s_nftIdToAttributes[_nftID].stats[_attribute] = 255;
+        if((uint256(s_nftIdToAttributes[_nftID].stats[_attribute]) + uint256(_quantity)) > 254){
+            s_nftIdToAttributes[_nftID].stats[_attribute] = 254;
         }else {
             s_nftIdToAttributes[_nftID].stats[_attribute] += _quantity;
         }
@@ -164,12 +170,12 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
 
 
     function fulfillRandomWords(uint256 /*requestId*/, uint256[] memory randomWords) internal virtual override {
-        s_nftIdToAttributes[s_ntfCounter].stats[0] = uint8(randomWords[0]%MAX_POKEMON_NUM);
-        s_nftIdToAttributes[s_ntfCounter].stats[1] = uint8(randomWords[1]%MAX_POKEMON_NUM); 
-        s_nftIdToAttributes[s_ntfCounter].stats[2] = uint8(randomWords[2]%MAX_POKEMON_NUM); 
-        s_nftIdToAttributes[s_ntfCounter].stats[3] = uint8(randomWords[3]%MAX_POKEMON_NUM); 
-        s_nftIdToAttributes[s_ntfCounter].stats[4] = uint8(randomWords[4]%MAX_POKEMON_NUM); 
-        s_nftIdToAttributes[s_ntfCounter].stats[5] = uint8(randomWords[5]%MAX_POKEMON_NUM); 
+        s_nftIdToAttributes[s_ntfCounter].stats[0] = uint8(randomWords[0]%(MAX_STATS_VALUE-1)) + 1;
+        s_nftIdToAttributes[s_ntfCounter].stats[1] = uint8(randomWords[1]%(MAX_STATS_VALUE-1)) + 1; 
+        s_nftIdToAttributes[s_ntfCounter].stats[2] = uint8(randomWords[2]%(MAX_STATS_VALUE-1)) + 1; 
+        s_nftIdToAttributes[s_ntfCounter].stats[3] = uint8(randomWords[3]%(MAX_STATS_VALUE-1)) + 1; 
+        s_nftIdToAttributes[s_ntfCounter].stats[4] = uint8(randomWords[4]%(MAX_STATS_VALUE-1)) + 1; 
+        s_nftIdToAttributes[s_ntfCounter].stats[5] = uint8(randomWords[5]%(MAX_STATS_VALUE-1)) + 1; 
     }
 
 
