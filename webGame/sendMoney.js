@@ -9,7 +9,8 @@ async function connect() {
             console.log("METAMASK DETECTED")
             await window.ethereum.request({ method: "eth_requestAccounts" })
             console.log("Connected")
-            document.getElementById("deployContract").innerHTML = "CONNECTED!!! (from index.js)"
+            document.getElementById("deployContract").innerHTML =
+                "CONNECTED!!! (from index.js)"
         } else {
             alert("METAMASK NOT DETECTED, PLEASE INSTALL IT")
         }
