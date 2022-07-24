@@ -179,6 +179,7 @@ describe("BuddyFigthersNFT.sol tests", function () {
         })
 
 
+        // TODO, TEST CODE IS WRONG
         it("If minimum price not payed, stats are not improved.", async  function () {
             await buddyFightersNFTContract.mintNFT("Fake_URI", "Fake_Name", 
             svgImage, [100,101], true, {value: minimumPriceToMint})

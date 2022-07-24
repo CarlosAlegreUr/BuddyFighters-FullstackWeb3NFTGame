@@ -5,7 +5,8 @@
         2.1.- Add rarity to NFTs.
         2.2.- Breeding system.
         2.3.- Improve stats function.
-    3.- Tests for BuddyFightersNFT contract.
+    3.- Tests for BuddyFightersNFT contract => test  If minimum price not payed, stats are not improved not done
+                                            check except tutorial
     4.- Code for BuddyFightersNFT contract
         4.1.-Code for Mocks contracts.
 
