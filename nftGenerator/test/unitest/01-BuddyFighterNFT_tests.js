@@ -3,9 +3,6 @@ const { ethers } = require("hardhat")
 const { deployBuddyFightersNFT } = require("../../deploy/01-deployBuddyFighterNFT")
 
 
-const contractName = "BuddyFightersNFT"
-
-
 describe("BuddyFigthersNFT.sol tests", function () {
 
     let buddyFightersNFTContract

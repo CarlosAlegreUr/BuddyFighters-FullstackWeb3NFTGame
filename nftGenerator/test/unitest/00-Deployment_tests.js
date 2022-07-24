@@ -25,7 +25,8 @@ describe("Deployment tests", function () {
 
     it("Fight contract is deployed correctly", async function () {
         contractName = "Fight"
-        contract = await deployer.deployFightNFT()
+        accounts = await ethers.getSigners() 
+        contract = await deployer.deployFight(accounts[0].address, accounts[1].address, 0, 1)
         const contractDeployed = await ethers.getContractAt(contractName, contract.address)
         assert.equal(contractDeployed.address, contract.address)
     })
