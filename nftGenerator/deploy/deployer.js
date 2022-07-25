@@ -1,5 +1,5 @@
 const { deployMocks } = require("./00-deployMocks")
-const { deployBuddyFightersNFT } = require("./01-deployBuddyFighterNFT")
+const { deployBuddyFightersNFT } = require("./01-deployBuddyFightersNFT")
 const { deployFight } = require("./02-deployFight")
 
 

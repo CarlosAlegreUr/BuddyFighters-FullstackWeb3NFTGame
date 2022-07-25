@@ -1,6 +1,6 @@
 const { assert, expect } = require("chai")
 const { ethers } = require("hardhat")
-const { deployBuddyFightersNFT } = require("../../deploy/01-deployBuddyFighterNFT")
+const { deployBuddyFightersNFT } = require("../../deploy/01-deployBuddyFightersNFT")
 
 
 describe("BuddyFigthersNFT.sol tests", function () {
