@@ -12,7 +12,9 @@ async function connect() {
     try {
         if (typeof window.ethereum !== "undefined") {
             console.log("METAMASK DETECTED")
-            await window.ethereum.request({ method: "eth_requestAccounts" })
+            await window.ethereum.request({
+                method: "eth_requestAccounts",
+            })
             console.log("Connected")
             document.getElementById("deployContract").innerHTML = "CONNECTED"
         } else {
@@ -39,7 +41,7 @@ async function mint() {
         "0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc",
         [122, 132],
         true,
-        {value: ethers.utils.parseEther("0.01")}
+        { value: ethers.utils.parseEther("0.01") }
     )
     mintButton.innerHTML = "MINT SUCCESSFUL"
 }

@@ -8,7 +8,6 @@ describe("Fight.sol tests", function () {
 
     beforeEach(async function() { 
         accounts = await ethers.getSigners() 
-        console.log(accounts)
         nftIds = [0, 1, 2, 3, 4]
         FightContract = deployFight(accounts[0].address, accounts[1].address, 0, 1)
     })
