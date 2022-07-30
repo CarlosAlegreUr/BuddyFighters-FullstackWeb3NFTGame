@@ -5,14 +5,6 @@ const FRONT_END_ADDRESSES_FILE_LOCATION =
     "../webGame/constants/contractAddresses.json"
 const FRONT_END_ABIS_FILE_LOCATION = "../webGame/constants/abis.json"
 
-// module.exports = async function (contract, contractName) {
-//     if (process.env.UPDATE_FRONT_END) {
-//         console.log("Updating front-end...")
-//         updateContractAddresses(contract, contractName)
-//         updateContractAbis(contract, contractName)
-//     }
-// }
-
 module.exports = {
     updateFrontEndData: async function (contract, contractName) {
         if (process.env.UPDATE_FRONT_END) {
@@ -59,7 +51,7 @@ async function updateContractAddresses(contract, contractName) {
         address: contract.address,
     }
     if (chaindID in currentAddresses) {
-        if (!currentAddresses[chaindID].includes(contract.address)) {
+        if (currentAddresses[chaindID].includes(frontEndcontractInfo)) {
             currentAddresses[chaindID].push(frontEndcontractInfo)
         }
     } else {

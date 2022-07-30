@@ -1,4 +1,5 @@
 const { ethers } = require("hardhat")
+const {updateFrontEndData} = require("../update-front-end")
 
 async function deployFight(address1, address2, nftID1, nftID2) {
     // Hardcoded for some testing execution
@@ -15,6 +16,7 @@ async function deployFight(address1, address2, nftID1, nftID2) {
         nftID2
     )
     await FightContract.deployed()
+    await updateFrontEndData(FightContract, "Fight")
 
     return FightContract
 }
