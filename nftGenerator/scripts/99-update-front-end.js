@@ -2,7 +2,7 @@ const { ethers, network } = require("hardhat")
 const fs = require("fs")
 
 const FRONT_END_ADDRESSES_FILE_LOCATION =
-    "../../webGame/constants/contractAddresses.json"
+    "../../webGame/constants/contractAddresses"
 const FRONT_END_ABIS_FILE_LOCATION = "../../webGame/constants/abis.json"
 
 // module.exports = async function (contract, contractName) {
@@ -20,14 +20,16 @@ module.exports = {
             updateContractAddresses(contract, contractName)
             updateContractAbis(contract, contractName)
         }
-    }
+    },
 }
 
 async function updateContractAbis(contract, contractName) {
     // const currentAbis = JSON.parse(
-        // fs.readFileSync(FRONT_END_ABIS_FILE_LOCATION, "utf-8")
+        // fs.readFileSync(FRONT_END_ABIS_FILE_LOCATION),
+        // "utf-8"
     // )
-    const currentAbis = require(FRONT_END_ABIS_FILE_LOCATION)    
+
+    const currentAbis = require(FRONT_END_ABIS_FILE_LOCATION)
     const chaindID = network.config.chainId.toString()
     const frontEndcontractInfo = {
         contractName: contractName,
@@ -48,9 +50,10 @@ async function updateContractAbis(contract, contractName) {
 
 async function updateContractAddresses(contract, contractName) {
     // const currentAddresses = JSON.parse(
-        // fs.readFileSync(FRONT_END_ADDRESSES_FILE_LOCATION, "utf-8")
+        // fs.readFileSync("FRONT_END_ADDRESSES_FILE_LOCATION"),
+        // "utf-8"
     // )
-    const currentAddresses = require("../../webGame/constants/contractAddresses.json")
+    const currentAddresses = require(FRONT_END_ADDRESSES_FILE_LOCATION)
     const chaindID = network.config.chainId.toString()
     const frontEndcontractInfo = {
         contractName: contractName,
