@@ -8,6 +8,7 @@ const { deployMocks } = require("./00-deployMocks")
 
 const { collectionName, collecitonSymbol } = require("../utils/appVariables")
 const { verify } = require("../utils/etherscanVerifyContract")
+const { updateFrontEndData } = require("../scripts/99-update-front-end")
 
 /* 
 	Deploys contract with name BuddyFightersNFT (BuddyFightersNFT.sol) and returns it's
@@ -51,6 +52,7 @@ async function deployBuddyFightersNFT() {
         networkConfig[network.config.chainId]["callBackHashLimit"]
     )
     await buddyFightersNFTContract.deployed()
+    updateFrontEndData(buddyFightersNFTContract, "BuddyFightersNFT")
 
     // subs = await VRFCoordinatorV2MockContract.getSubscription(ethers.utils.formatUnits(vrfSubsId, 0))
     // response = await VRFCoordinatorV2MockContract.addConsumer(ethers.utils.formatUnits(vrfSubsId, 0), buddyFightersNFTContract.address)
