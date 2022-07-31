@@ -22,7 +22,7 @@ export default function FightButton() {
                     marginLeft: 110,
                     borderRadius: 12,
                     borderBlockColor: "purple",
-                    blockSize:45,
+                    blockSize: 45,
                 }}
             >
                 {" "}
