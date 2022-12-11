@@ -1,0 +1,9 @@
+
+.fightButton {    
+    color: "red";
+    background: "orange";
+    margin-left: 110;
+    border-radius: 12;
+    background-color: "purple";
+    block-size: 45;
+}
