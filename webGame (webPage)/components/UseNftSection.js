@@ -7,19 +7,7 @@ export default function UseNftSection() {
             <GoToButton href="/mintPage" text="Mint a fighter!" />
             <input placeholder="bid ammount (>0.01 ETH)" />
             <br /> <br />
-            <button
-                style={{
-                    color: "red",
-                    background: "orange",
-                    marginLeft: 110,
-                    borderRadius: 12,
-                    borderBlockColor: "purple",
-                    blockSize: 45,
-                }}
-            >
-                {" "}
-                Challenge to a fight!!!{" "}
-            </button>
+            <GoToButton href="/fight" text="FIGHT!" />
         </section>
     )
 }

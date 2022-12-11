@@ -30,10 +30,10 @@
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
-    "/mintPage": [
+    "/fight": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/mintPage.js"
+      "static/chunks/pages/fight.js"
     ]
   },
   "ampFirstPages": []
