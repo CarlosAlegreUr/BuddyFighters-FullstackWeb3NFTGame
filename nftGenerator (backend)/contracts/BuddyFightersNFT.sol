@@ -13,10 +13,10 @@ import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 // -Generate random stats for minted NFT's.
 // -Fix NFT price to 50$.
 
-error NftDoesntExist();
-error MinimumPriceNotPayed();
-error NameTooLong();
-error NameTooShort();
+error BuddyFightersNFT__NftDoesntExist();
+error BuddyFightersNFT__MinimumPriceNotPayed();
+error BuddyFightersNFT__NameTooLong();
+error BuddyFightersNFT__NameTooShort();
 
 contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
     /* State variables */
@@ -41,7 +41,7 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
     struct nftTraits {
         // Add SVG image value for the NFT image representation (may add outside attributes???)
         string name;
-        bytes32 svgImgae;
+        bytes32 svgImage;
         // SVG image
 
         // n1 -> Face . n2 -> Boddy
@@ -73,9 +73,9 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
     /* Modifiers */
 
     // Checks if an NFT's ID has already been created.
-    modifier nftDoesntExist(uint256 _nftID) {
+    modifier BuddyFightersNFT__nftDoesntExist(uint256 _nftID) {
         if (_nftID > s_ntfCounter) {
-            revert NftDoesntExist();
+            revert BuddyFightersNFT__NftDoesntExist();
         }
         _;
     }
@@ -119,13 +119,13 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
         bool _onBlockhain
     ) external payable returns (nftTraits memory) {
         if (msg.value < MINIMUM_MINT_PRICE) {
-            revert MinimumPriceNotPayed();
+            revert BuddyFightersNFT__MinimumPriceNotPayed();
         }
         if (bytes(_name).length > 30) {
-            revert NameTooLong();
+            revert BuddyFightersNFT__NameTooLong();
         }
         if (bytes(_name).length < 1) {
-            revert NameTooShort();
+            revert BuddyFightersNFT__NameTooShort();
         }
 
         nftTraits memory attributes;
@@ -134,13 +134,13 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
         attributes.pkmN1 = _pkmonNumbers[0];
         attributes.pkmN2 = _pkmonNumbers[1];
         attributes.rarity = setRarity(_pkmonNumbers);
-        if (_onBlockhain) attributes.svgImgae = _svgImage;
+        if (_onBlockhain) attributes.svgImage = _svgImage;
 
         s_nftIdToAttributes[s_ntfCounter] = attributes;
         i_vrfCoordinator.requestRandomWords(
             i_keyHashGasLimit,
             i_vrfSubsId,
-            3,
+            1, //maybe try 1
             i_callBackGasLimit,
             6
         );
@@ -161,19 +161,19 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
     function storeSvgImageInBlockchain(uint256 _nftID, bytes32 _svgImage)
         external
         payable
-        nftDoesntExist(_nftID)
+        BuddyFightersNFT__nftDoesntExist(_nftID)
     {
         if (msg.value < MINIMUM_IMAGE_STORE_PRICE) {
-            revert MinimumPriceNotPayed();
+            revert BuddyFightersNFT__MinimumPriceNotPayed();
         }
-        s_nftIdToAttributes[_nftID].svgImgae = _svgImage;
+        s_nftIdToAttributes[_nftID].svgImage = _svgImage;
     }
 
     // Returns stats of NFT whose stats are stored in the blockchain.
     function getStats(uint256 _nftID)
         external
         view
-        nftDoesntExist(_nftID)
+        BuddyFightersNFT__nftDoesntExist(_nftID)
         returns (uint8[6] memory)
     {
         return s_nftIdToAttributes[_nftID].stats;
@@ -183,7 +183,7 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
     function getAttributes(uint256 _nftID)
         external
         view
-        nftDoesntExist(_nftID)
+        BuddyFightersNFT__nftDoesntExist(_nftID)
         returns (nftTraits memory)
     {
         return s_nftIdToAttributes[_nftID];
@@ -203,7 +203,7 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
         uint8 _quantity
     ) public payable {
         if (msg.value < MINIMUM_STATS_CHANGE_PRICE) {
-            revert MinimumPriceNotPayed();
+            revert BuddyFightersNFT__MinimumPriceNotPayed();
         }
 
         if (
@@ -224,7 +224,7 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
     function fulfillRandomWords(
         uint256 /*requestId*/, 
         uint256[] memory randomWords
-    ) internal virtual override {
+    ) internal override {
         s_nftIdToAttributes[s_ntfCounter].stats[0] =
             uint8(randomWords[0] % (MAX_STATS_VALUE)) +
             1;

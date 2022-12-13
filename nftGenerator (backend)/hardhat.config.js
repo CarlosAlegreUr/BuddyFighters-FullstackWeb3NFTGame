@@ -4,6 +4,7 @@ require("@nomiclabs/hardhat-etherscan")
 require("./tasks/tasks")
 require("hardhat-gas-reporter")
 require("solidity-coverage")
+require("hardhat-deploy")
 
 const RINKEBY_RPC_URL = process.env.RINKEBY_RPC_URL
 const RINKEBY_SK_01 = process.env.RINKEBY_SK_01
