@@ -41,7 +41,7 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
     struct nftTraits {
         // Add SVG image value for the NFT image representation (may add outside attributes???)
         string name;
-        bytes32 svgImgae;
+        bytes32 svgImage;
         // SVG image
 
         // n1 -> Face . n2 -> Boddy
@@ -134,13 +134,13 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
         attributes.pkmN1 = _pkmonNumbers[0];
         attributes.pkmN2 = _pkmonNumbers[1];
         attributes.rarity = setRarity(_pkmonNumbers);
-        if (_onBlockhain) attributes.svgImgae = _svgImage;
+        if (_onBlockhain) attributes.svgImage = _svgImage;
 
         s_nftIdToAttributes[s_ntfCounter] = attributes;
         i_vrfCoordinator.requestRandomWords(
             i_keyHashGasLimit,
             i_vrfSubsId,
-            3,
+            1, //maybe try 1
             i_callBackGasLimit,
             6
         );
@@ -166,7 +166,7 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
         if (msg.value < MINIMUM_IMAGE_STORE_PRICE) {
             revert BuddyFightersNFT__MinimumPriceNotPayed();
         }
-        s_nftIdToAttributes[_nftID].svgImgae = _svgImage;
+        s_nftIdToAttributes[_nftID].svgImage = _svgImage;
     }
 
     // Returns stats of NFT whose stats are stored in the blockchain.
@@ -224,7 +224,7 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
     function fulfillRandomWords(
         uint256 /*requestId*/, 
         uint256[] memory randomWords
-    ) internal virtual override {
+    ) internal override {
         s_nftIdToAttributes[s_ntfCounter].stats[0] =
             uint8(randomWords[0] % (MAX_STATS_VALUE)) +
             1;

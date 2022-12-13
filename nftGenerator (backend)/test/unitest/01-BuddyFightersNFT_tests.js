@@ -10,7 +10,10 @@ describe("BuddyFigthersNFT.sol tests", function () {
     let minimumPriceToMint
 
     beforeEach(async function () {
-        await ethers.getContract("BuddyFightersNFT", deployer)
+        buddyFightersNFTContract = await ethers.getContract(
+            "BuddyFightersNFT",
+            deployer
+        )
         // svgImage = rndm bytes32 value
         svgImage =
             "0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc"
@@ -20,7 +23,6 @@ describe("BuddyFigthersNFT.sol tests", function () {
     describe("Minting tests", function () {
         it("Mints NFT's with different ID's, each ID=previous ID+1", async () => {
             // NFT minted and stats saved on chain
-            first_ID = 0
             await buddyFightersNFTContract.mintNFT(
                 "Fake_URI",
                 "Fake_Name",
@@ -29,8 +31,16 @@ describe("BuddyFigthersNFT.sol tests", function () {
                 true,
                 { value: minimumPriceToMint }
             )
-            second_ID = await buddyFightersNFTContract.getLastNFTId()
-
+            let first_ID = await buddyFightersNFTContract.getLastNFTId()
+            await buddyFightersNFTContract.mintNFT(
+                "Fake_URI",
+                "Fake_Name",
+                svgImage,
+                [100, 101],
+                true,
+                { value: minimumPriceToMint }
+            )
+            let second_ID = await buddyFightersNFTContract.getLastNFTId()
             assert.notEqual(first_ID.toString(), second_ID.toString())
             assert.equal(first_ID.add(1).toString(), second_ID.toString())
 
@@ -43,7 +53,7 @@ describe("BuddyFigthersNFT.sol tests", function () {
                 false,
                 { value: minimumPriceToMint }
             )
-            third_ID = await buddyFightersNFTContract.getLastNFTId()
+            let third_ID = await buddyFightersNFTContract.getLastNFTId()
 
             assert.notEqual(second_ID.toString(), third_ID.toString())
             assert.equal(second_ID.add(1).toString(), third_ID.toString())
@@ -51,7 +61,7 @@ describe("BuddyFigthersNFT.sol tests", function () {
 
         it("When minting, NFT's attributes/traits are on the blockchain.", async function () {
             payed = ethers.utils.parseEther("0.01")
-            await buddyFightersNFTContract.mintNFT(
+            const txResponse = await buddyFightersNFTContract.mintNFT(
                 "Fake_URI",
                 "NameOfNftAt0",
                 svgImage,
@@ -59,8 +69,12 @@ describe("BuddyFigthersNFT.sol tests", function () {
                 true,
                 { value: payed }
             )
-            stats = await buddyFightersNFTContract.getAttributes("0")
-            tokenURI = await buddyFightersNFTContract.tokenURI("0")
+            const txReceipt = await txResponse.wait(1)
+            const nftId = txReceipt.events[2].args[2]
+            stats = await buddyFightersNFTContract.getAttributes(
+                nftId.toString()
+            )
+            tokenURI = await buddyFightersNFTContract.tokenURI(nftId.toString())
             assert.equal(stats.name, "NameOfNftAt0")
             assert.equal(stats.svgImage, svgImage)
             assert.equal(stats.pkmN1, 100)
@@ -70,7 +84,7 @@ describe("BuddyFigthersNFT.sol tests", function () {
 
         it("When minting, if not desired, NFT's image is not on blockchain.", async function () {
             payed = ethers.utils.parseEther("0.01")
-            await buddyFightersNFTContract.mintNFT(
+            const txResponse = await buddyFightersNFTContract.mintNFT(
                 "Fake_URI",
                 "NameOfNftAt0",
                 svgImage,
@@ -78,7 +92,11 @@ describe("BuddyFigthersNFT.sol tests", function () {
                 false,
                 { value: payed }
             )
-            stats = await buddyFightersNFTContract.getAttributes("0")
+            const txReceipt = await txResponse.wait(1)
+            const nftId = txReceipt.events[2].args[2]
+            stats = await buddyFightersNFTContract.getAttributes(
+                nftId.toString()
+            )
             assert.equal(stats.svgImage, undefined)
         })
 
@@ -94,7 +112,7 @@ describe("BuddyFigthersNFT.sol tests", function () {
                 )
             ).revertedWithCustomError(
                 buddyFightersNFTContract,
-                "MinimumPriceNotPayed"
+                "BuddyFightersNFT__MinimumPriceNotPayed"
             )
         })
 
@@ -108,7 +126,10 @@ describe("BuddyFigthersNFT.sol tests", function () {
                     true,
                     { value: ethers.utils.parseEther("0.01") }
                 )
-            ).revertedWithCustomError(buddyFightersNFTContract, "NameTooLong")
+            ).revertedWithCustomError(
+                buddyFightersNFTContract,
+                "BuddyFightersNFT__NameTooLong"
+            )
 
             await expect(
                 buddyFightersNFTContract.mintNFT(
@@ -119,7 +140,10 @@ describe("BuddyFigthersNFT.sol tests", function () {
                     true,
                     { value: ethers.utils.parseEther("0.01") }
                 )
-            ).revertedWithCustomError(buddyFightersNFTContract, "NameTooShort")
+            ).revertedWithCustomError(
+                buddyFightersNFTContract,
+                "BuddyFightersNFT__NameTooShort"
+            )
         })
 
         it("Rarity calculated correctly.", async function () {
@@ -184,7 +208,7 @@ describe("BuddyFigthersNFT.sol tests", function () {
 
     describe("Random number generation tests", function () {
         it("Stats are generated in range [1, 255].", async function () {
-            await buddyFightersNFTContract.mintNFT(
+            const txResponse = await buddyFightersNFTContract.mintNFT(
                 "Fake_URI",
                 "Fake_Name",
                 svgImage,
@@ -192,7 +216,11 @@ describe("BuddyFigthersNFT.sol tests", function () {
                 true,
                 { value: minimumPriceToMint }
             )
-            stats = await buddyFightersNFTContract.getAttributes("0")
+            const txReceipt = await txResponse.wait(1)
+            const nftId = txReceipt.events[2].args[2]
+            stats = await buddyFightersNFTContract.getAttributes(
+                nftId.toString()
+            )
             for (stat in stats.stats) {
                 assert.notEqual(stat, "0")
             }
@@ -280,7 +308,7 @@ describe("BuddyFigthersNFT.sol tests", function () {
                     )
                 ).to.be.revertedWithCustomError(
                     buddyFightersNFTContract,
-                    "MinimumPriceNotPayed"
+                    "BuddyFightersNFT__MinimumPriceNotPayed"
                 )
             }
         })
