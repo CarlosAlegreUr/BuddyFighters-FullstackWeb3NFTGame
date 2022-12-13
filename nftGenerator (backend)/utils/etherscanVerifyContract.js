@@ -1,16 +1,15 @@
-const { etherscan } = require("@nomiclabs/hardhat-etherscan")
 const { run } = require("hardhat")
 
 async function verify(contractAddress, args) {
-    console.log("Verifying contract...")   
+    console.log("Verifying contract...")
     try {
         await run("verify:verify", {
             address: contractAddress,
             constructorArguments: args,
         })
-        console.log("Contract verified!")
-    }catch(error) {
-        if(error.message.toLowerCase().includes("already verifyed")) {
+        console.log(`Contract at ${contractAddress} got verified!`)
+    } catch (error) {
+        if (error.message.toLowerCase().includes("already verifyed")) {
             console.log("Already verified.")
         } else {
             console.log(error)

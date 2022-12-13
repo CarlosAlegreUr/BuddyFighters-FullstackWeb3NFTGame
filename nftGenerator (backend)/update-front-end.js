@@ -2,8 +2,8 @@ const { ethers, network } = require("hardhat")
 const fs = require("fs")
 
 const FRONT_END_ADDRESSES_FILE_LOCATION =
-    "../webGame/constants/contractAddresses.json"
-const FRONT_END_ABIS_FILE_LOCATION = "../webGame/constants/contractsAbis.json"
+    "../webGame (webPage)/constants/contractAddresses.json"
+const FRONT_END_ABIS_FILE_LOCATION = "../webGame (webPage)/constants/contractsAbis.json"
 
 module.exports = {
     updateFrontEndData: async function (contract, contractName) {

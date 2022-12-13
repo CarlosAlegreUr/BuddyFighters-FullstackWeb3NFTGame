@@ -6,6 +6,7 @@ typechain
 typechain-types
 .prettierrc
 .prettierignore
+.next
 
 #Hardhat files
 cache

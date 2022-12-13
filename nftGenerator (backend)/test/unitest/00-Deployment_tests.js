@@ -1,13 +1,15 @@
 const { assert } = require("chai")
-const { ethers } = require("hardhat")
-const { deployer } = require("../../deploy/deployer")
+const { ethers, getNamedAccounts, deployments } = require("hardhat")
 
 describe("Deployment tests", function () {
-    let contract, contractName
+    const { deploy } = deployments
+    const { deployer } = getNamedAccounts()
+    let contract, contractName, args
 
-    it("Mocks contracts are deployed correctly", async function () {
-        contractName = "VRFCoordinatorV2Mock"
-        contract = await deployer.deployMocks()
+    it("Mocks' contracts are deployed correctly", async function () {
+        contractName = "VRFCoordinatorV2Mock"    
+        await deployments.fixture(["mocks"])
+        contract = await deployments.get(contractName)
         const contractDeployed = await ethers.getContractAt(
             contractName,
             contract.address
@@ -16,8 +18,9 @@ describe("Deployment tests", function () {
     })
 
     it("BuddyFightersNFT contract is deployed correctly", async function () {
-        contractName = "BuddyFightersNFT"
-        contract = await deployer.deployBuddyFightersNFT()
+        contractName = "BuddyFightersNFT"    
+        await deployments.fixture(["buddyfighters"])
+        contract = await deployments.get(contractName)
         const contractDeployed = await ethers.getContractAt(
             contractName,
             contract.address
@@ -26,18 +29,7 @@ describe("Deployment tests", function () {
     })
 
     it("Fight contract is deployed correctly", async function () {
-        contractName = "Fight"
-        accounts = await ethers.getSigners()
-        contract = await deployer.deployFight(
-            accounts[0].address,
-            accounts[1].address,
-            0,
-            1
-        )
-        const contractDeployed = await ethers.getContractAt(
-            contractName,
-            contract.address
-        )
-        assert.equal(contractDeployed.address, contract.address)
+        // TODO
+        assert.equal(1 === 0)
     })
 })
