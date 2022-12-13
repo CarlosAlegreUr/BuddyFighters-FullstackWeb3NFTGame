@@ -1,65 +1,42 @@
 const { ethers, network } = require("hardhat")
 const fs = require("fs")
 
-const FRONT_END_ADDRESSES_FILE_LOCATION =
-    "../webGame (webPage)/constants/contractAddresses.json"
-const FRONT_END_ABIS_FILE_LOCATION = "../webGame (webPage)/constants/contractsAbis.json"
+const FRONT_END_CONTRACTS_INFO_FILE_LOCATION =
+    "../webGame (webPage)/constants/contractsInfo.json"
 
 module.exports = {
     updateFrontEndData: async function (contract, contractName) {
         if (process.env.UPDATE_FRONT_END) {
-            updateContractAddresses(contract, contractName)
-            updateContractAbis(contract, contractName)
+            updateContractInfo(contract, contractName)
         }
     },
 }
 
-async function updateContractAbis(contract, contractName) {
-    const currentAbis = JSON.parse(
-        fs.readFileSync(FRONT_END_ABIS_FILE_LOCATION),
-        "utf-8"
-    )
-    // const currentAbis = require(FRONT_END_ABIS_FILE_LOCATION)
-    const chaindID = network.config.chainId.toString()
-    const frontEndcontractInfo = {
-        contractName: contractName,
-        abi: contract.interface,
-    }
-    if (chaindID in currentAbis) {
-        if (!currentAbis[chaindID].includes(contract.interface)) {
-            await currentAbis[chaindID].push(frontEndcontractInfo)
-        }
-    } else {
-        currentAbis[chaindID] = [frontEndcontractInfo]
-    }
-    await fs.writeFileSync(
-        FRONT_END_ABIS_FILE_LOCATION,
-        JSON.stringify(currentAbis)
-    )
-}
-
-async function updateContractAddresses(contract, contractName) {
+async function updateContractInfo(contract, contractName) {
     const currentAddresses = JSON.parse(
-        fs.readFileSync(FRONT_END_ADDRESSES_FILE_LOCATION),
+        fs.readFileSync(FRONT_END_CONTRACTS_INFO_FILE_LOCATION),
         "utf-8"
     )
-    // const currentAddresses = require(FRONT_END_ADDRESSES_FILE_LOCATION)
     const chaindID = network.config.chainId.toString()
-    const frontEndcontractInfo = {
+    const frontEndContractInfo = {
         contractName: contractName,
         address: contract.address,
+        abi: contract.abi
     }
+    let needToWrite = true
     if (chaindID in currentAddresses) {
-        if (currentAddresses[chaindID].includes(frontEndcontractInfo)) {
-            currentAddresses[chaindID].push(frontEndcontractInfo)
-        }
+        currentAddresses[chaindID].forEach((contract) => {
+            if (contract.address === frontEndContractInfo.address)
+                needToWrite = false
+        })
+        currentAddresses[chaindID].push(frontEndContractInfo)
     } else {
-        currentAddresses[chaindID] = [frontEndcontractInfo]
+        currentAddresses[chaindID] = [frontEndContractInfo]
     }
-    fs.writeFileSync(
-        FRONT_END_ADDRESSES_FILE_LOCATION,
-        JSON.stringify(currentAddresses)
-    )
+    if (needToWrite) {
+        fs.writeFileSync(
+            FRONT_END_CONTRACTS_INFO_FILE_LOCATION,
+            JSON.stringify(currentAddresses)
+        )
+    }
 }
-
-// module.exports.tags = ["all", "frontend"]

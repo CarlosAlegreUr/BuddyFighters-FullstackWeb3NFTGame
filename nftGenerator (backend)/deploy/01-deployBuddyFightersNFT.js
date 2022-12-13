@@ -21,7 +21,6 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     if (developmentNets.includes(network.name)) {
         // Local network => Deploy mocks && create && fund subsciption to VRF
         nOfConfitmations = 1
-        // await deployments.fixture(["mocks"])
         VRFCoordinatorV2MockContract = await ethers.getContract(
             "VRFCoordinatorV2Mock",
             deployer

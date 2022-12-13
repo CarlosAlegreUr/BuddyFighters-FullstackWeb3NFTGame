@@ -32,4 +32,10 @@ describe("Deployment tests", function () {
         // TODO
         assert.equal(1 === 0)
     })
+
+    it("Contracts are verifyed on Etherscan correctly", async function() {
+        //TODO
+        // If local network function not called, if testnet then function called
+        // and verified.
+    })
 })
