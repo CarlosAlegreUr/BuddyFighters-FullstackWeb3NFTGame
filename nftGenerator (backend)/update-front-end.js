@@ -5,8 +5,6 @@ const FRONT_END_ADDRESSES_FILE_LOCATION =
     "../webGame (webPage)/constants/contractAddresses.json"
 const FRONT_END_ABIS_FILE_LOCATION = "../webGame (webPage)/constants/contractsAbis.json"
 
-const xd = "rmve"
-
 module.exports = {
     updateFrontEndData: async function (contract, contractName) {
         if (process.env.UPDATE_FRONT_END) {
