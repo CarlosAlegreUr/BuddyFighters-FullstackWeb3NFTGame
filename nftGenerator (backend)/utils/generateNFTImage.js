@@ -1,19 +1,38 @@
-// Doesn't work, problems with permission and paths.
+const Axios = require("axios")
+const fs = require("fs")
 
-const imageDownloader = require("image-downloader")
-const fetch = require("node-fetch")
- 
 async function getImageToCurrentFolder() {
-    urlBegin = "https://images.alexonsager.net/pokemon/fused/" 
-    const x = parseInt((Math.random() * 1000)%151)
-    const y = parseInt((Math.random() * 1000)%151)
-    const urlFinal = urlBegin + x + "/" + x + "." + y + ".png"
-    const options = {
-        url: urlFinal,
-        dest: './utils/image.png'
-    }
-    const image = await fetch(urlFinal)
-    imageDownloader.image(options)
+    const url = await createRandomPokemonUrl()
+    const response = await Axios({
+        method: "GET",
+        url: url,
+        responseType: "stream",
+    })
+    const path = "../pokemonImages/pokemonImage"
+    response.data.pipe(fs.createWriteStream(path))
+
+    return new Promise((resolve, reject) => {
+        response.data.on("end", () => {
+            resolve()
+        })
+
+        response.data.on("error", (error) => {
+            reject(error)
+        })
+    })
 }
- 
-getImageToCurrentFolder()
+
+async function createRandomPokemonUrl() {
+    urlBegin = "https://images.alexonsager.net/pokemon/fused/"
+    const x = parseInt((Math.random() * 1000) % 151)
+    const y = parseInt((Math.random() * 1000) % 151)
+    const urlFinal = urlBegin + x + "/" + x + "." + y + ".png"
+    return urlFinal
+}
+
+async function callIt() {
+    const result = await getImageToCurrentFolder()
+    console.log(result)
+}
+
+callIt()

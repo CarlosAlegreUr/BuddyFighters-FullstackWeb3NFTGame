@@ -140,7 +140,7 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
         i_vrfCoordinator.requestRandomWords(
             i_keyHashGasLimit,
             i_vrfSubsId,
-            1, //maybe try 1
+            3, //maybe try 1
             i_callBackGasLimit,
             6
         );

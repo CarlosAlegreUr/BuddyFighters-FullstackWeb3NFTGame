@@ -4,6 +4,7 @@ const fs = require("fs")
 const FRONT_END_CONTRACTS_INFO_FILE_LOCATION =
     "../webGame (webPage)/constants/contractsInfo.json"
 
+// Be careful with running this in localhost or command line hardhat network one after the other.
 module.exports = {
     updateFrontEndData: async function (contract, contractName) {
         if (process.env.UPDATE_FRONT_END) {
