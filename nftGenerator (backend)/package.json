@@ -23,6 +23,7 @@
   "dependencies": {
     "@chainlink/contracts": "^0.5.1",
     "@openzeppelin/contracts": "^4.7.0",
-    "axios": "^1.2.1"
+    "axios": "^1.2.1",
+    "express": "^4.18.2"
   }
 }

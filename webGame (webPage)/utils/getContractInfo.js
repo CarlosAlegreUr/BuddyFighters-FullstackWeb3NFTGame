@@ -1,21 +1,15 @@
-import { contractsAddresses, contractsAbis } from "../constants"
+import { contractsInfo } from "../constants"
 
 module.exports = {
     getContractAddress: function (chainId, contractName) {
-        const chainAddresses = contractsAddresses[chainId]
-        const size = contractsAddresses[chainId].length
-        for (let i = 0; i < size; i++) {
-            if(chainAddresses[i]["contractName"] === contractName)
-                return chainAddresses[i]["address"]
-        }
+        return contractsInfo[chainId].filter((contract) => {
+            if (contract.contractName === contractName) return contracts.address
+        })
     },
 
     getContractAbi: function (chainId, contractName) {
-        const chainAbis = contractsAbis[chainId]
-        const size = contractsAbis[chainId].length
-        for (let i = 0; i < size; i++) {
-            if(chainAbis[i]["contractName"] === contractName)
-                return chainAbis[i]["abi"]
-        }
+        return contractsInfo[chainId].filter((contract) => {
+            if (contract.contractName === contractName) return contracts.abi
+        })
     },
 }

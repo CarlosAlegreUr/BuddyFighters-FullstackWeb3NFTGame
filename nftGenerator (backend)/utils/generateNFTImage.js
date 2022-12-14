@@ -1,25 +1,18 @@
 const Axios = require("axios")
 const fs = require("fs")
+const { resolve } = require("path")
 
-async function getImageToCurrentFolder() {
-    const url = await createRandomPokemonUrl()
+async function createImageInPokemonImagesFolder() {
+    const { url, num1, num2 } = await createRandomPokemonUrl()
     const response = await Axios({
         method: "GET",
         url: url,
         responseType: "stream",
     })
-    const path = "../pokemonImages/pokemonImage"
-    response.data.pipe(fs.createWriteStream(path))
+    const path = resolve(__dirname, "pokemonImages", "pokemonImage")
+    await response.data.pipe(fs.createWriteStream(path))
 
-    return new Promise((resolve, reject) => {
-        response.data.on("end", () => {
-            resolve()
-        })
-
-        response.data.on("error", (error) => {
-            reject(error)
-        })
-    })
+    return { num1: num1, num2: num2 }
 }
 
 async function createRandomPokemonUrl() {
@@ -27,12 +20,16 @@ async function createRandomPokemonUrl() {
     const x = parseInt((Math.random() * 1000) % 151)
     const y = parseInt((Math.random() * 1000) % 151)
     const urlFinal = urlBegin + x + "/" + x + "." + y + ".png"
-    return urlFinal
+    return { url: urlFinal, num1: x, num2: y }
 }
 
-async function callIt() {
-    const result = await getImageToCurrentFolder()
-    console.log(result)
+module.exports = async () => {
+    const { num1, num2 } = await createImageInPokemonImagesFolder()
+    return [num1, num2]
 }
 
-callIt()
+// async function xd() {
+//     const res = await createImageInPokemonImagesFolder()
+// }
+
+// xd()
