@@ -40,3 +40,4 @@ describe("Deployment tests", function () {
         assert(1 == 0)
     })
 })
+

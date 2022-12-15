@@ -15,7 +15,7 @@ describe("BuddyFigthersNFT.sol tests", function () {
             "BuddyFightersNFT",
             deployer
         )
-        // svgImage = rndm bytes32 value
+        // svgImage => (for now rndm) bytes32 value
         svgImage =
             "0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc"
         minimumPriceToMint = ethers.utils.parseEther("0.01")
@@ -213,7 +213,8 @@ describe("BuddyFigthersNFT.sol tests", function () {
                 "Fake_URI",
                 "Fake_Name",
                 svgImage,
-                true
+                true,
+                minimumPriceToMint
             )
             const nftId = await txReceipt.events[2].args.tokenId
             stats = await buddyFightersNFTContract.getAttributes(
@@ -233,58 +234,60 @@ describe("BuddyFigthersNFT.sol tests", function () {
         })
 
         it("When improvig stats, correct quantity is added.", async function () {
-            await buddyFightersNFTContract.mintNFT(
+            const txReceipt = await mintNFT(
                 "Fake_URI",
                 "Fake_Name",
                 svgImage,
-                [100, 101],
                 true,
-                { value: minimumPriceToMint }
+                minimumPriceToMint
             )
-
-            prevStats = await buddyFightersNFTContract.getStats("0")
+            const nftId = txReceipt.events[2].args.tokenId
+            const { stats: prevStats } =
+                await buddyFightersNFTContract.getAttributes(nftId.toString())
 
             // Adding median quantity
             quanitityAdded = 127
-            for (i = 0; i < prevStats.length; i++) {
-                await buddyFightersNFTContract.improveStat(
-                    "0",
+            await prevStats.forEach(async (stat, i) => {
+                const txResponse = await buddyFightersNFTContract.improveStat(
+                    nftId,
                     i,
                     quanitityAdded,
                     { value: minPriceImproveStat }
                 )
-            }
+                await txResponse.wait(1)
+            })
 
-            newStats = await buddyFightersNFTContract.getStats("0")
-            for (i = 0; i < prevStats.length; i++) {
-                if (newStats[i] <= "254")
-                    assert.equal(prevStats[i] + quanitityAdded, newStats[i])
-                else assert.equal(prevStats[i], "254")
-            }
+            const { stats: newStats } =
+                await buddyFightersNFTContract.getAttributes(nftId.toString())
+            await prevStats.forEach((prevStat, i) => {
+                if (prevStat + quanitityAdded <= "254")
+                    assert.equal(prevStat + quanitityAdded, newStats[i])
+                else assert.equal("254", newStats[i])
+            })
 
-            // Trying to exceed 255
+            // Exceeding 254 (max quantity)
             quanitityAdded = 254
-            for (i = 0; i < prevStats.length; i++) {
+            await newStats.forEach(async (stat, i) => {
                 await buddyFightersNFTContract.improveStat(
-                    "0",
+                    nftId,
                     i,
                     quanitityAdded,
                     { value: minPriceImproveStat }
                 )
                 await buddyFightersNFTContract.improveStat(
-                    "0",
+                    nftId,
                     i,
                     quanitityAdded,
                     { value: minPriceImproveStat }
                 )
-            }
-
-            newStats = await buddyFightersNFTContract.getStats("0")
-            for (i = 0; i < prevStats.length; i++)
-                assert.equal(prevStats[i], "254")
+            })
+            const { stats: finalStats } =
+                await buddyFightersNFTContract.getAttributes(nftId.toString())
+            await finalStats.forEach((stat, i) => {
+                assert.equal(stat, "254")
+            })
         })
 
-        // TODO, TEST CODE IS WRONG
         it("If minimum price not payed, stats are not improved.", async function () {
             await buddyFightersNFTContract.mintNFT(
                 "Fake_URI",
@@ -296,7 +299,7 @@ describe("BuddyFigthersNFT.sol tests", function () {
             )
 
             quanitityAdded = 127
-            for (i = 0; i < stats.length; i++) {
+            for (i = 0; i < 6; i++) {
                 expect(
                     buddyFightersNFTContract.improveStat(
                         "0",

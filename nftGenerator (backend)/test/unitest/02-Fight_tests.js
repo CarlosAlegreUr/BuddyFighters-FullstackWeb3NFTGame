@@ -12,3 +12,4 @@ describe("Fight.sol tests", function () {
     })
 
 })
+

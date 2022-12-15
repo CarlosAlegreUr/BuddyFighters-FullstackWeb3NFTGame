@@ -3,7 +3,7 @@ const generateImageAndGetNumbers = require("../utils/generateNFTImage")
 const { developmentNets } = require("../helper-hardhat-config")
 
 // Mints NFT and returns the txReceipt in case of being needed.
-async function mintNft(nftUri, nftName, svgImage, saveOnBlockchain) {
+async function mintNft(nftUri, nftName, svgImage, saveOnBlockchain, ethPayed) {
     const { deployer } = await getNamedAccounts()
     const buddyFightersNFTContract = await ethers.getContract(
         "BuddyFightersNFT",
@@ -22,8 +22,8 @@ async function mintNft(nftUri, nftName, svgImage, saveOnBlockchain) {
         nftName,
         svgImage,
         pokemonNumbers,
-        true,
-        { value: ethers.utils.parseEther("0.01") }
+        saveOnBlockchain,
+        { value: ethPayed }
     )
     const txReceipt = await txResponse.wait(1)
 
@@ -33,10 +33,10 @@ async function mintNft(nftUri, nftName, svgImage, saveOnBlockchain) {
             txReceipt.events[2].args.reqId,
             buddyFightersNFTContract.address,
             [
-                Math.round(parseInt(Math.random() * 1000)),
-                Math.round(parseInt(Math.random() * 1000)),
-                Math.round(parseInt(Math.random() * 1000)),
-                Math.round(parseInt(Math.random() * 1000)),
+                0,
+                254,
+                256,
+                255,
                 Math.round(parseInt(Math.random() * 1000)),
                 Math.round(parseInt(Math.random() * 1000)),
             ]

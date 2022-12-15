@@ -168,18 +168,6 @@ contract BuddyFightersNFT is ERC721URIStorage, VRFConsumerBaseV2 {
         s_nftIdToAttributes[_nftID].svgImage = _svgImage;
     }
 
-    // Returns stats of NFT whose stats are stored in the blockchain.
-    function getStats(
-        uint256 _nftID
-    )
-        external
-        view
-        BuddyFightersNFT__nftDoesntExist(_nftID)
-        returns (uint8[6] memory)
-    {
-        return s_nftIdToAttributes[_nftID].stats;
-    }
-
     // Returns attributes of NFT stored in the blockchain.
     function getAttributes(
         uint256 _nftID
