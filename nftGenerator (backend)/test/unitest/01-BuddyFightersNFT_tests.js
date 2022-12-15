@@ -247,15 +247,15 @@ describe("BuddyFigthersNFT.sol tests", function () {
 
             // Adding median quantity
             quanitityAdded = 127
-            await prevStats.forEach(async (stat, i) => {
-                const txResponse = await buddyFightersNFTContract.improveStat(
+
+            for (const [index, stat] of prevStats.entries()) {
+                await buddyFightersNFTContract.improveStat(
                     nftId,
-                    i,
+                    index,
                     quanitityAdded,
                     { value: minPriceImproveStat }
                 )
-                await txResponse.wait(1)
-            })
+            }
 
             const { stats: newStats } =
                 await buddyFightersNFTContract.getAttributes(nftId.toString())
@@ -267,23 +267,23 @@ describe("BuddyFigthersNFT.sol tests", function () {
 
             // Exceeding 254 (max quantity)
             quanitityAdded = 254
-            await newStats.forEach(async (stat, i) => {
+            for (const [index, stat] of newStats.entries()) {
                 await buddyFightersNFTContract.improveStat(
                     nftId,
-                    i,
+                    index,
                     quanitityAdded,
                     { value: minPriceImproveStat }
                 )
                 await buddyFightersNFTContract.improveStat(
                     nftId,
-                    i,
+                    index,
                     quanitityAdded,
                     { value: minPriceImproveStat }
                 )
-            })
+            }
             const { stats: finalStats } =
                 await buddyFightersNFTContract.getAttributes(nftId.toString())
-            await finalStats.forEach((stat, i) => {
+            await finalStats.forEach((stat) => {
                 assert.equal(stat, "254")
             })
         })
