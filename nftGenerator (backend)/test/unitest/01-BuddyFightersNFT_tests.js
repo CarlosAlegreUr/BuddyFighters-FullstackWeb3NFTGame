@@ -1,5 +1,6 @@
 const { assert, expect } = require("chai")
 const { ethers, getNamedAccounts, deployments } = require("hardhat")
+const mintNFT = require("../../scripts/01-mint")
 
 describe("BuddyFigthersNFT.sol tests", function () {
     const { deploy } = deployments
@@ -70,7 +71,7 @@ describe("BuddyFigthersNFT.sol tests", function () {
                 { value: payed }
             )
             const txReceipt = await txResponse.wait(1)
-            const nftId = txReceipt.events[2].args[2]
+            const nftId = txReceipt.events[2].args.tokenId
             stats = await buddyFightersNFTContract.getAttributes(
                 nftId.toString()
             )
@@ -208,22 +209,19 @@ describe("BuddyFigthersNFT.sol tests", function () {
 
     describe("Random number generation tests", function () {
         it("Stats are generated in range [1, 255].", async function () {
-            const txResponse = await buddyFightersNFTContract.mintNFT(
+            const txReceipt = await mintNFT(
                 "Fake_URI",
                 "Fake_Name",
                 svgImage,
-                [100, 101],
-                true,
-                { value: minimumPriceToMint }
+                true
             )
-            const txReceipt = await txResponse.wait(1)
-            const nftId = txReceipt.events[2].args[2]
+            const nftId = await txReceipt.events[2].args.tokenId
             stats = await buddyFightersNFTContract.getAttributes(
                 nftId.toString()
             )
-            for (stat in stats.stats) {
+            stats.stats.forEach((stat) => {
                 assert.notEqual(stat, "0")
-            }
+            })
         })
     })
 

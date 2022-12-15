@@ -32,7 +32,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         vrfSubsId = await transactionReceipt.events[0].args.subId
         await VRFCoordinatorV2MockContract.fundSubscription(
             vrfSubsId,
-            ethers.utils.parseEther("25")
+            ethers.utils.parseEther("40")
         )
     } else {
         // Testnet
@@ -62,7 +62,6 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
     const buddyFightersNFTContract = await deployments.get("BuddyFightersNFT")
     await updateFrontEndData(buddyFightersNFTContract, "BuddyFightersNFT")
-
     if (developmentNets.includes(network.name)) {
         // Once BuddyFighters contract is created, add it as a consumer to the
         // subscibtion of the mocks.

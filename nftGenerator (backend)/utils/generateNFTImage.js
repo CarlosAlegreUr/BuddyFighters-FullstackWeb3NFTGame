@@ -27,9 +27,3 @@ module.exports = async () => {
     const { num1, num2 } = await createImageInPokemonImagesFolder()
     return [num1, num2]
 }
-
-// async function xd() {
-//     const res = await createImageInPokemonImagesFolder()
-// }
-
-// xd()
