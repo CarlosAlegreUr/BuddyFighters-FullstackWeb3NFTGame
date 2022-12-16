@@ -1,10 +1,10 @@
 import Head from "next/head"
-import Image from "next/image"
 import styles from "../styles/Home.module.css"
 
 import { useState } from "react"
 
-import { ConnectWallet } from "@web3uikit/web3"
+// import { ConnectWallet } from "@web3uikit/web3"
+import { ConnectButton } from "@web3uikit/web3"
 import UseNftSection from "../components/UseNftSection"
 import MainPageMessage from "../components/MainPageMessage"
 import NftsDisplay from "../components/NftsDisplay"
@@ -22,7 +22,8 @@ export default function Home() {
 
             <main>
                 <section>
-                    <ConnectWallet moralisAuth={false} />
+                    {/* <ConnectWallet moralisAuth={false} /> */}
+                    <ConnectButton moralisAuth={false} />
                 </section>
                 <section>
                     {connected ? <UseNftSection /> : <MainPageMessage />}
