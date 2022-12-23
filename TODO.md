@@ -24,6 +24,8 @@
 
     12.-Fix back-end/front-end constants. They are saved always, doesnt check for repeating ones correctly (update-front-end.js).
 
+    13.-Use NatSpec.
+
 ## Front-end
 
     1.-Create all styling for app.

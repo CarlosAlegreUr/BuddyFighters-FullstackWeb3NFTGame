@@ -47,3 +47,35 @@ async function mintNft(nftUri, nftName, svgImage, saveOnBlockchain, ethPayed) {
 }
 
 module.exports = mintNft
+
+/* Send to nodeJs backend
+    function setRarity(
+        uint8[2] memory _pkmonNumbers
+    ) private pure returns (uint8) {
+        uint8 rarity = 1;
+        if (
+            _pkmonNumbers[0] == 144 ||
+            _pkmonNumbers[0] == 145 ||
+            _pkmonNumbers[0] == 146 ||
+            _pkmonNumbers[0] == 150
+        ) {
+            rarity *= 3;
+        } else {
+            if (_pkmonNumbers[0] == 0 || _pkmonNumbers[0] == 151) {
+                rarity *= 5;
+            }
+        }
+        if (
+            _pkmonNumbers[1] == 144 ||
+            _pkmonNumbers[1] == 145 ||
+            _pkmonNumbers[1] == 146 ||
+            _pkmonNumbers[1] == 150
+        ) {
+            rarity *= 3;
+        } else {
+            if (_pkmonNumbers[1] == 0 || _pkmonNumbers[1] == 151) {
+                rarity *= 5;
+            }
+        }
+        return rarity;
+    } */
