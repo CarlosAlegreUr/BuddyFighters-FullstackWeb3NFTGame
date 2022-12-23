@@ -24,38 +24,16 @@ error BuddyFightersNFT__IsNotTokenOwner();
  * @dev Only backend addresses by devs team can call some functions of the contract. Though
  * events are emitted so end user can check backend does what promises.
  */
-contract BuddyFightersNFT is
-    ERC721URIStorage,
-    ERC721Enumerable,
-    VRFConsumerBaseV2,
-    Ownable
-{
+contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     /* State variables */
     uint256 private constant MINIMUM_MINT_PRICE = 10000000000000000;
     uint256 private constant MINIMUM_STATS_CHANGE_PRICE = 10000000000000;
-    uint8 private constant MAX_PKMN_NUM = 150;
     uint8 private constant MAX_STATS_VALUE = 254;
-    uint8 private constant STATS_NUM = 6;
-
-    // Chainlink Random numbers generation
-    uint8 private constant BLOCK_CONFIRMATION_FOR_RANDOMNESS = 3;
-    VRFCoordinatorV2Interface private immutable i_vrfCoordinator;
-    uint64 private immutable i_vrfSubsId;
-    bytes32 private immutable i_keyHashGasLimit;
-    uint32 private immutable i_callBackGasLimit;
 
     /* Events */
     event BuddyFightersNFT__NftMinted(
         address indexed owner,
         uint256 indexed tokenId
-    );
-    event BuddyFightersNFT__RndomNumsGenerated(
-        uint8[2] indexed rndmNums,
-        uint256 indexed requestId
-    );
-    event BuddyFightersNFT__RndomStatsGenerated(
-        uint8[STATS_NUM] indexed rndmNums,
-        uint256 indexed requestId
     );
     event BuddyFightersNFT__StatsChanged(
         address indexed owner,
@@ -110,12 +88,7 @@ contract BuddyFightersNFT is
         uint64 _vrfSubsId,
         bytes32 _keyHashGasLimit,
         uint32 _callBackGasLimit
-    ) ERC721(_name, _symbol) VRFConsumerBaseV2(_coordinatorAddress) {
-        i_vrfCoordinator = VRFCoordinatorV2Interface(_coordinatorAddress);
-        i_vrfSubsId = _vrfSubsId;
-        i_keyHashGasLimit = _keyHashGasLimit;
-        i_callBackGasLimit = _callBackGasLimit;
-    }
+    ) ERC721(_name, _symbol) {}
 
     /**
      * Someone is sending us money. (:D)
@@ -184,23 +157,23 @@ contract BuddyFightersNFT is
     }
 
     /**
-     * Request random numbers to Chainlink network via VRFCoordinator.
+     * Function to withdraw tips clients give us.
      *
-     * @dev Backend calls this function and it requests to the VRFCoordinator
-     * to get random numbers trhough Chainlink network. Number will be recieved in function:
-     * ` fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override`
-     *
-     * @param _numOfWords quantity of random numbers to generate.
+     * @dev Function to retire funds from contract in case of tips.
      */
-    function requestRandomNumbers(uint32 _numOfWords) external onlyOwner {
-        i_vrfCoordinator.requestRandomWords(
-            i_keyHashGasLimit,
-            i_vrfSubsId,
-            BLOCK_CONFIRMATION_FOR_RANDOMNESS,
-            i_callBackGasLimit,
-            _numOfWords
-        );
+    function withdrawContractBalance(
+        address _accountToSendBalance
+    ) external onlyOwner returns (bool) {
+        (bool success, ) = _accountToSendBalance.call{
+            value: address(this).balance
+        }("");
+        return success;
     }
+
+    /**
+     * @dev The following functions are here just for solving inheritance ambiguities in
+     * inheritance tree.
+     */
 
     /* Public functions */
 
@@ -225,39 +198,6 @@ contract BuddyFightersNFT is
     }
 
     /* Internal functions */
-
-    /**
-     * Chainlink coordinator returns random numbers requested.
-     *
-     * @notice Emits an event so client can see backend called this function on his token.
-     *
-     * @dev Override comes from VRFConsumerBaseV2. After `requestRandomNumbers(uint32 _numOfWords)`
-     * has been called then i_vrfCoordinator proceeds request and calls this function.
-     *
-     * @param randomWords If pokemon numbers generated then length == 2, if stats generated
-     * then length == 6.
-     *
-     * @param requestId Allows the client to indentify it's request and verify it was indeed proceed.
-     */
-    function fulfillRandomWords(
-        uint256 requestId,
-        uint256[] memory randomWords
-    ) internal override {
-        if (randomWords.length == 2) {
-            uint8 num1 = uint8((randomWords[0] % (MAX_PKMN_NUM)) + 1);
-            uint8 num2 = uint8((randomWords[1] % (MAX_PKMN_NUM)) + 1);
-            emit BuddyFightersNFT__RndomNumsGenerated([num1, num2], requestId);
-        } else {
-            uint8[6] memory stats;
-            stats[0] = uint8((randomWords[0] % (MAX_STATS_VALUE)) + 1);
-            stats[1] = uint8((randomWords[1] % (MAX_STATS_VALUE)) + 1);
-            stats[2] = uint8((randomWords[2] % (MAX_STATS_VALUE)) + 1);
-            stats[3] = uint8((randomWords[3] % (MAX_STATS_VALUE)) + 1);
-            stats[4] = uint8((randomWords[4] % (MAX_STATS_VALUE)) + 1);
-            stats[5] = uint8((randomWords[5] % (MAX_STATS_VALUE)) + 1);
-            emit BuddyFightersNFT__RndomStatsGenerated(stats, requestId);
-        }
-    }
 
     /**
      * @dev This function is here just for solving inheritance ambiguities in
