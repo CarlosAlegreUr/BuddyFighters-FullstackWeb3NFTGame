@@ -3,7 +3,6 @@ const { networks } = require("../hardhat.config")
 const { networkConfig, developmentNets } = require("../helper-hardhat-config")
 require("dotenv").config()
 
-const { collectionName, collecitonSymbol } = require("../utils/appVariables")
 const { verify } = require("../utils/etherscanVerifyContract")
 const { updateFrontEndData } = require("../update-front-end")
 
@@ -15,11 +14,11 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         VRFCoordinatorV2MockContract,
         nOfConfitmations
 
-    // console.log("Deploying BuddyFightersNFT...")
+    // console.log("Deploying IndependentFundsManager...")
 
     // Testnet or local network?
     if (developmentNets.includes(network.name)) {
-        // Local network => Deploy mocks && create && fund subsciption to VRF
+        // Local network => Get mocks, create && fund subsciption to VRF
         nOfConfitmations = 1
         VRFCoordinatorV2MockContract = await ethers.getContract(
             "VRFCoordinatorV2Mock",
@@ -46,28 +45,31 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     }
 
     const args = [
-        collectionName,
-        collecitonSymbol,
         coordinatorAddress,
         vrfSubsId,
         networkConfig[network.config.chainId]["keyHashGasLimit"],
         networkConfig[network.config.chainId]["callBackHashLimit"],
     ]
-    await deploy("BuddyFightersNFT", {
+    await deploy("IndependentFundsManager", {
         from: deployer,
         args: args,
         log: true,
         waitConfirmations: nOfConfitmations,
     })
 
-    const buddyFightersNFTContract = await deployments.get("BuddyFightersNFT")
-    await updateFrontEndData(buddyFightersNFTContract, "BuddyFightersNFT")
+    const independentFundsManagerContract = await deployments.get(
+        "IndependentFundsManager"
+    )
+    await updateFrontEndData(
+        independentFundsManagerContract,
+        "IndependentFundsManager"
+    )
     if (developmentNets.includes(network.name)) {
-        // Once BuddyFighters contract is created, add it as a consumer to the
+        // Once IndependentFundsManager contract is created, add it as a consumer to the
         // subscibtion of the mocks.
         response = await VRFCoordinatorV2MockContract.addConsumer(
             ethers.utils.formatUnits(vrfSubsId, 0),
-            buddyFightersNFTContract.address
+            independentFundsManagerContract.address
         )
         // console.log("Consumer added.")
     } else {
@@ -79,10 +81,10 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
             process.env.ETHERSCAN_API_KEY &&
             network.config.chainId == networks.rinkeby.chainId
         ) {
-            await verify(buddyFightersNFTContract.address, args)
+            await verify(independentFundsManagerContract.address, args)
         }
     }
     // console.log("-----------------------------------")
 }
 
-module.exports.tags = ["all", "buddyfighters"]
+module.exports.tags = ["all", "fundsManager", "buddyfighters"]

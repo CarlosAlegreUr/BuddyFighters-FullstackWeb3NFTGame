@@ -21,4 +21,4 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     // console.log("-----------------------------------")
 }
 
-module.exports.tags = ["all", "mocks", "buddyfighters"]
+module.exports.tags = ["all", "mocks", "fundsManager", "buddyfighters"]

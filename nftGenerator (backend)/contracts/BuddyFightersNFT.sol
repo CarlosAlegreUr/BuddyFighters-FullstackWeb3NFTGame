@@ -9,6 +9,7 @@ import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 
 /* Customed erros */
 error BuddyFightersNFT__MinimumPriceNotPayed();
+error BuddyFightersNFT__IsNotFundsManager();
 error BuddyFightersNFT__IsNotTokenOwner();
 
 /**
@@ -26,21 +27,31 @@ error BuddyFightersNFT__IsNotTokenOwner();
  */
 contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     /* State variables */
-    uint256 private constant MINIMUM_MINT_PRICE = 10000000000000000;
-    uint256 private constant MINIMUM_STATS_CHANGE_PRICE = 10000000000000;
+    uint256 private constant MINT_PRICE = 10000000000000000;
+    uint256 private constant STATS_CHANGE_PRICE = 10000000000000;
     uint8 private constant MAX_STATS_VALUE = 254;
+    address private immutable i_independentFundManager;
 
     /* Events */
     event BuddyFightersNFT__NftMinted(
         address indexed owner,
-        uint256 indexed tokenId
+        uint256 indexed tokenId,
+        string indexed tokenURI
     );
     event BuddyFightersNFT__StatsChanged(
         address indexed owner,
-        uint256 indexed tokenID
+        uint256 indexed tokenID,
+        string indexed newURI
     );
 
     /* Modifiers */
+
+    modifier isFundsManager() {
+        if (msg.sender != i_independentFundManager) {
+            revert BuddyFightersNFT__IsNotTokenOwner();
+        }
+        _;
+    }
 
     /**
      * Minimum price modifier.
@@ -84,11 +95,10 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     constructor(
         string memory _name,
         string memory _symbol,
-        address _coordinatorAddress,
-        uint64 _vrfSubsId,
-        bytes32 _keyHashGasLimit,
-        uint32 _callBackGasLimit
-    ) ERC721(_name, _symbol) {}
+        address _independentFundManager
+    ) ERC721(_name, _symbol) {
+        i_independentFundManager = _independentFundManager;
+    }
 
     /**
      * Someone is sending us money. (:D)
@@ -123,11 +133,11 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     function mintNft(
         string memory _tokenURI,
         address _clientAddress
-    ) external payable minimumPrice(MINIMUM_MINT_PRICE) onlyOwner {
+    ) external payable minimumPrice(MINT_PRICE) isFundsManager {
         uint256 tokenId = totalSupply();
         _safeMint(_clientAddress, tokenId);
         _setTokenURI(tokenId, _tokenURI);
-        emit BuddyFightersNFT__NftMinted(_clientAddress, tokenId);
+        emit BuddyFightersNFT__NftMinted(_clientAddress, tokenId, _tokenURI);
     }
 
     /**
@@ -148,12 +158,12 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     )
         external
         payable
-        minimumPrice(MINIMUM_STATS_CHANGE_PRICE)
-        onlyOwner
+        minimumPrice(STATS_CHANGE_PRICE)
+        isFundsManager
         isTokenOwner(_tokenId, _tokenOwner)
     {
         super._setTokenURI(_tokenId, _newTokenURI);
-        emit BuddyFightersNFT__StatsChanged(_tokenOwner, _tokenId);
+        emit BuddyFightersNFT__StatsChanged(_tokenOwner, _tokenId, _newTokenURI);
     }
 
     /**

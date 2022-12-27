@@ -36,6 +36,12 @@ module.exports = {
             4: 0,
             31337: 0,
         },
+        client1: {
+            default: 1
+        },
+        client2: {
+            default: 2
+        }
     },
 
     etherscan: {

@@ -3,40 +3,45 @@
 pragma solidity ^0.8.9;
 
 error MoneySentIsLessThanBid();
-error FailedToSendMoneyToWInner();
-error FailedToCancelBids();
+error FailedToSendMoneyToWinner();
+error FailedToCancelAndReturnBids();
 error FightIsFinished();
+error WinnerPrizeIsOnlyForPlayers();
 error OnlyFightersAreAllowedToCallTheFunction();
+error OnlyAdminIsAllowedToCallTheFunction();
 
 contract Fight {
-    bool private s_isActive;
-    address[2] s_players;
-    mapping(address => uint256) s_addressToBid;
     bytes32 private immutable s_fightId;
+    address private immutable i_adminAddress;
 
-    uint256 constant MINIMUM_BID = 10000000000000;
+    bool private s_isActive;
+    address private s_winner;
+    address[2] private s_players;
 
-    event FightFigthStarted(
-        address indexed p1,
-        address indexed p2,
-        bytes32 indexed fightId
-    );
-    event FightBidSet(
-        address indexed plyr,
-        uint256 indexed bid,
-        bytes32 indexed fightId
-    );
+    modifier isFighter() {
+        if (msg.sender != s_players[0] && msg.sender != s_players[1]) {
+            revert OnlyFightersAreAllowedToCallTheFunction();
+        }
+        _;
+    }
 
-    modifier fightIsOn() {
+    modifier isAdminCalling() {
+        if (msg.sender != i_adminAddress) {
+            revert OnlyAdminIsAllowedToCallTheFunction();
+        }
+        _;
+    }
+
+    modifier isActive() {
         if (s_isActive == false) {
             revert FightIsFinished();
         }
         _;
     }
 
-    modifier isFighter() {
-        if (msg.sender != s_players[0] || msg.sender != s_players[1]) {
-            revert OnlyFightersAreAllowedToCallTheFunction();
+    modifier sendingToPlayers(address _sedingTo) {
+        if (_sedingTo != s_players[0] && _sedingTo != s_players[1]) {
+            revert WinnerPrizeIsOnlyForPlayers();
         }
         _;
     }
@@ -45,53 +50,40 @@ contract Fight {
         address p1,
         address p2,
         uint256 nftId1,
-        uint256 nftId2
-    ) {
+        uint256 nftId2,
+        address admin
+    ) payable {
         s_fightId = keccak256(abi.encodePacked(p1, p2, nftId1, nftId2));
-        emit FightFigthStarted(p1, p2, s_fightId);
+        i_adminAddress = admin;
         s_players[0] = p1;
         s_players[1] = p2;
-        s_isActive = true;
     }
 
-    receive() external payable fightIsOn isFighter {
-        if (msg.value < MINIMUM_BID) {
-            revert MoneySentIsLessThanBid();
-        }
-        s_addressToBid[msg.sender] = msg.value;
-        emit FightBidSet(msg.sender, msg.value, s_fightId);
-    }
+    receive() external payable {}
 
-    fallback() external payable fightIsOn isFighter {
-        s_addressToBid[msg.sender] = msg.value;
-    }
+    fallback() external payable {}
 
-    function winnerIs(address payable winner)
-        external
-        payable
-        fightIsOn
-        isFighter
-    {
-        (bool sent, ) = winner.call{value: address(this).balance}("");
+    function winnerIs(
+        address _winner
+    ) external payable isAdminCalling sendingToPlayers(_winner) {
+        s_isActive = false;
+        s_winner = _winner;
+        (bool sent, ) = payable(_winner).call{value: address(this).balance}("");
         if (sent == false) {
-            revert FailedToSendMoneyToWInner();
+            revert FailedToSendMoneyToWinner();
         }
-        s_isActive = false;
     }
 
-    function cancelFight() external payable fightIsOn isFighter {
+    function cancelFight() external payable isFighter isActive {
         (bool sent, ) = payable(s_players[0]).call{
-            value: (address(this).balance - s_addressToBid[s_players[1]])
+            value: (address(this).balance / 2)
         }("");
-        (bool sent2, ) = s_players[1].call{value: address(this).balance}("");
+        (bool sent2, ) = payable(s_players[1]).call{
+            value: address(this).balance
+        }("");
         if (sent == false || sent2 == false) {
-            revert FailedToCancelBids();
+            revert FailedToCancelAndReturnBids();
         }
-        s_isActive = false;
-    }
-
-    function isActive() external view returns (bool) {
-        return s_isActive;
     }
 
     function getFightId() external view returns (bytes32) {
