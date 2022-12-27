@@ -10,6 +10,7 @@ import "./Fight.sol";
 /* Customed erros */
 error IndependentFundsManager__BDFT__LockerLockedForever();
 error IndependentFundsManager__BDFT__NotEnoughBalance();
+error IndependentFundsManager__BDFT__MinimumPriceNotPayed();
 error IndependentFundsManager__BDFT__NotEnoughFunds();
 error IndependentFundsManager__BDFT__FailedToWithdraw();
 error IndependentFundsManager__BDFT__NoFundsFound();
@@ -52,7 +53,7 @@ contract IndependentFundsManager is VRFConsumerBaseV2, Ownable {
     uint8 private constant STATS_NUM = 6;
 
     bool s_activeLocker;
-    address private s_collectionAddress;
+    address payable private s_collectionAddress;
 
     // Chainlink Random numbers generation
     uint8 private constant BLOCK_CONFIRMATION_FOR_RANDOMNESS = 3;
@@ -123,6 +124,19 @@ contract IndependentFundsManager is VRFConsumerBaseV2, Ownable {
         _;
     }
 
+    /**
+     * Minimum price modifier.
+     *
+     * @dev Sets minimum price in ETH (or blockchain coin) for msg.value
+     * for function to be executed. If not reverts with customed error.
+     */
+    modifier minimumPricePayed(uint256 _price) {
+        if (msg.value < _price) {
+            revert IndependentFundsManager__BDFT__MinimumPriceNotPayed();
+        }
+        _;
+    }
+
     /* Functions */
 
     // TODO: use LINK token to fund subscriptions in testnets.
@@ -157,7 +171,9 @@ contract IndependentFundsManager is VRFConsumerBaseV2, Ownable {
 
     /* External functions */
 
-    function setCollectionAddress(address _collection) external onlyOwner {
+    function setCollectionAddress(
+        address payable _collection
+    ) external onlyOwner {
         if (s_activeLocker == false) {
             s_collectionAddress = _collection;
             s_activeLocker = true;
@@ -195,15 +211,17 @@ contract IndependentFundsManager is VRFConsumerBaseV2, Ownable {
         address _clientAddress
     )
         external
+        payable
         onlyOwner
         checkEnoughFunds(_clientAddress, MINT_PRICE)
         checkFrozenFunds(_clientAddress)
         checkPermission(_clientAddress, PermissionFor(1))
+        minimumPricePayed(MINT_PRICE)
     {
         s_clientToFunds[_clientAddress] -= MINT_PRICE;
         (bool success, ) = s_collectionAddress.call{value: MINT_PRICE}(
             abi.encodeWithSignature(
-                "mintNft(string memory, address)",
+                "mintNft(string,address)",
                 _tokenURI,
                 _clientAddress
             )
@@ -224,15 +242,17 @@ contract IndependentFundsManager is VRFConsumerBaseV2, Ownable {
         uint256 _tokenId
     )
         external
+        payable
         onlyOwner
         checkEnoughFunds(_tokenOwner, STATS_CHANGE_PRICE)
         checkFrozenFunds(_tokenOwner)
         checkPermission(_tokenOwner, PermissionFor(2))
+        minimumPricePayed(STATS_CHANGE_PRICE)
     {
         s_clientToFunds[_tokenOwner] -= STATS_CHANGE_PRICE;
         (bool success, ) = s_collectionAddress.call{value: STATS_CHANGE_PRICE}(
             abi.encodeWithSignature(
-                "changeStats(string memory, address, uint256)",
+                "changeStats(string,address,uint256)",
                 _newTokenURI,
                 _tokenOwner,
                 _tokenId

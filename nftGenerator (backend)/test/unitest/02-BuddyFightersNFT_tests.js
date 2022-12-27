@@ -13,7 +13,7 @@ describe("BuddyFigthersNFT.sol tests", function () {
     const priceToDeployFight = ethers.utils.parseEther("0.01")
 
     beforeEach(async function () {
-        const { deployer: d, client1: c } = getNamedAccounts()
+        const { deployer: d, client1: c } = await getNamedAccounts()
         deployer = d
         client1 = c
         buddyFightersNFTContract = await ethers.getContract(
@@ -34,80 +34,57 @@ describe("BuddyFigthersNFT.sol tests", function () {
         await independentFundsManagerClient.setFrozenFunds(false)
     })
 
+    describe("Accessibility tests", function () {
+        it("Only IndependentFundsManager can mint, improveStats.", async () => {
+            await expect(
+                buddyFightersNFTContract.mintNft("Fake_URI", client1)
+            ).revertedWithCustomError(
+                buddyFightersNFTContract,
+                "BuddyFightersNFT__IsNotFundsManager"
+            )
+        })
+    })
+
     describe("Minting tests", function () {
-        it("Mints NFT's with different ID's, each ID=previous ID+1.", async () => {
+        it("When minting, NFTs' metadata is stored correctly on the blockchain.", async function () {
             await independentFundsManagerClient.setPermission(1)
             let first_ID = await buddyFightersNFTContract.totalSupply()
             await independentFundsManagerContract.useFundsToMintNft(
-                buddyFightersNFTContract.address,
                 "Fake_URI",
                 client1,
                 { value: priceToMint }
             )
-            let second_ID = await buddyFightersNFTContract.totalSupply()
+            assert.equal(
+                await buddyFightersNFTContract.tokenURI(first_ID.toNumber()),
+                "Fake_URI"
+            )
 
+            let second_ID = await buddyFightersNFTContract.totalSupply()
             await independentFundsManagerClient.setFrozenFunds(false)
             await independentFundsManagerClient.setPermission(1)
             await independentFundsManagerContract.useFundsToMintNft(
-                buddyFightersNFTContract.address,
                 "Fake_URI_2",
                 client1,
                 { value: priceToMint }
             )
-            assert.notEqual(first_ID.toString(), second_ID.toString())
-            assert.equal(first_ID.add(1).toString(), second_ID.toString())
-
-            // NFT minted and stats saved on IPFS
-            await buddyFightersNFTContract.mintNFT(
-                "Fake_URI",
-                "Fake_Name",
-                svgImage,
-                [100, 101],
-                false,
-                { value: minimumPriceToMint }
+            assert.equal(
+                await buddyFightersNFTContract.tokenURI(second_ID.toNumber()),
+                "Fake_URI_2"
             )
-            let third_ID = await buddyFightersNFTContract.getLastNFTId()
-
-            assert.notEqual(second_ID.toString(), third_ID.toString())
-            assert.equal(second_ID.add(1).toString(), third_ID.toString())
-        })
-
-        it("When minting, NFTs' metadata is stored correctly on the blockchain.", async function () {
-            payed = ethers.utils.parseEther("0.01")
-            const txResponse = await buddyFightersNFTContract.mintNFT(
-                "Fake_URI",
-                "NameOfNftAt0",
-                svgImage,
-                [100, 101],
-                true,
-                { value: payed }
-            )
-            const txReceipt = await txResponse.wait(1)
-            const nftId = txReceipt.events[2].args.tokenId
-            stats = await buddyFightersNFTContract.getAttributes(
-                nftId.toString()
-            )
-            tokenURI = await buddyFightersNFTContract.tokenURI(nftId.toString())
-            assert.equal(stats.name, "NameOfNftAt0")
-            assert.equal(stats.svgImage, svgImage)
-            assert.equal(stats.pkmN1, 100)
-            assert.equal(stats.pkmN2, 101)
-            assert.equal(tokenURI, "Fake_URI")
         })
 
         it("If minimum amount not payed, NFT not minted.", async function () {
+            await independentFundsManagerClient.setFrozenFunds(false)
+            await independentFundsManagerClient.setPermission(1)
             await expect(
-                buddyFightersNFTContract.mintNFT(
+                independentFundsManagerContract.useFundsToMintNft(
                     "Fake_URI",
-                    "Fake_Name",
-                    svgImage,
-                    [100, 101],
-                    true,
-                    { value: ethers.utils.parseEther("0.009") }
+                    client1,
+                    { value: await ethers.utils.parseEther("0.0099999") }
                 )
             ).revertedWithCustomError(
-                buddyFightersNFTContract,
-                "BuddyFightersNFT__MinimumPriceNotPayed"
+                independentFundsManagerContract,
+                "IndependentFundsManager__BDFT__MinimumPriceNotPayed"
             )
         })
     })

@@ -7,6 +7,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 
+import "hardhat/console.sol";
+
 /* Customed erros */
 error BuddyFightersNFT__MinimumPriceNotPayed();
 error BuddyFightersNFT__IsNotFundsManager();
@@ -48,20 +50,7 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
 
     modifier isFundsManager() {
         if (msg.sender != i_independentFundManager) {
-            revert BuddyFightersNFT__IsNotTokenOwner();
-        }
-        _;
-    }
-
-    /**
-     * Minimum price modifier.
-     *
-     * @dev Sets minimum price in ETH (or blockchain coin) for msg.value
-     * for function to be executed. If not reverts with customed error.
-     */
-    modifier minimumPrice(uint256 _price) {
-        if (msg.value < _price) {
-            revert BuddyFightersNFT__MinimumPriceNotPayed();
+            revert BuddyFightersNFT__IsNotFundsManager();
         }
         _;
     }
@@ -133,7 +122,7 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     function mintNft(
         string memory _tokenURI,
         address _clientAddress
-    ) external payable minimumPrice(MINT_PRICE) isFundsManager {
+    ) external payable isFundsManager {
         uint256 tokenId = totalSupply();
         _safeMint(_clientAddress, tokenId);
         _setTokenURI(tokenId, _tokenURI);
@@ -155,15 +144,13 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
         string memory _newTokenURI,
         address _tokenOwner,
         uint256 _tokenId
-    )
-        external
-        payable
-        minimumPrice(STATS_CHANGE_PRICE)
-        isFundsManager
-        isTokenOwner(_tokenId, _tokenOwner)
-    {
+    ) external payable isFundsManager isTokenOwner(_tokenId, _tokenOwner) {
         super._setTokenURI(_tokenId, _newTokenURI);
-        emit BuddyFightersNFT__StatsChanged(_tokenOwner, _tokenId, _newTokenURI);
+        emit BuddyFightersNFT__StatsChanged(
+            _tokenOwner,
+            _tokenId,
+            _newTokenURI
+        );
     }
 
     /**

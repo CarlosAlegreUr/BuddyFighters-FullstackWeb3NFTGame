@@ -212,13 +212,15 @@ describe("IndependentFundsManager.sol tests", function () {
             await expect(
                 independentFundsManagerContract.useFundsToMintNft(
                     "FakeURI",
-                    client1
+                    client1,
+                    { value: ethers.utils.parseEther("0.1") }
                 )
             ).not.to.be.reverted
             await expect(
                 independentFundsManagerContract.useFundsToMintNft(
                     "FakeURI",
-                    client1
+                    client1,
+                    { value: ethers.utils.parseEther("0.1") }
                 )
             ).revertedWithCustomError(
                 independentFundsManagerContract,
@@ -231,14 +233,16 @@ describe("IndependentFundsManager.sol tests", function () {
                 independentFundsManagerContract.useFundsToChangeStats(
                     "NewFakeURI",
                     client1,
-                    0
+                    0,
+                    { value: ethers.utils.parseEther("0.1") }
                 )
             ).not.to.be.reverted
             await expect(
                 independentFundsManagerContract.useFundsToChangeStats(
                     "NewFakeURI",
                     client1,
-                    0
+                    0,
+                    { value: ethers.utils.parseEther("0.1") }
                 )
             ).revertedWithCustomError(
                 independentFundsManagerContract,
@@ -254,13 +258,13 @@ describe("IndependentFundsManager.sol tests", function () {
             await expect(
                 independentFundsManagerContract.useFundsToStartFight(
                     [client1, client2],
-                    [0, 1]
+                    [0, 1],
                 )
             ).not.to.be.reverted
             await expect(
                 independentFundsManagerContract.useFundsToStartFight(
                     [client1, client2],
-                    [0, 1]
+                    [0, 1],
                 )
             ).revertedWithCustomError(
                 independentFundsManagerContract,
