@@ -7,6 +7,8 @@ import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "./BuddyFightersNFT.sol";
 import "./Fight.sol";
 
+import "hardhat/console.sol";
+
 /* Customed erros */
 error IndependentFundsManager__BDFT__LockerLockedForever();
 error IndependentFundsManager__BDFT__NotEnoughBalance();
@@ -259,7 +261,7 @@ contract IndependentFundsManager is VRFConsumerBaseV2, Ownable {
             )
         );
         if (!success) {
-            revert IndependentFundsManager__BDFT__MintingFailed();
+            revert IndependentFundsManager__BDFT__ChangeStatsFailed();
         }
         emit IndependentFundsManager__BDFT__ChangeStatsCalled(
             _newTokenURI,
@@ -354,6 +356,7 @@ contract IndependentFundsManager is VRFConsumerBaseV2, Ownable {
                 [num1, num2],
                 requestId
             );
+            console.log("%s -------------------- %s", num1, num2);
         } else {
             uint8[6] memory stats;
             stats[0] = uint8((randomWords[0] % (MAX_STATS_VALUE)) + 1);

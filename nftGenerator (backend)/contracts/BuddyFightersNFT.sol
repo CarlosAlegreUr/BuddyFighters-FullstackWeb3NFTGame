@@ -45,6 +45,7 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
         uint256 indexed tokenID,
         string indexed newURI
     );
+    event BuddyFightersNFT__WithdrawalResult(bool indexed success);
 
     /* Modifiers */
 
@@ -160,11 +161,11 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
      */
     function withdrawContractBalance(
         address _accountToSendBalance
-    ) external onlyOwner returns (bool) {
+    ) external onlyOwner {
         (bool success, ) = _accountToSendBalance.call{
             value: address(this).balance
         }("");
-        return success;
+        emit BuddyFightersNFT__WithdrawalResult(success);
     }
 
     /**

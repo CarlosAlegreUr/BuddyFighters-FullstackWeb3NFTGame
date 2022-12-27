@@ -258,18 +258,31 @@ describe("IndependentFundsManager.sol tests", function () {
             await expect(
                 independentFundsManagerContract.useFundsToStartFight(
                     [client1, client2],
-                    [0, 1],
+                    [0, 1]
                 )
             ).not.to.be.reverted
             await expect(
                 independentFundsManagerContract.useFundsToStartFight(
                     [client1, client2],
-                    [0, 1],
+                    [0, 1]
                 )
             ).revertedWithCustomError(
                 independentFundsManagerContract,
                 "IndependentFundsManager__BDFT__ClientFundsAreFrozen"
             )
+        })
+    })
+
+    describe("Random number generation tests", function () {
+        // Read from logs
+        it("Pokemon numbers are generated in range [1, 151].", async function () {
+            await independentFundsManagerContract.requestRandomNumbers(2)
+            assert.equal(1 == 0)
+        })
+
+        it("Stats are generated in range [1, 255].", async function () {
+            await independentFundsManagerContract.requestRandomNumbers(6)
+            assert.equal(1 == 0)
         })
     })
 })

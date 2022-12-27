@@ -5,6 +5,7 @@ const mintNFT = require("../../scripts/01-mint")
 describe("BuddyFigthersNFT.sol tests", function () {
     let deployer,
         client1,
+        client2,
         buddyFightersNFTContract,
         independentFundsManagerContract,
         independentFundsManagerClient
@@ -13,9 +14,14 @@ describe("BuddyFigthersNFT.sol tests", function () {
     const priceToDeployFight = ethers.utils.parseEther("0.01")
 
     beforeEach(async function () {
-        const { deployer: d, client1: c } = await getNamedAccounts()
+        const {
+            deployer: d,
+            client1: c,
+            client2: c2,
+        } = await getNamedAccounts()
         deployer = d
         client1 = c
+        client2 = c2
         buddyFightersNFTContract = await ethers.getContract(
             "BuddyFightersNFT",
             deployer
@@ -89,58 +95,97 @@ describe("BuddyFigthersNFT.sol tests", function () {
         })
     })
 
-    describe("Random number generation tests", function () {
-        it("Stats are generated in range [1, 255].", async function () {
-            const txReceipt = await mintNFT(
-                "Fake_URI",
-                "Fake_Name",
-                svgImage,
-                true,
-                minimumPriceToMint
-            )
-            const nftId = await txReceipt.events[2].args.tokenId
-            stats = await buddyFightersNFTContract.getAttributes(
-                nftId.toString()
-            )
-            stats.stats.forEach((stat) => {
-                assert.notEqual(stat, "0")
-            })
-        })
-    })
-
     describe("Improving stats tests. (solidity code part)", function () {
-        it("If minimum price not payed, stats are not improved.", async function () {
-            await buddyFightersNFTContract.mintNFT(
-                "Fake_URI",
-                "Fake_Name",
-                svgImage,
-                [100, 101],
-                true,
-                { value: minimumPriceToMint }
-            )
-
-            quanitityAdded = 127
-            for (i = 0; i < 6; i++) {
-                expect(
-                    buddyFightersNFTContract.improveStat(
-                        "0",
-                        i,
-                        quanitityAdded,
-                        { value: ethers.utils.parseEther("0.01") }
-                    )
-                ).to.be.revertedWithCustomError(
-                    buddyFightersNFTContract,
-                    "BuddyFightersNFT__MinimumPriceNotPayed"
+        it("Metadata changes when stats improved.", async function () {
+            await independentFundsManagerClient.setPermission(2)
+            let txResponse =
+                await independentFundsManagerContract.useFundsToChangeStats(
+                    "NewFakeURIFAKEEEE",
+                    client1,
+                    0,
+                    { value: ethers.utils.parseEther("0.011") }
                 )
-            }
+            const { logs: logs1 } = await txResponse.wait()
+            let emited = false
+            logs1.forEach((log) => {
+                if (log.address == buddyFightersNFTContract.address) {
+                    emited = true
+                }
+            })
+            assert.isOk(emited)
+            assert.equal(
+                await buddyFightersNFTContract.tokenURI(0),
+                "NewFakeURIFAKEEEE"
+            )
         })
 
-        it("Only owner can change their NFT's stats.", async function () {})
+        it("If minimum price not payed, stats are not improved.", async function () {
+            await independentFundsManagerClient.setPermission(2)
+            await expect(
+                independentFundsManagerContract.useFundsToChangeStats(
+                    "NewFakeURI",
+                    client1,
+                    0,
+                    { value: ethers.utils.parseEther("0.00999999") }
+                )
+            ).revertedWithCustomError(
+                independentFundsManagerContract,
+                "IndependentFundsManager__BDFT__MinimumPriceNotPayed"
+            )
+        })
 
-        it("Only funds manager can call this function.", async function () {})
+        it("Only owner can change their NFT's stats.", async function () {
+            await independentFundsManagerClient.setPermission(2)
+            const independentFundsManagerClient2 = await ethers.getContract(
+                "IndependentFundsManager",
+                client2
+            )
+            await independentFundsManagerClient2.fund({
+                value: await ethers.utils.parseEther("1"),
+            })
+            await independentFundsManagerClient2.setFrozenFunds(false)
+            await independentFundsManagerClient2.setPermission(2)
+
+            await expect(
+                independentFundsManagerContract.useFundsToChangeStats(
+                    "NewFakeURI",
+                    client2,
+                    0,
+                    { value: ethers.utils.parseEther("0.011") }
+                )
+            ).revertedWithCustomError(
+                independentFundsManagerContract,
+                "IndependentFundsManager__BDFT__ChangeStatsFailed"
+            )
+        })
     })
 
     describe("Withdrawal tests", function () {
-        it("Only deployer can withdraw and funds are withdrawn correctly.", async function () {})
+        it("Only deployer can withdraw tips and tips are withdrawn correctly.", async function () {
+            await independentFundsManagerClient.setPermission(1)
+            await independentFundsManagerContract.useFundsToMintNft(
+                "Fake_URIAgain",
+                client1,
+                { value: await ethers.utils.parseEther("50") }
+            )
+            const accountBalanceBefore = await ethers.provider.getBalance(
+                deployer
+            )
+
+            const txResponse =
+                await buddyFightersNFTContract.withdrawContractBalance(deployer)
+            const txReceipt = await txResponse.wait()
+            const success = txReceipt.events[0].args[0]
+
+            const contractBalance = await ethers.provider.getBalance(
+                buddyFightersNFTContract.address
+            )
+            const accountBalanceAfter = await ethers.provider.getBalance(
+                deployer
+            )
+            assert.equal(contractBalance, 0)
+            assert.isAtLeast(accountBalanceAfter, accountBalanceBefore)
+            assert.isOk(success)
+        })
     })
 })
