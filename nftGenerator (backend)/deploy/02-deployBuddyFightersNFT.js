@@ -8,7 +8,7 @@ const { verify } = require("../utils/etherscanVerifyContract")
 const {
     updateFrontEndData,
     FRONT_END_CONTRACTS_TESTING_FILE,
-} = require("../scripts/03-updateFrontEnd")
+} = require("../scripts/04-updateFrontEnd")
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deploy } = deployments

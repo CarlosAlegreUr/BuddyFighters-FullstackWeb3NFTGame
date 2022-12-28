@@ -50,7 +50,7 @@ contract IndependentFundsManager is VRFConsumerBaseV2, Ownable {
     /* State variables */
     uint256 private constant MINT_PRICE = 10000000000000000;
     uint256 private constant STATS_CHANGE_PRICE = 10000000000000000;
-    uint256 private constant MINIMUM_FIGHT_BID = 10000000000000000;
+    uint256 private constant START_FIGHT_COMMISSION = 10000000000000000;
     uint8 private constant MAX_PKMN_NUM = 150;
     uint8 private constant MAX_STATS_VALUE = 254;
     uint8 private constant STATS_NUM = 6;
@@ -277,8 +277,8 @@ contract IndependentFundsManager is VRFConsumerBaseV2, Ownable {
         external
         payable
         onlyOwner
-        checkEnoughFunds(_participants[0], MINIMUM_FIGHT_BID)
-        checkEnoughFunds(_participants[1], MINIMUM_FIGHT_BID)
+        checkEnoughFunds(_participants[0], START_FIGHT_COMMISSION)
+        checkEnoughFunds(_participants[1], START_FIGHT_COMMISSION)
         checkFrozenFunds(_participants[0])
         checkFrozenFunds(_participants[1])
         checkPermission(_participants[0], PermissionFor(3))
@@ -306,8 +306,8 @@ contract IndependentFundsManager is VRFConsumerBaseV2, Ownable {
             revert IndependentFundsManager__BDFT__FailedToFundFight();
         }
 
-        s_clientToFunds[p1] -= MINIMUM_FIGHT_BID;
-        s_clientToFunds[p2] -= MINIMUM_FIGHT_BID;
+        s_clientToFunds[p1] -= START_FIGHT_COMMISSION;
+        s_clientToFunds[p2] -= START_FIGHT_COMMISSION;
         s_clientToAreFundsFrozen[p1] = true;
         s_clientToAreFundsFrozen[p2] = true;
         emit IndependentFundsManager__BDFT__FightStarted(
