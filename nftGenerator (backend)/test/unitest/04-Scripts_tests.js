@@ -1,12 +1,52 @@
 const { assert, expect } = require("chai")
 const { ethers, getNamedAccounts, deployments, network } = require("hardhat")
 const { developmentNets } = require("../../helper-hardhat-config")
+const {
+    FRONT_END_CONTRACTS_TESTING_FILE,
+} = require("../../scripts/03-updateFrontEnd")
+const fs = require("fs")
 
-describe("update-front-end.js tests", function () {
+describe("Scripts tests", function () {
     beforeEach(async function () {})
+
+    if (network.name === "hardhat" || network.name === "localhost") {
+        describe("update-front-end.js tests", function () {
+            it("Only 1 IndependentFundsManagers, 1 BuddyFightersNFT contract and 0 mocks.", async function () {
+                await deployments.fixture("all")
+                const currentContracts = JSON.parse(
+                    fs.readFileSync(FRONT_END_CONTRACTS_TESTING_FILE),
+                    "utf-8"
+                )
+                let namesArray = [
+                    "IndependentFundsManager",
+                    "BuddyFightersNFT",
+                    "VRFCoordinatorV2Mock",
+                ]
+                let countingArray = [0, 0, 0]
+                const chaindID = network.config.chainId.toString()
+                if (chaindID in currentContracts) {
+                    await currentContracts[chaindID].forEach((contract) => {
+                        namesArray.forEach((name, index) => {
+                            if (contract.contractName === name)
+                                countingArray[index] += 1
+                        })
+                    })
+                }
+                assert.equal(countingArray[0], 1)
+                assert.equal(countingArray[1], 1)
+                assert.equal(countingArray[2], 0)
+            })
+        })
+    }
 
     describe("mint.js tests", function () {
         it("Mints correctly.", async function () {
+            assert(1 === 0)
+        })
+    })
+
+    describe("fight.js tests", function () {
+        it("Keeps track of fights correctly.", async function () {
             assert(1 === 0)
         })
     })
@@ -67,7 +107,7 @@ describe("update-front-end.js tests", function () {
 //     })
 // })
 // it("Metadata is created and retrieved from blockchain correctly.", async function () {
-//   
+//
 // })
 // it("If name too long or too short, NFT not minted.", async function () {
 //     await expect(

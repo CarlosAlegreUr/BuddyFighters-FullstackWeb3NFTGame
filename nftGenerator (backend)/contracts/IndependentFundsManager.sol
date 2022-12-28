@@ -21,6 +21,7 @@ error IndependentFundsManager__BDFT__ClientPermissionDenied();
 error IndependentFundsManager__BDFT__MustCallCollectionAddress();
 error IndependentFundsManager__BDFT__MintingFailed();
 error IndependentFundsManager__BDFT__ChangeStatsFailed();
+error IndependentFundsManager__BDFT__FailedToFundFight();
 
 /**
  * @title IndependentSubsFunder.sol.
@@ -49,7 +50,7 @@ contract IndependentFundsManager is VRFConsumerBaseV2, Ownable {
     /* State variables */
     uint256 private constant MINT_PRICE = 10000000000000000;
     uint256 private constant STATS_CHANGE_PRICE = 10000000000000000;
-    uint256 private constant DEPLOY_FIGHT_PRICE = 10000000000000000;
+    uint256 private constant MINIMUM_FIGHT_BID = 10000000000000000;
     uint8 private constant MAX_PKMN_NUM = 150;
     uint8 private constant MAX_STATS_VALUE = 254;
     uint8 private constant STATS_NUM = 6;
@@ -79,8 +80,7 @@ contract IndependentFundsManager is VRFConsumerBaseV2, Ownable {
         uint256 indexed requestId
     );
     event IndependentFundsManager__BDFT__FightStarted(
-        address[2] indexed fightersAddresses,
-        uint256[2] indexed tokenIds
+        address indexed battleAddress
     );
     event IndependentFundsManager__BDFT__ChangeStatsCalled(
         string indexed newTokenUri,
@@ -275,16 +275,16 @@ contract IndependentFundsManager is VRFConsumerBaseV2, Ownable {
         uint256[2] memory _tokenIds
     )
         external
+        payable
         onlyOwner
-        checkEnoughFunds(_participants[0], DEPLOY_FIGHT_PRICE / 2)
-        checkEnoughFunds(_participants[1], DEPLOY_FIGHT_PRICE / 2)
+        checkEnoughFunds(_participants[0], MINIMUM_FIGHT_BID)
+        checkEnoughFunds(_participants[1], MINIMUM_FIGHT_BID)
         checkFrozenFunds(_participants[0])
         checkFrozenFunds(_participants[1])
         checkPermission(_participants[0], PermissionFor(3))
         checkPermission(_participants[1], PermissionFor(3))
-        returns (address)
     {
-        // Written like this so no error: Stack too deep (:-|)
+        // Written like this so no there is no error: Stack too deep (:-|)
         address p1 = _participants[0];
         address p2 = _participants[1];
         uint256 tkn1 = _tokenIds[0];
@@ -295,14 +295,24 @@ contract IndependentFundsManager is VRFConsumerBaseV2, Ownable {
             p2,
             tkn1,
             tkn2,
-            s_collectionAddress
+            owner()
         );
 
-        s_clientToFunds[p1] -= DEPLOY_FIGHT_PRICE / 2;
-        s_clientToFunds[p2] -= DEPLOY_FIGHT_PRICE / 2;
+        (bool success, ) = payable(fightContract).call{
+            value: msg.value
+        }("");
+
+        if (!success) {
+            revert IndependentFundsManager__BDFT__FailedToFundFight();
+        }
+
+        s_clientToFunds[p1] -= MINIMUM_FIGHT_BID;
+        s_clientToFunds[p2] -= MINIMUM_FIGHT_BID;
+        s_clientToAreFundsFrozen[p1] = true;
         s_clientToAreFundsFrozen[p2] = true;
-        s_clientToAreFundsFrozen[p2] = true;
-        return address(fightContract);
+        emit IndependentFundsManager__BDFT__FightStarted(
+            address(fightContract)
+        );
     }
 
     /**

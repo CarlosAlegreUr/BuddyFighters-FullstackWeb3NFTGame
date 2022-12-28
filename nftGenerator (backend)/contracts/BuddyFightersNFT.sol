@@ -7,8 +7,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 
-import "hardhat/console.sol";
-
 /* Customed erros */
 error BuddyFightersNFT__MinimumPriceNotPayed();
 error BuddyFightersNFT__IsNotFundsManager();

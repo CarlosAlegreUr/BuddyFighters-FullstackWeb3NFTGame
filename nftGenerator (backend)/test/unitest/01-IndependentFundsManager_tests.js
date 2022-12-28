@@ -1,13 +1,14 @@
 const { assert, expect } = require("chai")
 const { ethers, getNamedAccounts } = require("hardhat")
-const mintNFT = require("../../scripts/01-mint")
 
+// TODO: maybe add minimum balance required to run tests on testnet.
+// And adapt tests so they can be runned in testnet.
 describe("IndependentFundsManager.sol tests", function () {
     let deployer,
         client1,
         client2,
         independentFundsManagerContract,
-        buddyFightersNftContract
+        fund
 
     beforeEach(async function () {
         const { deployer: dep } = await getNamedAccounts()
@@ -117,6 +118,8 @@ describe("IndependentFundsManager.sol tests", function () {
             async function checks(combo) {
                 await independentFundsManagerC1.setFrozenFunds(combo[0])
                 await independentFundsManagerC1.setFrozenFunds(combo[1])
+                await independentFundsManagerC1.setPermission(combo[3])
+                await independentFundsManagerC1.setPermission(combo[3])
                 await expect(
                     independentFundsManagerContract.useFundsToStartFight(
                         [client1, client2],
@@ -127,7 +130,7 @@ describe("IndependentFundsManager.sol tests", function () {
                     "IndependentFundsManager__BDFT__ClientFundsAreFrozen"
                 )
             }
-            frozenFundsCombinatios.forEach((combo) => {
+            await frozenFundsCombinatios.forEach((combo) => {
                 checks(combo)
             })
             await expect(
@@ -274,7 +277,7 @@ describe("IndependentFundsManager.sol tests", function () {
     })
 
     describe("Random number generation tests", function () {
-        // Read from logs
+        // TODO: Read from logs
         it("Pokemon numbers are generated in range [1, 151].", async function () {
             await independentFundsManagerContract.requestRandomNumbers(2)
             assert.equal(1 == 0)

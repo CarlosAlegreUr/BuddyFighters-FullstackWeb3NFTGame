@@ -5,7 +5,10 @@ require("dotenv").config()
 
 const { collectionName, collecitonSymbol } = require("../utils/appVariables")
 const { verify } = require("../utils/etherscanVerifyContract")
-const { updateFrontEndData } = require("../update-front-end")
+const {
+    updateFrontEndData,
+    FRONT_END_CONTRACTS_TESTING_FILE,
+} = require("../scripts/03-updateFrontEnd")
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deploy } = deployments
@@ -47,6 +50,16 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
             await verify(buddyFightersNFTContract.address, args)
         }
     }
+
+    // Only run when testing in local network
+    if (process.env.TESTING_ON_LOCAL === "true") {
+        await updateFrontEndData(
+            buddyFightersNFTContract,
+            "BuddyFightersNFT",
+            FRONT_END_CONTRACTS_TESTING_FILE
+        )
+    }
+
     // console.log("-----------------------------------")
 }
 

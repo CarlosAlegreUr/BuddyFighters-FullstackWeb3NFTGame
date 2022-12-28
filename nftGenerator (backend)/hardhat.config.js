@@ -6,7 +6,7 @@ require("hardhat-gas-reporter")
 require("solidity-coverage")
 require("hardhat-deploy")
 
-const RINKEBY_RPC_URL = process.env.RINKEBY_RPC_URL
+const RINKEBY_RPC_URL = process.env.GOERLI_RPC_URL
 const RINKEBY_SK_01 = process.env.RINKEBY_SK_01
 const ETHSCAN_API_KEY = process.env.ETHERSCAN_API_KEY
 
@@ -23,10 +23,14 @@ module.exports = {
             chainId: 31337,
         },
 
-        rinkeby: {
-            url: RINKEBY_RPC_URL,
-            accounts: [RINKEBY_SK_01],
-            chainId: 4,
+        goerli: {
+            url: process.env.GOERLI_RPC_URL,
+            accounts: [
+                process.env.DEPLOYER_SK,
+                process.env.CLIENT1_SK,
+                process.env.CLIENT2_SK,
+            ],
+            chainId: 5,
         },
     },
 
@@ -37,11 +41,11 @@ module.exports = {
             31337: 0,
         },
         client1: {
-            default: 1
+            default: 1,
         },
         client2: {
-            default: 2
-        }
+            default: 2,
+        },
     },
 
     etherscan: {
@@ -54,7 +58,7 @@ module.exports = {
         noColors: true,
         // Output it in a specific currency with API call to CoinMarketCap
         // currency: "USD",
-        // coinmarketcap: CMC_API_KEY, 
+        // coinmarketcap: CMC_API_KEY,
         // CHOSE COIN YOU WANNA SEE THE PRICE
         // token: "MATIC",
     },

@@ -4,7 +4,10 @@ const { networkConfig, developmentNets } = require("../helper-hardhat-config")
 require("dotenv").config()
 
 const { verify } = require("../utils/etherscanVerifyContract")
-const { updateFrontEndData } = require("../update-front-end")
+const {
+    updateFrontEndData,
+    FRONT_END_CONTRACTS_TESTING_FILE,
+} = require("../scripts/03-updateFrontEnd")
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deploy } = deployments
@@ -64,6 +67,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         independentFundsManagerContract,
         "IndependentFundsManager"
     )
+
     if (developmentNets.includes(network.name)) {
         // Once IndependentFundsManager contract is created, add it as a consumer to the
         // subscibtion of the mocks.
@@ -83,6 +87,15 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         ) {
             await verify(independentFundsManagerContract.address, args)
         }
+    }
+
+    // Only run when testing in local network
+    if (process.env.TESTING_ON_LOCAL === "true") {
+        await updateFrontEndData(
+            independentFundsManagerContract,
+            "IndependentFundsManager",
+            FRONT_END_CONTRACTS_TESTING_FILE
+        )
     }
     // console.log("-----------------------------------")
 }
