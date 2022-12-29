@@ -8,7 +8,9 @@ describe("IndependentFundsManager.sol tests", function () {
         client1,
         client2,
         independentFundsManagerContract,
-        fund
+        fund,
+        vrfCoordinatorMockContract,
+        mockEventFilter
 
     beforeEach(async function () {
         const { deployer: dep } = await getNamedAccounts()
@@ -117,9 +119,9 @@ describe("IndependentFundsManager.sol tests", function () {
             ]
             async function checks(combo) {
                 await independentFundsManagerC1.setFrozenFunds(combo[0])
-                await independentFundsManagerC1.setFrozenFunds(combo[1])
-                await independentFundsManagerC1.setPermission(combo[3])
-                await independentFundsManagerC1.setPermission(combo[3])
+                await independentFundsManagerC2.setFrozenFunds(combo[1])
+                await independentFundsManagerC1.setPermission(3)
+                await independentFundsManagerC2.setPermission(3)
                 await expect(
                     independentFundsManagerContract.useFundsToStartFight(
                         [client1, client2],
@@ -130,9 +132,9 @@ describe("IndependentFundsManager.sol tests", function () {
                     "IndependentFundsManager__BDFT__ClientFundsAreFrozen"
                 )
             }
-            await frozenFundsCombinatios.forEach((combo) => {
-                checks(combo)
-            })
+            for (const combo of frozenFundsCombinatios) {
+                await checks(combo)
+            }
             await expect(
                 independentFundsManagerContract.useFundsToMintNft(
                     "FakeURI",
@@ -157,7 +159,9 @@ describe("IndependentFundsManager.sol tests", function () {
         it("When unfrozen funds, devs can't use them for functions without clients' permission.", async () => {
             const fund = ethers.utils.parseEther("1")
             await independentFundsManagerC1.fund({ value: fund })
+            await independentFundsManagerC1.setPermission(0)
             await independentFundsManagerC1.setFrozenFunds(false)
+            await independentFundsManagerC2.setFrozenFunds(false)
             await expect(
                 independentFundsManagerContract.useFundsToMintNft(
                     "FakeURI",
@@ -209,61 +213,56 @@ describe("IndependentFundsManager.sol tests", function () {
 
         it("Client's funds are frozen after executing a spending funds function.", async () => {
             const fund = ethers.utils.parseEther("1")
+            const pay = await ethers.utils.parseEther("0.1")
             await independentFundsManagerC1.fund({ value: fund })
-            independentFundsManagerC1.setFrozenFunds(false)
-            independentFundsManagerC1.setPermission(1)
+            await independentFundsManagerC1.setFrozenFunds(false)
+            await independentFundsManagerC1.setPermission(1)
+            await independentFundsManagerContract.useFundsToMintNft(
+                "FakeURI",
+                client1,
+                { value: pay }
+            )
             await expect(
                 independentFundsManagerContract.useFundsToMintNft(
                     "FakeURI",
                     client1,
-                    { value: ethers.utils.parseEther("0.1") }
-                )
-            ).not.to.be.reverted
-            await expect(
-                independentFundsManagerContract.useFundsToMintNft(
-                    "FakeURI",
-                    client1,
-                    { value: ethers.utils.parseEther("0.1") }
+                    { value: pay }
                 )
             ).revertedWithCustomError(
                 independentFundsManagerContract,
                 "IndependentFundsManager__BDFT__ClientFundsAreFrozen"
             )
 
-            independentFundsManagerC1.setFrozenFunds(false)
-            independentFundsManagerC1.setPermission(2)
+            await independentFundsManagerC1.setFrozenFunds(false)
+            await independentFundsManagerC1.setPermission(2)
+            await independentFundsManagerContract.useFundsToChangeStats(
+                "NewFakeURI",
+                client1,
+                0,
+                { value: pay }
+            )
             await expect(
                 independentFundsManagerContract.useFundsToChangeStats(
                     "NewFakeURI",
                     client1,
                     0,
-                    { value: ethers.utils.parseEther("0.1") }
-                )
-            ).not.to.be.reverted
-            await expect(
-                independentFundsManagerContract.useFundsToChangeStats(
-                    "NewFakeURI",
-                    client1,
-                    0,
-                    { value: ethers.utils.parseEther("0.1") }
+                    { value: pay }
                 )
             ).revertedWithCustomError(
                 independentFundsManagerContract,
                 "IndependentFundsManager__BDFT__ClientFundsAreFrozen"
             )
 
-            independentFundsManagerC1.setFrozenFunds(false)
-            independentFundsManagerC1.setPermission(3)
+            await independentFundsManagerC1.setFrozenFunds(false)
+            await independentFundsManagerC1.setPermission(3)
 
             await independentFundsManagerC2.fund({ value: fund })
-            independentFundsManagerC2.setFrozenFunds(false)
-            independentFundsManagerC2.setPermission(3)
-            await expect(
-                independentFundsManagerContract.useFundsToStartFight(
-                    [client1, client2],
-                    [0, 1]
-                )
-            ).not.to.be.reverted
+            await independentFundsManagerC2.setFrozenFunds(false)
+            await independentFundsManagerC2.setPermission(3)
+            await independentFundsManagerContract.useFundsToStartFight(
+                [client1, client2],
+                [0, 1]
+            )
             await expect(
                 independentFundsManagerContract.useFundsToStartFight(
                     [client1, client2],
@@ -277,15 +276,110 @@ describe("IndependentFundsManager.sol tests", function () {
     })
 
     describe("Random number generation tests", function () {
-        // TODO: Read from logs
+        beforeEach(async function () {
+            vrfCoordinatorMockContract = await ethers.getContract(
+                "VRFCoordinatorV2Mock"
+            )
+            mockEventFilter = await vrfCoordinatorMockContract.filters
+                .RandomWordsRequested
+        })
+
         it("Pokemon numbers are generated in range [1, 151].", async function () {
-            await independentFundsManagerContract.requestRandomNumbers(2)
-            assert.equal(1 == 0)
+            let num1, num2
+            const filter = await independentFundsManagerContract.filters
+                .IndependentFundsManager__BDFT__RndomNumsGenerated
+
+            let txResponse =
+                await independentFundsManagerContract.requestRandomNumbers(2)
+            let txReceipt = await txResponse.wait()
+            let txBlock = txReceipt.blockNumber
+            let query = await vrfCoordinatorMockContract.queryFilter(mockEventFilter, txBlock)
+            let requestId = query[0].args.requestId
+
+            txResponse =
+                await vrfCoordinatorMockContract.fulfillRandomWordsWithOverride(
+                    requestId,
+                    independentFundsManagerContract.address,
+                    [0, 150]
+                )
+            txReceipt = await txResponse.wait()
+            txBlock = txReceipt.blockNumber
+            query = await independentFundsManagerContract.queryFilter(
+                filter,
+                txBlock
+            )
+
+            num1 = query[0].args.rndmNums[0]
+            num2 = query[0].args.rndmNums[1]
+            assert.isAtLeast(num1, 1)
+            assert.isAtMost(num1, 151)
+            assert.isAtLeast(num2, 1)
+            assert.isAtMost(num2, 151)
+
+            txResponse =
+                await independentFundsManagerContract.requestRandomNumbers(2)
+            txReceipt = await txResponse.wait()        
+            txBlock = txReceipt.blockNumber
+            query = await vrfCoordinatorMockContract.queryFilter(mockEventFilter, txBlock)
+            requestId = query[0].args.requestId
+            txResponse =
+                await vrfCoordinatorMockContract.fulfillRandomWordsWithOverride(
+                    requestId,
+                    independentFundsManagerContract.address,
+                    [
+                        parseInt(Math.random() * 1000),
+                        parseInt(Math.random() * 1000),
+                    ]
+                )
+            txReceipt = await txResponse.wait()
+            txBlock = txReceipt.blockNumber
+            query = await independentFundsManagerContract.queryFilter(
+                filter,
+                txBlock
+            )
+            num1 = query[0].args.rndmNums[0]
+            num2 = query[0].args.rndmNums[1]
+            assert.isAtLeast(num1, 1)
+            assert.isAtMost(num1, 151)
+            assert.isAtLeast(num2, 1)
+            assert.isAtMost(num2, 151)
         })
 
         it("Stats are generated in range [1, 255].", async function () {
-            await independentFundsManagerContract.requestRandomNumbers(6)
-            assert.equal(1 == 0)
+            let nums = [-1, -1, -1, -1, -1, -1]
+            const filter = await independentFundsManagerContract.filters
+                .IndependentFundsManager__BDFT__RndomStatsGenerated
+
+            let txResponse =
+                await independentFundsManagerContract.requestRandomNumbers(6)
+            let txReceipt = await txResponse.wait()
+            let txBlock = txReceipt.blockNumber
+            let query = await vrfCoordinatorMockContract.queryFilter(mockEventFilter, txBlock)
+            let requestId = query[0].args.requestId
+            txResponse =
+                await vrfCoordinatorMockContract.fulfillRandomWordsWithOverride(
+                    requestId,
+                    independentFundsManagerContract.address,
+                    [
+                        0,
+                        254,
+                        parseInt(Math.random() * 1000),
+                        parseInt(Math.random() * 1000),
+                        parseInt(Math.random() * 1000),
+                        parseInt(Math.random() * 1000),
+                    ]
+                )
+            await txResponse.wait()
+            txBlock = txResponse.blockNumber
+            query = await independentFundsManagerContract.queryFilter(
+                filter,
+                txBlock
+            )
+            nums.forEach((num, index) => {
+                num = query[0].args.rndmNums[index]
+                assert.isAtLeast(num, 1)
+                assert.isAtMost(num, 255)
+            })
         })
     })
 })

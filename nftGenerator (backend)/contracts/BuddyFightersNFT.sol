@@ -35,13 +35,13 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     /* Events */
     event BuddyFightersNFT__NftMinted(
         address indexed owner,
-        uint256 indexed tokenId,
-        string indexed tokenURI
+        uint256 tokenId,
+        string tokenURI
     );
     event BuddyFightersNFT__StatsChanged(
         address indexed owner,
         uint256 indexed tokenID,
-        string indexed newURI
+        string newURI
     );
     event BuddyFightersNFT__WithdrawalResult(bool indexed success);
 
@@ -144,7 +144,7 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
         address _tokenOwner,
         uint256 _tokenId
     ) external payable isFundsManager isTokenOwner(_tokenId, _tokenOwner) {
-        super._setTokenURI(_tokenId, _newTokenURI);
+        _setTokenURI(_tokenId, _newTokenURI);
         emit BuddyFightersNFT__StatsChanged(
             _tokenOwner,
             _tokenId,

@@ -51,8 +51,8 @@ contract IndependentFundsManager is VRFConsumerBaseV2, Ownable {
     uint256 private constant MINT_PRICE = 10000000000000000;
     uint256 private constant STATS_CHANGE_PRICE = 10000000000000000;
     uint256 private constant START_FIGHT_COMMISSION = 10000000000000000;
-    uint8 private constant MAX_PKMN_NUM = 150;
-    uint8 private constant MAX_STATS_VALUE = 254;
+    uint8 private constant MAX_PKMN_NUM = 151;
+    uint8 private constant MAX_STATS_VALUE = 255;
     uint8 private constant STATS_NUM = 6;
 
     bool s_activeLocker;
@@ -72,11 +72,11 @@ contract IndependentFundsManager is VRFConsumerBaseV2, Ownable {
 
     /* Events */
     event IndependentFundsManager__BDFT__RndomNumsGenerated(
-        uint8[2] indexed rndmNums,
+        uint8[2] rndmNums,
         uint256 indexed requestId
     );
     event IndependentFundsManager__BDFT__RndomStatsGenerated(
-        uint8[STATS_NUM] indexed rndmNums,
+        uint8[STATS_NUM] rndmNums,
         uint256 indexed requestId
     );
     event IndependentFundsManager__BDFT__FightStarted(
@@ -290,17 +290,9 @@ contract IndependentFundsManager is VRFConsumerBaseV2, Ownable {
         uint256 tkn1 = _tokenIds[0];
         uint256 tkn2 = _tokenIds[1];
 
-        Fight fightContract = new Fight(
-            p1,
-            p2,
-            tkn1,
-            tkn2,
-            owner()
-        );
+        Fight fightContract = new Fight(p1, p2, tkn1, tkn2, owner());
 
-        (bool success, ) = payable(fightContract).call{
-            value: msg.value
-        }("");
+        (bool success, ) = payable(fightContract).call{value: msg.value}("");
 
         if (!success) {
             revert IndependentFundsManager__BDFT__FailedToFundFight();
@@ -360,13 +352,12 @@ contract IndependentFundsManager is VRFConsumerBaseV2, Ownable {
         uint256[] memory randomWords
     ) internal override {
         if (randomWords.length == 2) {
-            uint8 num1 = uint8((randomWords[0] % (MAX_PKMN_NUM)) + 1);
-            uint8 num2 = uint8((randomWords[1] % (MAX_PKMN_NUM)) + 1);
+            uint8 num1 = uint8((randomWords[0] % MAX_PKMN_NUM) + 1);
+            uint8 num2 = uint8((randomWords[1] % MAX_PKMN_NUM) + 1);
             emit IndependentFundsManager__BDFT__RndomNumsGenerated(
                 [num1, num2],
                 requestId
             );
-            console.log("%s -------------------- %s", num1, num2);
         } else {
             uint8[6] memory stats;
             stats[0] = uint8((randomWords[0] % (MAX_STATS_VALUE)) + 1);

@@ -69,8 +69,8 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     )
 
     if (developmentNets.includes(network.name)) {
-        // Once IndependentFundsManager contract is created, add it as a consumer to the
-        // subscibtion of the mocks.
+        // Once IndependentFundsManager contract is created, add it as a consumer of the
+        // subscibtion to the mocks.
         response = await VRFCoordinatorV2MockContract.addConsumer(
             ethers.utils.formatUnits(vrfSubsId, 0),
             independentFundsManagerContract.address
