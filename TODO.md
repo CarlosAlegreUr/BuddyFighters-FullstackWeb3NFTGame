@@ -26,6 +26,8 @@
 
     13.-Use NatSpec.
 
+    14.-Long term, add betting in fights for non-participants.
+
 ## Front-end
 
     1.-Create all styling for app.
