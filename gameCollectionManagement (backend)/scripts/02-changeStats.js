@@ -1,12 +1,13 @@
 const { ethers, getNamedAccounts, network } = require("hardhat")
 const { developmentNets } = require("../helper-hardhat-config")
 
+// TO BE IMPLEMENTED
 module.exports = async function (
-    nftName,
     saveOnBlockchain = false,
     clientAddress,
     tokenId
 ) {
+    saveOnBlockchain = false // TODO: Delete this line if saving metadata onChain ever implemented.
     let success = [false, "Some error occurred"]
     const onDevNet = developmentNets.includes(network.name)
     const blocksToWait = onDevNet ? 1 : 6
@@ -22,8 +23,8 @@ module.exports = async function (
 
     if ((await buddyFightersNFTContract.ownerOf(tokenId)) == clientAddress) {
         const token_URI = await buddyFightersNFTContract.tokenURI(tokenId)
-        let newToken_URI
 
+        let newToken_URI
         if (saveOnBlockchain) {
             // NOT IMPLEMENTED BUT HERE ARE THE INSTRUCTIONS
             // GET TOKEN URI FROM BUDDYFIGHTERS CONTRACT
@@ -40,24 +41,33 @@ module.exports = async function (
             return success
         } else {
             // TODO:
-            // DECODE JSON DATA FROM TOKENURI
-            // CHANGE STATS
-            // BASE64 ENCODE NEW JSON METADATA
-            // PIN NEW METADATA TO IPFS LOCALLY OR NFTSTORAGE
-            // UNPIN PREVIOUS METADATA
+            // SEARCH IN PINATA OR NFTSTORAGE PINNED FILE THAT MATHCES TOKENID
+            // GET JSON DATA
+            // COPY PASTE JSON METADATA BUT WITH NEW STATS
+            // PIN NEW METADATA TO PINATA OR NFTSTORAGE
+            // UNPIN (DELETE) OLD METADATA FROM PINATA OR NFTSTOAGE
         }
 
         // Calling changing stats function
         const priceToChangeStats = await ethers.utils.parseEther("0.01")
-        const txResponse =
-            await independentFundsManagerContract.useFundsToChangeStats(
-                newToken_URI,
-                tokenId,
-                { value: priceToChangeStats }
-            )
+        try {
+            const txResponse =
+                await independentFundsManagerContract.useFundsToChangeStats(
+                    newToken_URI,
+                    tokenId,
+                    { value: priceToChangeStats }
+                )
+        } catch (error) {
+            console.log("ERROR IN CHANGING STATS SCRIPT...")
+            console.log("----------------------------")
+            console.log(error)
+            success[0] = false
+            success[1] =
+                "Error in changing stats transaction, error recieved ---> " +
+                `${error}`
+            return success
+        }
         const txReceipt = await txResponse.wait(blocksToWait)
-        //  TODO: Check if some errors occured in transaction.
-
         success[0] = true
         success[1] = ""
     }
