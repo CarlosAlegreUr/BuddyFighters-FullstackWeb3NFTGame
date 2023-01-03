@@ -17,12 +17,4 @@ async function callMint() {
     callMint("NameRandomXD", false, client1)
 }
 
-// callMint()
-
-const cleanPinataPins = require("../utils/cleanPinataPins")
-
-async function callClean() {
-    await cleanPinataPins()
-}
-
-callClean()
+callMint()

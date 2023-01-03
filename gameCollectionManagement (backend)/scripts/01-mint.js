@@ -14,7 +14,8 @@ const PINATA_API_SECRET = process.env.PINATA_API_SECRET
 module.exports = async function (nftName, saveOnBlockchain, clientAddress) {
     saveOnBlockchain = false // TODO: Delete this line if saving metadata onChain ever implemented.
     let success = [false, "Some error occurred"]
-    const onDevNet = developmentNets.includes(network.name)
+    const onDevNet =
+        developmentNets.includes(network.name) || network.name == "goerli"
     const blocksToWait = onDevNet ? 1 : 6
     const { deployer } = await getNamedAccounts()
     const independentFundsManagerContract = await ethers.getContract(
