@@ -114,7 +114,7 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
      * Mints new token.
      *
      * @dev Calls _safeMint(), new token's ID is totalSupply() and sets tokenURI with
-     * _setTokenURI(). Warning! Backend must make sure arguments have the correct values.
+     * _setTokenURI(). BaseURI is empty. Warning! Backend must make sure arguments have the correct values.
      *
      * @notice Emits an event so clients can see backend called this function for them.
      */

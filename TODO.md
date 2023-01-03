@@ -1,6 +1,7 @@
 # TODO
 
     0.- Complete README
+    Create npm package for my API
 
 ## Backend
 

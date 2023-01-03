@@ -30,7 +30,7 @@ Source of the pokemon fusions images used in this project.
 ## Key Features
 
 - You cant check the collection at [OpenSea](https://testnets.opensea.io/).
-- NFT Generator: all the back-end code that manages the NFT collection. Hosted on FireBase.
+- GameCollectionManagement: all the back-end code that manages the NFT collection. Hosted on FireBase.
 - Web Game: front-end part of the project that interacts with the backend.
 
 <hr>
