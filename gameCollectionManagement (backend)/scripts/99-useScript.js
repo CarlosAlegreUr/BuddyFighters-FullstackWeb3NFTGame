@@ -6,15 +6,25 @@ async function callMint(name, onBlockchain, clientAddress) {
         "IndependentFundsManager",
         clientAddress
     )
-    await independentContract.fund({ value: ethers.utils.parseEther("0.01") })
+    console.log("FundsManager address --->", `${independentContract.address}`)
+
+    // await independentContract.fund({ value: await ethers.utils.parseEther("0.01") })
+    // console.log(`${clientAddress} funded.`)
+
     await independentContract.setFrozenFunds(false)
-    await independentContract.setPermission(1)
+    console.log(`${clientAddress} unfrozened funds.`)
+
+    const txResponse = await independentContract.setPermission(1)
+    console.log(`${clientAddress} Permission given.`)
+    console.log(`Waiting for confirmations...`)
+    await txResponse.wait(6)
+
     await mintNFT(name, onBlockchain, clientAddress)
 }
 
-async function callMint() {
+async function callMinting() {
     const { client1 } = await getNamedAccounts()
-    callMint("NameRandomXD", false, client1)
+    callMint("Yuri mira tio esto funciona", false, client1)
 }
 
-callMint()
+callMinting()

@@ -31,20 +31,26 @@ module.exports = {
                 process.env.CLIENT2_SK,
             ],
             chainId: 5,
+            gas: 2100000,
+            gasPrice: 8000000000,
         },
     },
 
     namedAccounts: {
         deployer: {
             default: 0,
-            4: 0,
+            5: 0,
             31337: 0,
         },
         client1: {
             default: 1,
+            5: 1,
+            31337: 1,
         },
         client2: {
             default: 2,
+            5: 2,
+            31337: 2,
         },
     },
 

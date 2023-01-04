@@ -19,6 +19,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
     // console.log("Deploying IndependentFundsManager...")
 
+    let VRFCoordinatorV2Contract
     // Testnet or local network?
     if (developmentNets.includes(network.name)) {
         // Local network => Get mocks, create && fund subsciption to VRF
@@ -38,13 +39,28 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         )
     } else {
         // Testnet
+        console.log("Deployer account ---> ", `${deployer}`)
         nOfConfitmations = 6
-        // Rinkeby => Get coordinator and subscription ID
-        if (network.config.chainId == networks.rinkeby.chainId) {
+        // Goerli => Get coordinator and subscription ID
+        if (network.config.chainId == networks.goerli.chainId) {
             coordinatorAddress =
-                networkConfig[networks.rinkeby.chainId]["vrfCoordinator"]
-            vrfSubsId = networkConfig[networks.rinkeby.chainId]["vrfSubsId"]
+                networkConfig[networks.goerli.chainId]["vrfCoordinator"]
+            vrfSubsId = networkConfig[networks.goerli.chainId]["vrfSubsId"]
         }
+        // GET CONTRACT TO FUND SUBS WITH LINK
+        const VRFCoordinatorUsedAbi = [
+            "function addConsumer(uint64 subId, address consumer) external",
+        ]
+        const provider = new ethers.providers.JsonRpcProvider(
+            process.env.GOERLI_RPC_URL,
+            networks.goerli.chainId
+        )
+        const signer = new ethers.Wallet(process.env.DEPLOYER_SK, provider)
+        VRFCoordinatorV2Contract = new ethers.Contract(
+            coordinatorAddress,
+            VRFCoordinatorUsedAbi,
+            signer
+        )
     }
 
     const args = [
@@ -63,6 +79,11 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const independentFundsManagerContract = await deployments.get(
         "IndependentFundsManager"
     )
+    console.log(
+        "independentFundsManagerContract deployed at ",
+        `${independentFundsManagerContract.address}`
+    )
+
     await updateFrontEndData(
         independentFundsManagerContract,
         "IndependentFundsManager"
@@ -77,15 +98,20 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         )
         // console.log("Consumer added.")
     } else {
-        console.log(
-            "Not in development network, fund sibsciption when deploying. (TODO)"
+        // TODO: Add independentFundsManager as a consumer to VRFCoordinator in testnet.
+        await VRFCoordinatorV2Contract.addConsumer(
+            process.env.GOERLI_CHAINLINK_SUBS_ID,
+            independentFundsManagerContract.address
         )
-        // Verify on Etherscan if deployed on Rinkeby.
+        console.log("independentFundsManagerContract added as consumer!")
+
+        // Verifies on Etherscan if deployed on goerli.
         if (
             process.env.ETHERSCAN_API_KEY &&
-            network.config.chainId == networks.rinkeby.chainId
+            network.config.chainId == networks.goerli.chainId
         ) {
             await verify(independentFundsManagerContract.address, args)
+            console.log("Verified on Etherscan!")
         }
     }
 
@@ -97,7 +123,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
             FRONT_END_CONTRACTS_TESTING_FILE
         )
     }
-    // console.log("-----------------------------------")
+    console.log("-----------------------------------")
 }
 
 module.exports.tags = ["all", "fundsManager", "buddyfighters"]

@@ -11,15 +11,15 @@ async function cleanAllPinnedPinata() {
     for (const file of files) {
         if (file.date_unpinned == null) await pinata.unpin(file.ipfs_pin_hash)
     }
-    console.log("All deleted...")
+    console.log("All deleted.")
 }
 
 module.exports = async function () {
     await cleanAllPinnedPinata()
 }
 
-// async function test() {
-//     await cleanAllPinnedPinata()
-// }
+async function use() {
+    await cleanAllPinnedPinata()
+}
 
-// test()
+use()

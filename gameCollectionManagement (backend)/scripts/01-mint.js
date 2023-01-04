@@ -14,8 +14,7 @@ const PINATA_API_SECRET = process.env.PINATA_API_SECRET
 module.exports = async function (nftName, saveOnBlockchain, clientAddress) {
     saveOnBlockchain = false // TODO: Delete this line if saving metadata onChain ever implemented.
     let success = [false, "Some error occurred"]
-    const onDevNet =
-        developmentNets.includes(network.name) || network.name == "goerli"
+    const onDevNet = developmentNets.includes(network.name)
     const blocksToWait = onDevNet ? 1 : 6
     const { deployer } = await getNamedAccounts()
     const independentFundsManagerContract = await ethers.getContract(
@@ -24,7 +23,10 @@ module.exports = async function (nftName, saveOnBlockchain, clientAddress) {
     )
 
     // Generating random numbers and stats calling IndependentFundsManagerContract.
-    let num1, num2, stats
+    // Change to not initialize when random number generation implemented in testet.
+    let num1 = 88,
+        num2 = 140,
+        stats = [255, 255, 255, 255, 255, 255]
     const pokemonNumbersFilter = await independentFundsManagerContract.filters
         .IndependentFundsManager__BDFT__RndomNumsGenerated
     const pokemonStatsFilter = await independentFundsManagerContract.filters
@@ -105,7 +107,7 @@ module.exports = async function (nftName, saveOnBlockchain, clientAddress) {
     // Creates the pokemon image in ./utils/pokemonImages
     const imageObject = await generateImage(num1, num2)
     if (!saveOnBlockchain) {
-        if (onDevNet) {
+        if (onDevNet || network.name == "goerli") {
             // Pinata service
             const pinata = new pinataSDK(PINATA_API_KEY, PINATA_API_SECRET)
             const readableStreamForFile = fs.createReadStream(
@@ -185,7 +187,7 @@ module.exports = async function (nftName, saveOnBlockchain, clientAddress) {
 
     let token_URI
     if (!saveOnBlockchain) {
-        if (onDevNet) {
+        if (onDevNet || network.name == "goerli") {
             // Pinata service
             const pinata = new pinataSDK(PINATA_API_KEY, PINATA_API_SECRET)
             const options = {
@@ -224,12 +226,17 @@ module.exports = async function (nftName, saveOnBlockchain, clientAddress) {
 
     //Calling mint through IndependentFundsManagerContract
     const priceToMint = await ethers.utils.parseEther("0.01")
+    console.log("Trying to call mint...")
     try {
         txResponse = await independentFundsManagerContract.useFundsToMintNft(
             token_URI,
             clientAddress,
             { value: priceToMint }
         )
+        console.log(
+            "Transaction minitng sent... Now waiting for confirmations..."
+        )
+        txReceipt = await txResponse.wait(blocksToWait)
     } catch (error) {
         console.log("ERROR IN MINTING SCRIPT...")
         console.log("----------------------------")
@@ -239,9 +246,9 @@ module.exports = async function (nftName, saveOnBlockchain, clientAddress) {
             "Error in minting transaction, error recieved ---> " + `${error}`
         return success
     }
-    txReceipt = await txResponse.wait(blocksToWait)
     success[0] = true
     success[1] = ""
+    console.log("Successful minitng!")
     return success
 }
 

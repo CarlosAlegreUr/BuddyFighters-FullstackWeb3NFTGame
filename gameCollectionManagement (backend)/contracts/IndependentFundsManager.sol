@@ -271,8 +271,8 @@ contract IndependentFundsManager is VRFConsumerBaseV2, Ownable {
     }
 
     function useFundsToStartFight(
-        address[2] memory _participants,
-        uint256[2] memory _tokenIds
+        address[2] calldata _participants,
+        uint256[2] calldata _tokenIds
     )
         external
         payable
