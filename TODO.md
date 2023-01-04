@@ -1,6 +1,7 @@
 # TODO
 
     0.- Complete README
+    Create npm package for my API
 
 ## Backend
 
@@ -25,6 +26,8 @@
     12.-Fix back-end/front-end constants. They are saved always, doesnt check for repeating ones correctly (update-front-end.js).
 
     13.-Use NatSpec.
+
+    14.-Long term, add betting in fights for non-participants.
 
 ## Front-end
 
