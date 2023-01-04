@@ -47,7 +47,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
                 networkConfig[networks.goerli.chainId]["vrfCoordinator"]
             vrfSubsId = networkConfig[networks.goerli.chainId]["vrfSubsId"]
         }
-        // GET CONTRACT TO FUND SUBS WITH LINK
+        
         const VRFCoordinatorUsedAbi = [
             "function addConsumer(uint64 subId, address consumer) external",
         ]

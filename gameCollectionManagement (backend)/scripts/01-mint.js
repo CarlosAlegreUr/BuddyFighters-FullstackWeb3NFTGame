@@ -13,7 +13,9 @@ const PINATA_API_SECRET = process.env.PINATA_API_SECRET
 
 module.exports = async function (nftName, saveOnBlockchain, clientAddress) {
     saveOnBlockchain = false // TODO: Delete this line if saving metadata onChain ever implemented.
-    let success = [false, "Some error occurred"]
+    let success = [false, "Some error occurred"],
+        txResponse,
+        txReceipt
     const onDevNet = developmentNets.includes(network.name)
     const blocksToWait = onDevNet ? 1 : 6
     const { deployer } = await getNamedAccounts()
@@ -23,14 +25,17 @@ module.exports = async function (nftName, saveOnBlockchain, clientAddress) {
     )
 
     // Generating random numbers and stats calling IndependentFundsManagerContract.
-    // Change to not initialize when random number generation implemented in testet.
-    let num1 = 88,
-        num2 = 140,
-        stats = [255, 255, 255, 255, 255, 255]
-    const pokemonNumbersFilter = await independentFundsManagerContract.filters
-        .IndependentFundsManager__BDFT__RndomNumsGenerated
-    const pokemonStatsFilter = await independentFundsManagerContract.filters
-        .IndependentFundsManager__BDFT__RndomStatsGenerated
+    // FOR NOW RANDOMNESS IS NOT DECENTRALIZED
+    let num1 = parseInt(((Math.random() * 1000) % 151) + 1),
+        num2 = parseInt(((Math.random() * 1000) % 151) + 1),
+        stats = [
+            parseInt(((Math.random() * 1000) % 255) + 1),
+            parseInt(((Math.random() * 1000) % 255) + 1),
+            parseInt(((Math.random() * 1000) % 255) + 1),
+            parseInt(((Math.random() * 1000) % 255) + 1),
+            parseInt(((Math.random() * 1000) % 255) + 1),
+        ]
+   
     if (onDevNet) {
         let txResponse =
             await independentFundsManagerContract.requestRandomNumbers(2)
@@ -99,7 +104,73 @@ module.exports = async function (nftName, saveOnBlockchain, clientAddress) {
         )
         stats = query[0].args.rndmNums
     } else {
+        // NOT IMPLEMENTED YET (RANDOM NUMBER GENERATION IS MADE THRHOUGH MATH LIBRARY IN BACKEND)
         // In testnet numbers are in event logs, loop trough them till finding or use TheGraph maybe.
+        //
+        // const pokemonNumbersFilter = await independentFundsManagerContract.filters
+        // .IndependentFundsManager__BDFT__RndomNumsGenerated
+        // const pokemonStatsFilter = await independentFundsManagerContract.filters
+        // .IndependentFundsManager__BDFT__RndomStatsGenerated
+        // txResponse = await independentFundsManagerContract.requestRandomNumbers(
+        //     2
+        // )
+        // console.log("Random nums request sent... Waiting for confirmations...")
+        // txReceipt = await txResponse.wait(blocksToWait)
+        // let txBlock = txReceipt.blockNumber
+        //
+        // txResponse = await independentFundsManagerContract.requestRandomNumbers(
+        //     6
+        // )
+        // console.log("Random stats request sent... Waiting for confirmations...")
+        // txReceipt = await txResponse.wait(blocksToWait)
+        // txBlock =
+        //     txBlock <= txReceipt.blockNumber ? txBlock : txReceipt.blockNumber
+        //
+        // console.log(
+        //     "Searching for random numbers generated in blockchain logs..."
+        // )
+        // const numsFilter = await independentFundsManagerContract.filters
+        //     .IndependentFundsManager__BDFT__RndomNumsGenerated
+        // const statsFilter = await independentFundsManagerContract.filters
+        //     .IndependentFundsManager__BDFT__RndomStatsGenerated
+        // let query = await independentFundsManagerContract.queryFilter(
+        //     numsFilter,
+        //     txBlock - 55,
+        //     txBlock
+        // )
+        // console.log(query)
+        //
+        // const VRFCoordinatorUsedAbi = [
+        //     "function addConsumer(uint64 subId, address consumer) external",
+        // ]
+        // const provider = new ethers.providers.JsonRpcProvider(
+        //     process.env.GOERLI_RPC_URL,
+        //     networks.goerli.chainId
+        // )
+        // const signer = new ethers.Wallet(process.env.DEPLOYER_SK, provider)
+        // const VRFCoordinatorV2Contract = new ethers.Contract(
+        //     coordinatorAddress,
+        //     VRFCoordinatorUsedAbi,
+        //     signer
+        // )
+        //
+        // const
+        // for (const q of query) {
+        //     if (
+        //         q.event ===
+        //             "IndependentFundsManager__BDFT__RndomNumsGenerated" &&
+        //         q.args.requestId == q.args.requestId
+        //     ) {
+        //         num1 = q.args.rndmNums[0]
+        //         num2 = q.args.rndmNums[1]
+        //     }
+        // }
+        //
+        // query = await vrfCoordinatorMockContract.queryFilter(
+        //     statsFilter,
+        //     txBlock - 55,
+        //     txBlock
+        // )
     }
     const ratrity = await getRarity(num1, num2)
 
