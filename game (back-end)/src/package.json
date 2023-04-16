@@ -25,6 +25,7 @@
         "typechain": "^8.1.0"
     },
     "dependencies": {
+        "mongoose": "^7.0.3",
         "nft.storage": "^7.0.0"
     }
 }
