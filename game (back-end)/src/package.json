@@ -19,13 +19,13 @@
         "hardhat": "^2.10.1",
         "hardhat-deploy": "^0.11.22",
         "hardhat-gas-reporter": "^1.0.8",
+        "input-control-contract": "^3.1.1",
         "openzeppelin-contracts": "^4.0.0",
         "prettier": "^2.7.1",
         "solidity-coverage": "^0.7.21",
         "typechain": "^8.1.0"
     },
     "dependencies": {
-        "interaction-control-contract": "^1.0.3",
         "mongoose": "^7.0.3",
         "nft.storage": "^7.0.0"
     }
