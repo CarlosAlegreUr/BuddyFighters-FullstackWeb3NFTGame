@@ -1,21 +1,19 @@
-const { NFTStorage, File } = require("nft.storage");
 const pinataSDK = require("@pinata/sdk");
 
-const fs = require("fs");
-
 const { ethers, getNamedAccounts, network } = require("hardhat");
+const generateRandomNums = require("./00-generateRandomNums");
 const generateImage = require("../utils/generateNFTImage");
+const {
+    uploadNFTImagePinata,
+    uploadMetadataJSONPinata,
+} = require("../utils/pinataUploads");
+const { getRarity, mixNames } = require("../utils/pokemonTraitsUtils");
 const { developmentNets } = require("../helper-hardhat-config");
 
-const NFTStorage_API_KEY = process.env.NFT_STORAGE_API_KEY;
-const PINATA_API_KEY = process.env.PINATA_API_KEY;
-const PINATA_API_SECRET = process.env.PINATA_API_SECRET;
-
-module.exports = async function (nftName, saveOnBlockchain) {
+module.exports = async function (saveOnBlockchain) {
     saveOnBlockchain = false; // TODO: Delete this line if saving metadata onChain ever implemented.
     let success = [false, "Some error occurred"],
-        txResponse,
-        txReceipt;
+        txResponse;
     const onDevNet = developmentNets.includes(network.name);
     const blocksToWait = onDevNet ? 1 : 6;
     const { deployer } = await getNamedAccounts();
@@ -24,121 +22,28 @@ module.exports = async function (nftName, saveOnBlockchain) {
         deployer
     );
 
-    const bfnftRndmWords = await ethers.getContract("BFNFTRndmWords", deployer);
+    if (!onDevNet && network.name != "goerli") {
+        success[0] = false;
+        success[1] =
+            "This network is not supported, only Goerli or Localhost networks are.";
+        return success;
+    }
 
     // Generating random numbers and stats.
-    // FOR NOW RANDOMNESS IS NOT DECENTRALIZED
-    let num1 = parseInt(((Math.random() * 1000) % 151) + 1),
-        num2 = parseInt(((Math.random() * 1000) % 151) + 1),
-        stats = [
-            parseInt(((Math.random() * 1000) % 255) + 1),
-            parseInt(((Math.random() * 1000) % 255) + 1),
-            parseInt(((Math.random() * 1000) % 255) + 1),
-            parseInt(((Math.random() * 1000) % 255) + 1),
-            parseInt(((Math.random() * 1000) % 255) + 1),
-        ];
+    const { num1, num2, stats } = await generateRandomNums(true, true);
 
-    if (onDevNet) {
-        let txResponse = await bfnftRndmWords.requestRandomNumbers(2);
-        let txReceipt = await txResponse.wait(blocksToWait);
-        const VRFCoordinatorV2MockContract = await ethers.getContract(
-            "VRFCoordinatorV2Mock",
-            deployer
-        );
-        const mockEventFilter = await VRFCoordinatorV2MockContract.filters
-            .RandomWordsRequested;
-        let txBlock = txReceipt.blockNumber;
-        let query = await VRFCoordinatorV2MockContract.queryFilter(
-            mockEventFilter,
-            txBlock
-        );
-        let requestId = query[0].args.requestId;
-
-        // Pokemon Nums
-        txResponse =
-            await VRFCoordinatorV2MockContract.fulfillRandomWordsWithOverride(
-                await requestId.toNumber(),
-                bfnftRndmWords.address,
-                [parseInt(Math.random() * 1000), parseInt(Math.random() * 1000)]
-            );
-        txReceipt = await txResponse.wait();
-        txBlock = txReceipt.blockNumber;
-        query = await bfnftRndmWords.queryFilter(
-            pokemonNumbersFilter,
-            txBlock,
-            txBlock
-        );
-        num1 = query[0].args.rndmNums[0];
-        num2 = query[0].args.rndmNums[1];
-
-        // Stats
-        txResponse = await bfnftRndmWords.requestRandomNumbers(6);
-        txReceipt = await txResponse.wait(blocksToWait);
-        txBlock = txReceipt.blockNumber;
-
-        query = await VRFCoordinatorV2MockContract.queryFilter(
-            mockEventFilter,
-            txBlock
-        );
-        requestId = query[0].args.requestId;
-        txResponse =
-            await VRFCoordinatorV2MockContract.fulfillRandomWordsWithOverride(
-                await requestId.toNumber(),
-                bfnftRndmWords.address,
-                [
-                    parseInt(Math.random() * 1000),
-                    parseInt(Math.random() * 1000),
-                    parseInt(Math.random() * 1000),
-                    parseInt(Math.random() * 1000),
-                    parseInt(Math.random() * 1000),
-                    parseInt(Math.random() * 1000),
-                ]
-            );
-        txReceipt = await txResponse.wait();
-        txBlock = txReceipt.blockNumber;
-        query = await bfnftRndmWords.queryFilter(
-            pokemonStatsFilter,
-            txBlock,
-            txBlock
-        );
-        stats = query[0].args.rndmNums;
-    } else {
-        // NOT IMPLEMENTED YET
-        // In testnet numbers are in event logs, loop trough them till finding or use TheGraph.
-    }
+    // Assigning more traits from random values generated
+    const nftName = await mixNames(num1, num2);
     const rarity = await getRarity(num1, num2);
 
     let imageCIDorSvg;
     // Creates the pokemon image in ./utils/pokemonImages
-    const imageObject = await generateImage(num1, num2);
+    await generateImage(num1, num2);
     if (!saveOnBlockchain) {
-        if (onDevNet || network.name == "goerli") {
-            // Pinata service
-            const pinata = new pinataSDK(PINATA_API_KEY, PINATA_API_SECRET);
-            const readableStreamForFile = fs.createReadStream(
-                "./utils/pokemonImages/pokemonImage"
-            );
-            const options = {
-                pinataMetadata: {
-                    name: `${num1}-${num2}`,
-                },
-                pinataOptions: {
-                    cidVersion: 0,
-                },
-            };
-            const response = await pinata.pinFileToIPFS(
-                readableStreamForFile,
-                options
-            );
-            console.log(response);
-            imageCIDorSvg = "ipfs://" + response.IpfsHash;
-        } else {
-            // NFTStorage service
-            imageCIDorSvg = new File([imageObject], `${num1}-${num2}.png`, {
-                type: "image/png",
-            });
-        }
+        // Using => Pinata service
+        imageCIDorSvg = await uploadNFTImagePinata(num1, num2);
     } else {
+        // TODO:
         // NOT IMPLEMENTED BUT HERE ARE THE INSTRUCTIONS
         // CONVERT IMAGE TO SVG AND BASE64 ENCODE IT FOR USING LESS CONTRACT STORAGE
         success[0] = false;
@@ -192,36 +97,10 @@ module.exports = async function (nftName, saveOnBlockchain) {
 
     let token_URI;
     if (!saveOnBlockchain) {
-        if (onDevNet || network.name == "goerli") {
-            // Pinata service
-            const pinata = new pinataSDK(PINATA_API_KEY, PINATA_API_SECRET);
-            const options = {
-                pinataMetadata: {
-                    name: `${num1}-${num2}-JSON`,
-                },
-                pinataOptions: {
-                    cidVersion: 0,
-                },
-            };
-            const response = await pinata.pinJSONToIPFS(
-                metadataJSONFormat,
-                options
-            );
-            console.log(response);
-            token_URI = "ipfs://" + response.IpfsHash;
-        } else {
-            // NFTStorage service
-            // TODO: fix, doesnt work. Uploads stuff but can't read it from my browser at least...
-            // Stores metadata.json using NFTStorage
-            const client = new NFTStorage({ token: NFTStorage_API_KEY });
-            const metadata = await client.store(metadataJSONFormat);
-            token_URI = metadata.url; // also available metadata.ipnft (CID of tokenURI)
-            // Until fixed it will display always same image.
-            token_URI =
-                "ipfs://bafkreieiy3v6rfcipx2nd2b3kf52lkhwkh4qeegfkqep227tdp632d5fmq";
-            console.log(metadata);
-        }
+        // Using => Pinata service
+        token_URI = await uploadMetadataJSONPinata(metadataJSONFormat);
     } else {
+        // TODO:
         // NOT IMPLEMENTED BUT HERE ARE THE INSTRUCTIONS
         // BASE64 ENCODE THE JSON METADATA AND THATS THE TOKEN_URI
         success[0] = false;
@@ -232,7 +111,8 @@ module.exports = async function (nftName, saveOnBlockchain) {
     //Calling mint through bfnftRndmWords
     console.log("Trying to call mint...");
     try {
-        txResponse = await buddyFightersContract.mintNFT(token_URI, deployer);
+        // Input allowance must be deactivated for this to work.
+        txResponse = await buddyFightersContract.mintNft(token_URI);
         console.log(
             "Transaction minitng sent... Now waiting for confirmations..."
         );
@@ -251,22 +131,3 @@ module.exports = async function (nftName, saveOnBlockchain) {
     console.log("Successful minitng!");
     return success;
 };
-
-function getRarity(num1, num2) {
-    rarity = 1;
-    if (num1 == 144 || num1 == 145 || num1 == 146 || num1 == 150) {
-        rarity *= 3;
-    } else {
-        if (num1 == 0 || num1 == 151) {
-            rarity *= 5;
-        }
-    }
-    if (num2 == 144 || num2 == 145 || num2 == 146 || num2 == 150) {
-        rarity *= 3;
-    } else {
-        if (num2 == 0 || num2 == 151) {
-            rarity *= 5;
-        }
-    }
-    return rarity;
-}

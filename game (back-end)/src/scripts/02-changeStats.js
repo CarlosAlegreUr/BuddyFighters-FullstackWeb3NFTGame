@@ -1,16 +1,13 @@
-const { ethers, getNamedAccounts, network } = require("hardhat");
-const { developmentNets } = require("../helper-hardhat-config");
+const { ethers, getNamedAccounts } = require("hardhat");
 
-// TO BE IMPLEMENTED
-module.exports = async function (
-    saveOnBlockchain = false,
-    clientAddress,
-    tokenId
-) {
-    saveOnBlockchain = false; // TODO: Delete this line if saving metadata onChain ever implemented.
+const generateRandomNums = require("./00-generateRandomNums");
+const {
+    uploadMetadataJSONPinata,
+    unpinByHashPinata,
+} = require("../utils/pinataUploads");
+
+module.exports = async function (tokenId, savedOnBlockchain) {
     let success = [false, "Some error occurred"];
-    const onDevNet = developmentNets.includes(network.name);
-    const blocksToWait = onDevNet ? 1 : 6;
     const { deployer } = await getNamedAccounts();
 
     const buddyFightersNFTContract = await ethers.getContract(
@@ -19,50 +16,30 @@ module.exports = async function (
     );
 
     const token_URI = await buddyFightersNFTContract.tokenURI(tokenId);
+    const token_Hash = await token_URI.replace("ipfs://", "");
+    const { stats } = await generateRandomNums(false, true);
 
     let newToken_URI;
-    if (saveOnBlockchain) {
+    if (savedOnBlockchain) {
+        // TODO:
         // NOT IMPLEMENTED BUT HERE ARE THE INSTRUCTIONS
-        // GET TOKEN URI FROM BUDDYFIGHTERS CONTRACT
-        // GET JSON FILE FROM TOKEN URI
-        // IF TOKEN IS A CID, GET IMAGE
-        // CONVERT IMAGE TO SVG AND BASE64 ENCODE IT
-        // SAVE ENCODED IMAGE IN METADATA
-        // GENERATE RANDOM STATS CALLING INDEPENDENT FUND MANAGER
+        // GET JSON FILE FROM DECODING TOKEN URI
         // SAVE RANDOM STATS ON METADATA
         // ENCODE BASE64 JSON AND THATS THE NEW TOKEN_URI
         success[0] = false;
         success[1] = "Saving changedStats on blockchain not implemented yet.";
         return success;
     } else {
-        // TODO:
-        // SEARCH IN PINATA OR NFTSTORAGE PINNED FILE THAT MATHCES TOKENID
-        // GET JSON DATA
-        // COPY PASTE JSON METADATA BUT WITH NEW STATS
-        // PIN NEW METADATA TO PINATA OR NFTSTORAGE
-        // UNPIN (DELETE) OLD METADATA FROM PINATA OR NFTSTOAGE
-    }
+        // Create new metadata
+        // Retrieve old JSON from IPFS
+        const prevMetadataJSON = {};
+        const newMetadataJSON = {};
 
-    // Calling changing stats function
-    try {
-        // Get function signature of changeStats() and also keckack input --> new token URI
-        const txResponse = await buddyFightersNFTContract.allowInputsFor(
-            clientAddress,
-            tokenId,
-            false
-        );
-    } catch (error) {
-        console.log("ERROR IN CHANGING STATS SCRIPT...");
-        console.log("----------------------------");
-        console.log(error);
-        success[0] = false;
-        success[1] =
-            "Error in changing stats transaction, error recieved ---> " +
-            `${error}`;
-        return success;
+        // Unpin old metadata
+        await unpinByHashPinata(token_Hash);
+
+        // Pin new metadata
+        newToken_URI = await uploadMetadataJSONPinata(newMetadataJSON);
+        return newToken_URI;
     }
-    const txReceipt = await txResponse.wait(blocksToWait);
-    success[0] = true;
-    success[1] = "";
-    return success;
 };

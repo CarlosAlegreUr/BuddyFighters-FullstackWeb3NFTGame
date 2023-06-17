@@ -1,40 +1,45 @@
-const mintNFT = require("./01-mint")
-const withdrawal = require("./05-withdrawal")
-const { ethers, getNamedAccounts, network } = require("hardhat")
+const mintNFT = require("./01-mint");
+const changeStats = require("./02-changeStats");
+const { ethers, getNamedAccounts, network } = require("hardhat");
 
-async function callMint(name, onBlockchain, clientAddress) {
-    const independentContract = await ethers.getContract(
-        "IndependentFundsManager",
-        clientAddress
-    )
-    console.log("FundsManager address --->", `${independentContract.address}`)
-
-    await independentContract.fund({
-        value: await ethers.utils.parseEther("0.01"),
-    })
-    console.log(`${clientAddress} funded.`)
-
-    await independentContract.setFrozenFunds(false)
-    console.log(`${clientAddress} unfrozened funds.`)
-
-    const txResponse = await independentContract.setPermission(1)
-    console.log(`${clientAddress} Permission given.`)
-    console.log(`Waiting for confirmations...`)
-    await txResponse.wait(6)
-
-    await mintNFT(name, onBlockchain, clientAddress)
+// Delay function.
+function delay(t) {
+    return new Promise((resolve) => setTimeout(resolve, t));
 }
 
+// We can accept a number for the quantity of NFTs to mint.
+async function callMint(onBlockchain, quantity) {
+    // Loop and call mintNFT with a delay between each call.
+    for (let i = 0; i < quantity; i++) {
+        await mintNFT(onBlockchain);
+        await delay(4500); // Delay for 4.5 seconds
+    }
+}
+
+const numToMint = 2;
 async function callMinting() {
-    const { client2 } = await getNamedAccounts()
-    callMint("Pero Castillo Lapiedra", false, client2)
+    const { deployer } = await getNamedAccounts();
+    const buddyFightersContract = await ethers.getContract(
+        "BuddyFightersNFT",
+        deployer
+    );
+    txResponse = await buddyFightersContract.setInputChekcer(false);
+    txReceipt = await txResponse.wait(1);
+
+    // Now we can specify how many NFTs we want to mint.
+    callMint(false, numToMint);
 }
 
-callMinting()
+// callMinting();
 
-async function callWithdrawal() {
-    const { client2 } = await getNamedAccounts()
-    await withdrawal(client2)
+exe();
+async function exe() {
+    await changeStats(0, false);
 }
+
+// async function callWithdrawal() {
+// const { client2 } = await getNamedAccounts();
+// await withdrawal(client2);
+// }
 
 // callWithdrawal()

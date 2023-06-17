@@ -11,6 +11,7 @@ import "./Fight.sol";
 /* Customed erros */
 error BFNFT__MinimumPriceNotPayed();
 error BFNFT__IsNotTokenOwner();
+error BFNFT__IsNotContractOnwer();
 
 /**
  * @title BuddyFighters' NFTs contract.
@@ -24,6 +25,7 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     /* State variables */
     uint256 private constant STATS_CHANGE_PRICE = 10000000000000000;
 
+    bool public s_allowInputCheck;
     IInputControlModular private i_InputControl;
 
     /* Events */
@@ -67,8 +69,19 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
         address _callerAddress,
         bytes32 _input
     ) {
-        i_InputControl.isAllowedInput(_funcSelec, _callerAddress, _input);
+        if (!s_allowInputCheck && modifierHelperOnlyOwner()) {
+            revert BFNFT__IsNotContractOnwer();
+        }
+
+        if (s_allowInputCheck) {
+            i_InputControl.isAllowedInput(_funcSelec, _callerAddress, _input);
+        }
         _;
+    }
+
+    // When inputControl deactivated onlyOwner can call those functions.
+    function modifierHelperOnlyOwner() private view onlyOwner returns (bool) {
+        return false;
     }
 
     /* Functions */
@@ -90,6 +103,7 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
         address _inputControlContractAddress
     ) ERC721(_name, _symbol) {
         i_InputControl = IInputControlModular(_inputControlContractAddress);
+        s_allowInputCheck = true;
     }
 
     /* External functions */
@@ -100,7 +114,17 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
      *
      * @notice Client must call this function but first the interaction must me allowed by backend.
      */
-    function mintNft(string memory _tokenURI) external payable {
+    function mintNft(
+        string memory _tokenURI
+    )
+        external
+        payable
+        checkAllowedInput(
+            bytes4(keccak256(bytes("mintNft(string)"))),
+            msg.sender,
+            keccak256(abi.encode(_tokenURI))
+        )
+    {
         uint256 tokenId = totalSupply();
         _safeMint(msg.sender, tokenId);
         _setTokenURI(tokenId, _tokenURI);
@@ -150,6 +174,11 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     /* Public functions */
     function changeInputControl(address _newContract) external onlyOwner {
         i_InputControl = IInputControlModular(_newContract);
+    }
+
+    // Activates or deactivates input checkings.
+    function setInputChekcer(bool _new) external onlyOwner {
+        s_allowInputCheck = _new;
     }
 
     /**

@@ -18,6 +18,7 @@ async function createImageInPokemonImagesFolder(num1, num2) {
 
 function createPokemonUrl(num1, num2) {
     urlBegin = "https://images.alexonsager.net/pokemon/fused/"
+    
     const urlFinal = urlBegin + num1 + "/" + num1 + "." + num2 + ".png"
     return { url: urlFinal }
 }
