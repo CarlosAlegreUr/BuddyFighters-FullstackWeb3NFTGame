@@ -4,13 +4,15 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
+import "call-order-control-contract/CallOrderControl.sol";
 
 /* Customed erros */
-error BFNFT__MinimumPriceNotPayed();
-error BFNFT__NotEnoughFunds();
-error BFNFT__FailedToFundFight();
-error BFNFT__RndomNumLengthNotValid();
-error BFNFT__IsNotTokenOwner();
+error BFNFT__Rndm__MinimumPriceNotPayed();
+error BFNFT__Rndm__NotEnoughFunds();
+error BFNFT__Rndm__FailedToFundFight();
+error BFNFT__Rndm__RndomNumLengthNotValid();
+error BFNFT__Rndm__IsNotTokenOwner();
+error BFNFT__Rndm__IsNotContractOnwer();
 
 /**
  * @title BuddyFighters' NFTs Random Words.
@@ -19,11 +21,14 @@ error BFNFT__IsNotTokenOwner();
  * @notice This contract manages the random number generation fort the BuddyFighters collection.
  * For that it uses Chainlink VRF.
  */
-contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2 {
+contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
     /* State variables */
     uint8 private constant MAX_PKMN_NUM = 151;
     uint8 private constant MAX_STATS_VALUE = 255;
     uint8 private constant STATS_NUM = 6;
+
+    // Call Control Locker
+    bool public s_allowCallsCheck;
 
     // Chainlink Random numbers generation
     uint8 private constant BLOCK_CONFIRMATION_FOR_RANDOMNESS = 3;
@@ -41,6 +46,36 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2 {
         uint8[STATS_NUM] rndmNums,
         uint256 indexed requestId
     );
+
+    /* Modifiers */
+
+    modifier checkAllowedCall(bytes4 _funcSelec, address _callerAddress) {
+        if (!s_allowCallsCheck && modifierHelperOnlyOwner()) {
+            revert BFNFT__Rndm__IsNotContractOnwer();
+        }
+
+        if (s_allowCallsCheck) {
+            modifierHelperCallOrder(_funcSelec, _callerAddress);
+        }
+        _;
+    }
+
+    // When inputControl deactivated onlyOwner can call those functions.
+    function modifierHelperOnlyOwner() private view onlyOwner returns (bool) {
+        return false;
+    }
+
+    function modifierHelperCallOrder(
+        bytes4 _funcSelec,
+        address _callerAddress
+    ) private isAllowedCall(_funcSelec, _callerAddress) returns (bool) {
+        return false;
+    }
+
+    // Activates or deactivates input checkings.
+    function setCallsChekcer(bool _new) external onlyOwner {
+        s_allowCallsCheck = _new;
+    }
 
     /* Functions */
 
@@ -75,7 +110,15 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2 {
      *
      * @param _numOfWords quantity of random numbers to generate.
      */
-    function requestRandomNumbers(uint32 _numOfWords) external onlyOwner {
+    function requestRandomNumbers(
+        uint32 _numOfWords
+    )
+        external
+        checkAllowedCall(
+            bytes4(keccak256(bytes("requestRandomNumbers(uint32)"))),
+            msg.sender
+        )
+    {
         i_vrfCoordinator.requestRandomWords(
             i_keyHashGasLimit,
             i_vrfSubsId,
@@ -119,8 +162,16 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2 {
                 stats[5] = uint8((randomWords[5] % (MAX_STATS_VALUE)) + 1);
                 emit BFNFT__RndomStatsGenerated(stats, requestId);
             } else {
-                revert BFNFT__RndomNumLengthNotValid();
+                revert BFNFT__Rndm__RndomNumLengthNotValid();
             }
         }
+    }
+
+    function callAllowFuncCallsFor(
+        address _callerAddress,
+        bytes4[] calldata _validFuncCalls,
+        bool _isSequence
+    ) public override onlyOwner {
+        allowFuncCallsFor(_callerAddress, _validFuncCalls, _isSequence);
     }
 }
