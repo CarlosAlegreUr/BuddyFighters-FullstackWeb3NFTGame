@@ -1,9 +1,9 @@
 const { assert, expect } = require("chai")
 const { ethers, getNamedAccounts, deployments, network } = require("hardhat")
-const { developmentNets } = require("../../helper-hardhat-config")
+const { developmentNets } = require("../../../helper-hardhat-config")
 const {
     FRONT_END_CONTRACTS_TESTING_FILE,
-} = require("../../scripts/04-updateFrontEnd")
+} = require("../../../blockchainScripts/04-updateFrontEnd")
 const fs = require("fs")
 
 describe("Scripts tests", function () {

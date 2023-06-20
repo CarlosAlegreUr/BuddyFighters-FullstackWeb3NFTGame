@@ -4,7 +4,7 @@ const generateRandomNums = require("./00-generateRandomNums");
 const {
     uploadMetadataJSONPinata,
     unpinByHashPinata,
-} = require("../utils/pinataUploads");
+} = require("../../utils/blockchainUtils/pinataUploads");
 const { retrieveJsonFromIpfs } = require("../utils/getIPFSData");
 
 module.exports = async function (clientAddress, tokenId, savedOnBlockchain) {
