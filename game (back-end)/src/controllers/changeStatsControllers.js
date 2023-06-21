@@ -14,12 +14,15 @@ exports.requestChange = async (req, res) => {
                 .json({ message: "Player address is required." });
         }
         await requestChange(playerAddress);
+        console.log("controller executed");
         res.status(200).json({
             message:
                 "Change requested successfully, now you have 2.5mins to generate your random numbers.",
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).send(
+            "Something went wrong in requestChange() service!"
+        );
     }
 };
 
@@ -39,6 +42,8 @@ exports.generateNewStatsURIAndAllowClient = async (req, res) => {
         );
         res.status(200).json({ newTokenUri });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).send(
+            "Something went wrong in generateNewStatsURIAndAllowClient() service!"
+        );
     }
 };
