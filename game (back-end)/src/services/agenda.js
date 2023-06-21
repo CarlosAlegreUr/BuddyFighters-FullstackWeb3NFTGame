@@ -1,3 +1,6 @@
+const dotenv = require("dotenv");
+dotenv.config();
+
 const Agenda = require("agenda");
 const AddressTimer = require("../database/models/addressTimer");
 
@@ -6,7 +9,7 @@ const {
     disallowRandomStatsGeneration,
 } = require("../blockchainScripts/changeStats");
 
-const agenda = new Agenda();
+const agenda = new Agenda({ db: { address: process.env.DATABASE_URL } });
 
 // After the time has passed it deletes the object from database and the permissions from blockchain.
 agenda.define("updateRndmStatsAllowance", async (job) => {

@@ -12,15 +12,23 @@ async function requestChange(playerAddress) {
         // Give permission to generate random stats
         await allowRandomStatsGeneration(playerAddress);
 
-        const addressTimer = new AddressTimer({
+        // Try to find an existing timer for this address
+        let addressTimer = await AddressTimer.findOne({
             address: playerAddress,
-            date: new Date(),
         });
-        await addressTimer.save();
+
+        // If a timer doesn't exist, create a new one
+        if (!addressTimer) {
+            addressTimer = new AddressTimer({
+                address: playerAddress,
+                date: new Date(),
+            });
+            await addressTimer.save();
+        }
 
         // After 5 minutes call disallowRandomStatsGeneration
-        const waitTime = 1000 * 60 * 5;
-        // Timeout function to execute after waiting
+        const waitTime = new Date();
+        waitTime.setMinutes(waitTime.getMinutes() + 1);
 
         // Schedule the job to execute after waiting
         await agenda.schedule(waitTime, "updateRndmStatsAllowance", {
@@ -53,9 +61,10 @@ async function generateNewStatsURIAndAllowClient(
         addressTimer.tokenUri = newTokenUri;
         await addressTimer.save();
 
-        const waitTime = 1000 * 60 * 2.5;
+        const waitTime = new Date();
+        waitTime.setMinutes(waitTime.getMinutes() + 2.5);
 
-        // Timeout function to execute after waiting
+        // Execute after 2.5 minutes.
         await agenda.schedule(waitTime, "updateStatsChangeAllowance", {
             playerAddress,
         });

@@ -6,6 +6,9 @@ typechain
 typechain-types
 .prettierrc
 yarn-error.log
+errorLogs.log
+infoLogs.log
+warningLogs.log
 
 #Hardhat files
 cache
