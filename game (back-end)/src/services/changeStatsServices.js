@@ -35,7 +35,6 @@ async function requestChange(playerAddress) {
             playerAddress,
             rndmStatGenerationdate: addressTimer.date,
         });
-        console.log("service part executed");
     } catch (error) {
         throw error;
     }

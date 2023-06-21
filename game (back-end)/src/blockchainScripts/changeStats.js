@@ -26,7 +26,6 @@ async function allowRandomStatsGeneration(clientAddress) {
             [funcSelec],
             false
         );
-        console.log("blockchain executed...");
     } catch (error) {
         throw error;
     }

@@ -72,8 +72,7 @@ app.use((err, req, res, next) => {
         `HTTP ${req.method} ${req.url} ${res.statusCode} ${err.message} ERROR STACK: ${err.stack}`
     );
 
-    res.status(500).send("Something went wrong!");
-    next(err);
+    res.status(500).send("Something went wrong!!!");
 });
 
 // Start server
