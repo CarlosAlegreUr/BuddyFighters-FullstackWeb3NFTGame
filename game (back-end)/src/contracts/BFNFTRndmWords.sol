@@ -40,11 +40,13 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
     /* Events */
     event BFNFT__RndomNumsGenerated(
         uint8[2] rndmNums,
-        uint256 indexed requestId
+        uint256 indexed requestId,
+        address indexed callerAddress
     );
     event BFNFT__RndomStatsGenerated(
         uint8[STATS_NUM] rndmNums,
-        uint256 indexed requestId
+        uint256 indexed requestId,
+        address indexed callerAddress
     );
 
     /* Modifiers */
@@ -150,7 +152,7 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
         if (randomWords.length == 2) {
             uint8 num1 = uint8((randomWords[0] % MAX_PKMN_NUM) + 1);
             uint8 num2 = uint8((randomWords[1] % MAX_PKMN_NUM) + 1);
-            emit BFNFT__RndomNumsGenerated([num1, num2], requestId);
+            emit BFNFT__RndomNumsGenerated([num1, num2], requestId, msg.sender);
         } else {
             if (randomWords.length == 6) {
                 uint8[6] memory stats;
@@ -160,7 +162,7 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
                 stats[3] = uint8((randomWords[3] % (MAX_STATS_VALUE)) + 1);
                 stats[4] = uint8((randomWords[4] % (MAX_STATS_VALUE)) + 1);
                 stats[5] = uint8((randomWords[5] % (MAX_STATS_VALUE)) + 1);
-                emit BFNFT__RndomStatsGenerated(stats, requestId);
+                emit BFNFT__RndomStatsGenerated(stats, requestId, msg.sender);
             } else {
                 revert BFNFT__Rndm__RndomNumLengthNotValid();
             }

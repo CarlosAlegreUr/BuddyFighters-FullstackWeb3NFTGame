@@ -1,13 +1,13 @@
 const pinataSDK = require("@pinata/sdk");
 
 const { ethers, getNamedAccounts, network } = require("hardhat");
-const generateRandomNums = require("./00-generateRandomNums");
+const generateRandomNums = require("./generateRandomNums");
 const generateImage = require("../utils/generateNFTImage");
 const {
     uploadNFTImagePinata,
     uploadMetadataJSONPinata,
-} = require("../utils/pinataUploads");
-const { getRarity, mixNames } = require("../utils/pokemonTraitsUtils");
+} = require("../utils/blockchainUtils/pinataUploads");
+const { getRarity, mixNames } = require("../utils/nftTraitsUtils");
 const { developmentNets } = require("../helper-hardhat-config");
 
 module.exports = async function (saveOnBlockchain) {

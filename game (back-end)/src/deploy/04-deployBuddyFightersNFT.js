@@ -4,11 +4,11 @@ const { developmentNets } = require("../helper-hardhat-config");
 require("dotenv").config();
 
 const { collectionName, collecitonSymbol } = require("../utils/appVariables");
-const { verify } = require("../utils/etherscanVerifyContract");
+const { verify } = require("../utils/blockchainUtils/etherscanVerifyContract");
 const {
     updateFrontEndData,
     FRONT_END_CONTRACTS_TESTING_FILE,
-} = require("../scripts/04-updateFrontEnd");
+} = require("../blockchainScripts/updateFrontEnd");
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deploy } = deployments;

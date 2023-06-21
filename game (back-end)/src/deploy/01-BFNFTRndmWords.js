@@ -3,11 +3,11 @@ const { networks } = require("../hardhat.config");
 const { networkConfig, developmentNets } = require("../helper-hardhat-config");
 require("dotenv").config();
 
-const { verify } = require("../utils/etherscanVerifyContract");
+const { verify } = require("../utils/blockchainUtils/etherscanVerifyContract");
 const {
     updateFrontEndData,
     FRONT_END_CONTRACTS_TESTING_FILE,
-} = require("../scripts/04-updateFrontEnd");
+} = require("../blockchainScripts/updateFrontEnd");
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deploy } = deployments;

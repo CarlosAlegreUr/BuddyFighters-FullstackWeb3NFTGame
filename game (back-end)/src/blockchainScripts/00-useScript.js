@@ -1,5 +1,5 @@
-const mintNFT = require("./01-mint");
-const changeStats = require("./02-allowChangeStats");
+const mintNFT = require("./mint");
+const changeStats = require("./changeStats");
 const { ethers, getNamedAccounts, network } = require("hardhat");
 
 // Delay function.
@@ -30,9 +30,9 @@ async function callMinting() {
     callMint(false, numToMint);
 }
 
-// callMinting();
+callMinting();
 
-exe();
+// exe();
 async function exe() {
     await changeStats("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", 0, false);
 }
