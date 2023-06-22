@@ -1,0 +1,17 @@
+node_modules
+.env
+coverage
+coverage.json
+typechain
+typechain-types
+.prettierrc
+yarn-error.log
+errorLogs.log
+infoLogs.log
+warningLogs.log
+
+#Hardhat files
+cache
+artifacts
+gasReport.txt
+deployments

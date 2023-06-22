@@ -1,0 +1,9 @@
+{
+    "ignore": [
+        "./artifacts",
+        "./cache",
+        "./deployments",
+        "./utils/pokemonImages",
+        "./deployments"
+    ]
+}
