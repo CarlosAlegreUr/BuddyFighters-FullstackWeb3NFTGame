@@ -10,6 +10,19 @@
 
 <h4 align="center">A figthing game on the browser using NFT techonlogy that can be played in EVM compatible blockchains.</h4>
 
+# Index
+
+- Special thanks.
+- Video using the app.
+- What offical production code can handle.
+- How the application works?
+- How to use locally.
+- Project Structure (so far).
+- Pakcages and technologies used.
+- License.
+
+<hr/>
+
 ## Special thanks
 
 Thanks <a href="https://twitter.com/aonsager" target="_blank"> @aonsager </a> for <a href="https://twitter.com/charlescheerfu1/status/1546925876494929927" target="_blank"> allowing </a> me to use his images.
@@ -27,14 +40,37 @@ Source of the pokemon fusions images used in this project.
 
 <hr>
 
-## Key Features
-
-- You cant check the collection at [OpenSea](https://testnets.opensea.io/).
-- GameCollectionManagement: all the back-end code that manages the NFT collection. Hosted on FireBase.
-- Web Game: front-end part of the project that interacts with the backend.
+## Video using the app
 
 <hr>
 
+## How the application works?
+
+Backend is managed by some business that owns the
+NFT collection and provides the game mechanics.
+
+Backend takes charge of:
+
+- Creates nfts with random Chainlink generated trait values. And then gives permision the client to mint the NFT with the values that have been generated. Like this client can be sure it's NFT was truly random and creates more trust in the business.
+
+- Executes the matchmaking and fighting logic when 2 players are looking for or in a fight.
+
+- If conditions met, allows clients to improve their
+  nft's traits but does not call that function on the blockchain. Client has to call it. This is done to create more reliability in the business because clients
+  can check the URI points or is the desired data and then they themselves call the update function from the front-end.
+
+Front-end takes charge of:
+
+- Abstract all the blockchain interactions or API backend interactions with simple user friendly buttons.
+
+<hr>
+
+## What offical production code can handle
+
+This is a personal portfolio project, so the public website and backend only handle 2 fights at the same time and can only handle 5 accounts. This is done so I
+can host the project for free.
+
+<hr/>
 
 ## How To Use Locally
 
@@ -46,7 +82,7 @@ Source of the pokemon fusions images used in this project.
 
 <br>
 
-To play locally in your own blockchain, you'll need [Git](https://git-scm.com) and [Yarn](https://github.com/yarnpkg/berry), though you can use [Node.js](https://nodejs.org/en/download/) to install dependencies if you like.
+To play locally in your own blockchain, you'll need [Git](https://git-scm.com) and [Yarn](https://github.com/yarnpkg/berry), though you can use [Npm](https://www.npmjs.com/) to install dependencies if you like.
 
 From your command line:
 
@@ -54,14 +90,21 @@ From your command line:
 # Clone this repository
 $ git clone https://github.com/CarlosAlegreUr/BuddyFighters-FullstackWeb3NFTGame.git
 
-# Install all the dependencies in package.json
+# Install all the dependencies of package.json
+$ cd ./game\ \(back-end\)/src/
 $ yarn install
 
-# Run the blockchain
+# Run the blockchain on ./game\ \(back-end\)/src/
 $ yarn hardhat node
 
-# Go to /webGame (webPage)/
-$ cd ../webGame\ \(webPage\)/
+# Use the mint script to mint some nfts.
+$ yarn hardhat run ./scripts/mint.js
+
+# You can buy them now in Opensea for Testnets
+(link here)
+
+# Open another terminal and go to /website-game (front-end)/
+$ cd ../../website-game\ \(front-end\)/
 
 # Install all the dependencies in package.json
 $ yarn install
@@ -71,16 +114,30 @@ $ yarn dev
 
 # Connect to your wallet and add your localhost blockchain to it.
 
+# Connect with 2 different accounts in different browsers
+
+# Start fighting and enjoy!
+
 ENJOY
 ```
 
+<hr>
 
+## Project Structure (so far)
 
-## Credits
+- game(back-end)/src : all the code that runs the project in the backend servers.
+- website-game(front-end): all the code that conforms
+  the website that interact with the backend.
 
-This software uses the following open source packages:
+<hr>
+
+## Pakcages and technologies used.
+
+This software uses the following packages and technologies:
 
 TODO TOWRITE
+
+<hr>
 
 ## License
 

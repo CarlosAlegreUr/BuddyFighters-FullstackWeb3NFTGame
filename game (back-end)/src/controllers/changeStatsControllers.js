@@ -2,6 +2,7 @@
 const {
     requestChange,
     generateNewStatsURIAndAllowClient,
+    generateRandomStatsInLocalhost,
 } = require("../services/changeStatsServices");
 
 // Controller for a route to request a change
@@ -42,5 +43,21 @@ exports.generateNewStatsURIAndAllowClient = async (req, res) => {
         res.status(500).send(
             "Something went wrong in generateNewStatsURIAndAllowClient() service!"
         );
+    }
+};
+
+// Controller only used in localhost to tell backend to generate stats
+exports.generateRandomStats = async (req, res, next) => {
+    try {
+        const reqId = req.body.reqId;
+        if (!reqId) {
+            return res.status(400).json({ message: "reqId is required." });
+        }
+        await generateRandomStatsInLocalhost(reqId);
+        res.status(200).json({
+            message: "Stats generation was successful.",
+        });
+    } catch (error) {
+        next(error);
     }
 };

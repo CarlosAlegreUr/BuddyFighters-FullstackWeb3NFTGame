@@ -2,6 +2,8 @@ const mintNFT = require("./mint");
 const changeStats = require("./changeStats");
 const { ethers, getNamedAccounts, network } = require("hardhat");
 
+const { getRandomStatsGenerated } = require("../blockchainScripts/changeStats");
+
 // Delay function.
 function delay(t) {
     return new Promise((resolve) => setTimeout(resolve, t));
@@ -34,7 +36,8 @@ callMinting();
 
 // exe();
 async function exe() {
-    await changeStats("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", 0, false);
+    await getRandomStatsGenerated();
+    // await changeStats("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", 0, false);
 }
 
 // async function callWithdrawal() {

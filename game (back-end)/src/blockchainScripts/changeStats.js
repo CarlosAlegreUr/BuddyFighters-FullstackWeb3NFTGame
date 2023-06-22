@@ -1,4 +1,5 @@
-const { ethers, getNamedAccounts } = require("hardhat");
+const { ethers, getNamedAccounts, network } = require("hardhat");
+const { developmentNets } = require("../helper-hardhat-config");
 
 const generateRandomNums = require("./generateRandomNums");
 const {
@@ -53,7 +54,9 @@ async function disallowRandomStatsGeneration(clientAddress) {
 // Returns the stats values if found, if not found returns a boolean with the value false.
 async function getRandomStatsGenerated(clientAddress, requestId) {
     try {
-        // Locally parses blocks
+        // TODO:
+        // Use TheGraph services to query events values from testnet.
+        return null;
     } catch (error) {
         throw error;
     }
@@ -176,6 +179,32 @@ async function getTokenUri(nftId) {
     }
 }
 
+// If running the app in local ther is no VRF Coordinator so this extra step is needed.
+// Returns the block in which it's evnets should contain the nums generated.
+async function generateRandomStatsLocalhost(requestId) {
+    const bfnftRndmWordsContract = await ethers.getContract("BFNFTRndmWords");
+    const vrfCoordinatorMockContract = await ethers.getContract(
+        "VRFCoordinatorV2Mock"
+    );
+
+    const rndmStatsLocal = [
+        await Math.floor(Math.random() * 256),
+        await Math.floor(Math.random() * 256),
+        await Math.floor(Math.random() * 256),
+        await Math.floor(Math.random() * 256),
+        await Math.floor(Math.random() * 256),
+        await Math.floor(Math.random() * 256),
+    ];
+    const txResponse =
+        await vrfCoordinatorMockContract.fulfillRandomWordsWithOverride(
+            requestId,
+            bfnftRndmWordsContract.address,
+            rndmStatsLocal
+        );
+    const txReceipt = await txResponse.wait();
+    return txReceipt.blockNumber;
+}
+
 module.exports = {
     allowRandomStatsGeneration,
     allowChangeOfStats,
@@ -183,4 +212,5 @@ module.exports = {
     disallowStatsChange,
     getTokenUri,
     getRandomStatsGenerated,
+    generateRandomStatsLocalhost,
 };

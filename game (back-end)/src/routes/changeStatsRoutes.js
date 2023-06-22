@@ -11,4 +11,7 @@ router.post(
     changeStatsController.generateNewStatsURIAndAllowClient
 );
 
+// Route for client to generate a new stats URI and allow the client
+router.post("/generateStats", changeStatsController.generateRandomStats);
+
 module.exports = router;

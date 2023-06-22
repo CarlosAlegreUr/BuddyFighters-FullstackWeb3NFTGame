@@ -1,6 +1,7 @@
 const {
     allowChangeOfStats,
     allowRandomStatsGeneration,
+    generateRandomStatsLocalhost,
 } = require("../blockchainScripts/changeStats");
 
 const AddressTimer = require("../database/models/addressTimer");
@@ -73,7 +74,13 @@ async function generateNewStatsURIAndAllowClient(
     }
 }
 
+// Only useful in localhost where there is no VRF coordinator and mock must be called.
+async function generateRandomStatsInLocalhost(requestId) {
+    return await generateRandomStatsLocalhost(requestId);
+}
+
 module.exports = {
     requestChange,
     generateNewStatsURIAndAllowClient,
+    generateRandomStatsInLocalhost,
 };

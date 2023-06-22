@@ -120,14 +120,16 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
             bytes4(keccak256(bytes("requestRandomNumbers(uint32)"))),
             msg.sender
         )
+        returns (uint256)
     {
-        i_vrfCoordinator.requestRandomWords(
+        uint256 requestId = i_vrfCoordinator.requestRandomWords(
             i_keyHashGasLimit,
             i_vrfSubsId,
             BLOCK_CONFIRMATION_FOR_RANDOMNESS,
             i_callBackGasLimit,
             _numOfWords
         );
+        return requestId;
     }
 
     /* Public functions */
