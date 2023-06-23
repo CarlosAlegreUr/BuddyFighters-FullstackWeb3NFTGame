@@ -1,19 +1,39 @@
 // changeStatsControllers.js
 const {
     requestChange,
-    generateNewStatsURIAndAllowClient,
-    generateRandomStatsInLocalhost,
+    generateNewURIAndAllowClient,
 } = require("../services/changeStatsServices");
+
+const { checkAndUpdatePayment } = require("../services/checkPayementService");
+const { getNewUri } = require("../services/getNewUriService");
+const {
+    prices,
+    callingCheckPaymentsFrom,
+} = require("../businessConstants.json");
 
 // Controller for a route to request a change
 exports.requestChange = async (req, res, next) => {
     try {
-        const playerAddress = req.body.playerAddress;
-        if (!playerAddress) {
-            return res
-                .status(400)
-                .json({ message: "Player address is required." });
+        const { playerAddress, blockPaymentNum } = req.body.playerAddress;
+        if (!playerAddress || !blockPaymentNum) {
+            return res.status(400).json({
+                message:
+                    "All fields are required: playerAddress, blockPaymentNum",
+            });
         }
+
+        const payed = await checkAndUpdatePayment(
+            blockPaymentNum,
+            prices.changeStatsPrice,
+            playerAddress,
+            callingCheckPaymentsFrom.changeStatsFunc
+        );
+        if (!payed) {
+            return res.status(405).json({
+                message: dintPayMessage,
+            });
+        }
+
         await requestChange(playerAddress);
         res.status(200).json({
             message:
@@ -25,15 +45,28 @@ exports.requestChange = async (req, res, next) => {
 };
 
 // Controller for a route to generate a new stats URI and allow the client
-exports.generateNewStatsURIAndAllowClient = async (req, res) => {
+exports.generateNewURIAndAllowClient = async (req, res) => {
     try {
-        const { playerAddress, nftId, rndmNumsReqId } = req.body;
-        if (!playerAddress || !nftId || !rndmNumsReqId) {
-            return res
-                .status(400)
-                .json({ message: "All fields are required." });
+        const { playerAddress, nftId, rndmNumsReqId, blockPaymentNum } =
+            req.body;
+        if (!playerAddress || !nftId || !rndmNumsReqId || !blockPaymentNum) {
+            return res.status(400).json({
+                message:
+                    "All fields required, fields are: playerAddress, nftId, rndmNumsReqId, blockPaymentNum ",
+            });
         }
-        const newTokenUri = await generateNewStatsURIAndAllowClient(
+        const payed = await checkAndUpdatePayment(
+            blockPaymentNum,
+            prices.changeStatsPrice,
+            playerAddress,
+            callingCheckPaymentsFrom.updateURI
+        );
+        if (!payed) {
+            return res.status(400).json({
+                message: dintPayMessage,
+            });
+        }
+        const newTokenUri = await generateNewURIAndAllowClient(
             playerAddress,
             nftId,
             rndmNumsReqId
@@ -41,23 +74,34 @@ exports.generateNewStatsURIAndAllowClient = async (req, res) => {
         res.status(200).json({ newTokenUri });
     } catch (error) {
         res.status(500).send(
-            "Something went wrong in generateNewStatsURIAndAllowClient() service!"
+            "Something went wrong in generateNewURIAndAllowClient() service!"
         );
     }
 };
 
-// Controller only used in localhost to tell backend to generate stats
-exports.generateRandomStats = async (req, res, next) => {
+exports.payedButMaliciousActorFound = async (req, res) => {
     try {
-        const reqId = req.body.reqId;
-        if (!reqId) {
-            return res.status(400).json({ message: "reqId is required." });
+        const { playerAddress } = req.body;
+        if (!playerAddress) {
+            return res.status(400).json({
+                message: "All fields are required: playerAddress",
+            });
         }
-        await generateRandomStatsInLocalhost(reqId);
-        res.status(200).json({
-            message: "Stats generation was successful.",
-        });
+        const newTokenUri = await getNewUri(playerAddress);
+        res.status(200).json({ newTokenUri });
     } catch (error) {
-        next(error);
+        res.status(500).send(
+            "Something went wrong in payedButMaliciousActorFound() service!"
+        );
     }
 };
+
+const dintPayMessage = `You didn't pay or didn't pay enough sorry you lost it start again an pay 
+enough this time. Current cost of changing stats is: ${prices.changeStatsPrice} of the native coin. If 
+you payed enough and this message still shows don't worry you can proceed with the following 
+calls and everything will be fine. `;
+
+// If user pays enough but that payment is registered as payed in the databse that might be because
+// a malicious agent called requestChange() before them and is trying to mess with them. Code in the
+// backend and offical web page interactions are designed to not care about this scenario and keep working
+// fine for the user.

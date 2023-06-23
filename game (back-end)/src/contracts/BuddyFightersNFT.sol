@@ -9,7 +9,6 @@ import "input-control-contract/modularVersion/IInputControlModular.sol";
 import "./Fight.sol";
 
 /* Customed erros */
-error BFNFT__MinimumPriceNotPayed();
 error BFNFT__IsNotTokenOwner();
 error BFNFT__IsNotContractOnwer();
 
@@ -23,8 +22,6 @@ error BFNFT__IsNotContractOnwer();
  */
 contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     /* State variables */
-    uint256 private constant STATS_CHANGE_PRICE = 10000000000000000;
-
     bool public s_allowInputCheck;
     IInputControlModular private i_InputControl;
 
@@ -49,17 +46,6 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     modifier isTokenOwner(uint256 _tokenId, address _tokenOwner) {
         if (ownerOf(_tokenId) != _tokenOwner) {
             revert BFNFT__IsNotTokenOwner();
-        }
-        _;
-    }
-
-    /**
-     * @dev Sets minimum price in ETH (or blockchain coin) for msg.value
-     * for function to be executed. If not reverts with customed error.
-     */
-    modifier minimumPricePayed(uint256 _price) {
-        if (msg.value < _price) {
-            revert BFNFT__MinimumPriceNotPayed();
         }
         _;
     }
@@ -146,7 +132,6 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
         external
         payable
         isTokenOwner(_tokenId, msg.sender)
-        minimumPricePayed(STATS_CHANGE_PRICE)
         checkAllowedInput(
             bytes4(keccak256(bytes("changeStats(string,uint256)"))),
             msg.sender,

@@ -1,7 +1,10 @@
 const { ethers, getNamedAccounts, network } = require("hardhat");
 const { developmentNets } = require("../helper-hardhat-config");
 
-const generateRandomNums = require("./generateRandomNums");
+const {
+    geteRandomNumsLocalhost,
+    getRandmNumsFromEvents,
+} = require("./getRandomNums");
 const {
     uploadMetadataJSONPinata,
     unpinByHashPinata,
@@ -51,22 +54,13 @@ async function disallowRandomStatsGeneration(clientAddress) {
     }
 }
 
-// Returns the stats values if found, if not found returns a boolean with the value false.
-async function getRandomStatsGenerated(clientAddress, requestId) {
-    try {
-        // TODO:
-        // Use TheGraph services to query events values from testnet.
-        return null;
-    } catch (error) {
-        throw error;
-    }
-}
-
-// Checks the new stats generated, pins them in IPFS and then updates the blockchain URI.
+// Gets the new stats generated from blockchain, pins new metadata in IPFS
+// and gives permission to client to change their NFT to the new URI.
+// Returns new URI and the previous one
 async function allowChangeOfStats(
     clientAddress,
     tokenId,
-    /*rndmReqId,*/
+    rndmReqId,
     savedOnBlockchain
 ) {
     try {
@@ -78,14 +72,15 @@ async function allowChangeOfStats(
         );
 
         // Check if front-end caller is actually the owner of the token ID.
-        // Who is calling is provided securely by Metamask, see more on the services folder changeStats script
         const owner = await buddyFightersNFTContract.ownerOf(tokenId);
         if (owner == clientAddress) {
             const token_URI = await buddyFightersNFTContract.tokenURI(tokenId);
             const token_Hash = await token_URI.replace("ipfs://", "");
-            const { stats } = await generateRandomNums(false, true);
 
-            // const stats = await getRandomStatsGeneratedTheGraph(rndmReqId, clientAddress)
+            const onDevNet = await developmentNets.includes(network.name);
+            const { stats } = onDevNet
+                ? await geteRandomNumsLocalhost(false, true, rndmReqId)
+                : await getRandmNumsFromEvents(rndmReqId, clientAddress);
 
             let newToken_URI;
             if (savedOnBlockchain) {
@@ -114,9 +109,6 @@ async function allowChangeOfStats(
                 console.log("New metadata: ");
                 console.log(metadataJSON);
 
-                // Unpin old metadata
-                await unpinByHashPinata(token_Hash);
-
                 // Pin new metadata
                 newToken_URI = await uploadMetadataJSONPinata(metadataJSON);
 
@@ -133,7 +125,7 @@ async function allowChangeOfStats(
                     false
                 );
 
-                return newToken_URI;
+                return { newURI: newToken_URI, prevURI: token_URI };
             }
         }
     } catch (error) {
@@ -162,8 +154,7 @@ async function disallowStatsChange(clientAddress) {
     }
 }
 
-// Check if some stats changed from a previous value.
-async function getTokenUri(nftId) {
+async function getTokenUri(tokenId) {
     try {
         const { deployer } = await getNamedAccounts();
 
@@ -172,37 +163,11 @@ async function getTokenUri(nftId) {
             deployer
         );
 
-        const currentUri = await buddyFightersNFTContract.tokenURI(nftId);
-        return currentUri;
+        const token_URI = await buddyFightersNFTContract.tokenURI(tokenId);
+        return token_URI;
     } catch (error) {
         throw error;
     }
-}
-
-// If running the app in local ther is no VRF Coordinator so this extra step is needed.
-// Returns the block in which it's evnets should contain the nums generated.
-async function generateRandomStatsLocalhost(requestId) {
-    const bfnftRndmWordsContract = await ethers.getContract("BFNFTRndmWords");
-    const vrfCoordinatorMockContract = await ethers.getContract(
-        "VRFCoordinatorV2Mock"
-    );
-
-    const rndmStatsLocal = [
-        await Math.floor(Math.random() * 256),
-        await Math.floor(Math.random() * 256),
-        await Math.floor(Math.random() * 256),
-        await Math.floor(Math.random() * 256),
-        await Math.floor(Math.random() * 256),
-        await Math.floor(Math.random() * 256),
-    ];
-    const txResponse =
-        await vrfCoordinatorMockContract.fulfillRandomWordsWithOverride(
-            requestId,
-            bfnftRndmWordsContract.address,
-            rndmStatsLocal
-        );
-    const txReceipt = await txResponse.wait();
-    return txReceipt.blockNumber;
 }
 
 module.exports = {
@@ -211,6 +176,4 @@ module.exports = {
     disallowRandomStatsGeneration,
     disallowStatsChange,
     getTokenUri,
-    getRandomStatsGenerated,
-    generateRandomStatsLocalhost,
 };

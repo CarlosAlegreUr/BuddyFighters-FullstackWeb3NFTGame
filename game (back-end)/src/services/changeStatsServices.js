@@ -1,86 +1,68 @@
 const {
     allowChangeOfStats,
     allowRandomStatsGeneration,
-    generateRandomStatsLocalhost,
 } = require("../blockchainScripts/changeStats");
 
-const AddressTimer = require("../database/models/addressTimer");
+const NewUri = require("../database/models/newUris");
+
 const agenda = require("./agenda");
 
-// Gives permission for 2.5min to playerAddress for generating random stats.
+// Gives permission for 10min to playerAddress for generating random stats.
 async function requestChange(playerAddress) {
     try {
         // Give permission to generate random stats
         await allowRandomStatsGeneration(playerAddress);
 
-        // Try to find an existing timer for this address
-        let addressTimer = await AddressTimer.findOne({
-            address: playerAddress,
-        });
-
-        // If a timer doesn't exist, create a new one
-        if (!addressTimer) {
-            addressTimer = new AddressTimer({
-                address: playerAddress,
-                date: new Date(),
-            });
-            await addressTimer.save();
-        }
-
-        // After 5 minutes call disallowRandomStatsGeneration
+        // After 10 minutes call disallowRandomStatsGeneration
         const waitTime = new Date();
-        waitTime.setMinutes(waitTime.getMinutes() + 1);
+        await waitTime.setMinutes(waitTime.getMinutes() + 10);
 
         // Schedule the job to execute after waiting
         await agenda.schedule(waitTime, "updateRndmStatsAllowance", {
             playerAddress,
-            rndmStatGenerationdate: addressTimer.date,
         });
     } catch (error) {
         throw error;
     }
 }
 
+// Returns new token URI.
 // Generates a new URI with the new stats updated and sets a timer of 2.5minutes for the client to change them.
-async function generateNewStatsURIAndAllowClient(
+async function generateNewURIAndAllowClient(
     playerAddress,
     nftId,
     rndmNumsReqId
 ) {
     try {
-        const newTokenUri = await allowChangeOfStats(
+        const { newURI, prevURI } = await allowChangeOfStats(
             playerAddress,
             nftId,
             rndmNumsReqId,
             false
         );
-
-        const addressTimer = await AddressTimer.findOne({
-            address: playerAddress,
+        const newUriDatabase = new NewUri({
+            clientAddress,
+            newURI,
         });
-        addressTimer.tokenUri = newTokenUri;
-        await addressTimer.save();
+        await newUriDatabase.save();
 
         const waitTime = new Date();
-        waitTime.setMinutes(waitTime.getMinutes() + 2.5);
+        await waitTime.setMinutes(waitTime.getMinutes() + 10);
 
-        // Execute after 2.5 minutes.
+        // Execute after 10 minutes.
         await agenda.schedule(waitTime, "updateStatsChangeAllowance", {
             playerAddress,
+            nftId,
+            newURI,
+            prevURI,
         });
-        return newTokenUri;
+        return newURI;
     } catch (error) {
         throw error;
     }
 }
 
-// Only useful in localhost where there is no VRF coordinator and mock must be called.
-async function generateRandomStatsInLocalhost(requestId) {
-    return await generateRandomStatsLocalhost(requestId);
-}
-
 module.exports = {
     requestChange,
-    generateNewStatsURIAndAllowClient,
-    generateRandomStatsInLocalhost,
+    generateNewURIAndAllowClient,
 };

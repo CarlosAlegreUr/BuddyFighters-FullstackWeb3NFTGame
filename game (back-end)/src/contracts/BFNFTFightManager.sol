@@ -6,8 +6,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Fight.sol";
 
 /* Customed erros */
-error BFNFT__NotEnoughFunds();
-error BFNFT__FailedToFundFight();
+error BFNFT__FManager__NotEnoughFunds();
+error BFNFT__FManager__FailedToFundFight();
+error BFNFT__FManager__NotFundsInContract();
+error BFNFT__FManager__FailedToSendFunds();
 
 /**
  * @title BuddyFighters' NFTs Fights Manager contract.
@@ -32,7 +34,7 @@ contract BFNFTFightsManager is Ownable {
      */
     modifier checkEnoughFunds(address _clientAddress, uint256 _price) {
         if (s_clientToFunds[_clientAddress] < _price) {
-            revert BFNFT__NotEnoughFunds();
+            revert BFNFT__FManager__NotEnoughFunds();
         }
         _;
     }
@@ -61,7 +63,7 @@ contract BFNFTFightsManager is Ownable {
         (bool success, ) = payable(fightContract).call{value: msg.value}("");
 
         if (!success) {
-            revert BFNFT__FailedToFundFight();
+            revert BFNFT__FManager__FailedToFundFight();
         }
 
         s_clientToFunds[p1] -= START_FIGHT_COMMISSION;
@@ -72,13 +74,16 @@ contract BFNFTFightsManager is Ownable {
     /**
      * @dev Function to retire funds from contract in case of tips.
      */
-    function withdrawContractBalance(
-        address _accountToSendBalance
-    ) external onlyOwner {
-        (bool success, ) = _accountToSendBalance.call{
-            value: address(this).balance
-        }("");
-        emit BFNFT__WithdrawalResult(success);
+    function withdrawFunds(address _sendTo) public onlyOwner {
+        if (address(this).balance == 0) {
+            revert BFNFT__FManager__NotFundsInContract();
+        }
+        (bool success, ) = payable(_sendTo).call{value: address(this).balance}(
+            ""
+        );
+        if (!success) {
+            revert BFNFT__FManager__FailedToSendFunds();
+        }
     }
 
     /**

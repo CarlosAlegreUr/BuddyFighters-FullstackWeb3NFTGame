@@ -8,10 +8,11 @@ router.post("/requestChange", changeStatsController.requestChange);
 // Route for client to generate a new stats URI and allow the client
 router.post(
     "/allowURIChange",
-    changeStatsController.generateNewStatsURIAndAllowClient
+    changeStatsController.generateNewURIAndAllowClient
 );
 
-// Route for client to generate a new stats URI and allow the client
-router.post("/generateStats", changeStatsController.generateRandomStats);
+// Route for clients to get their new URIs when changing stats, if this is ever called malicious actor might be
+// trying to mess with the system or just with the client.
+router.post("/getNewUri", changeStatsController.payedButMaliciousActorFound);
 
 module.exports = router;

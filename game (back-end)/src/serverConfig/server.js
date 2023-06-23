@@ -16,7 +16,7 @@ const app = express();
 
 // Middleware
 
-// Express-Wiston Logger
+// Logger: Express-Wiston
 app.use((req, res, next) => {
     logger.info(`HTTP ${req.method} ${req.url}`);
     next();
@@ -32,7 +32,7 @@ app.use(
 // JSON converter
 app.use(express.json());
 
-// Passport.js
+// Auth: Passport.js
 // app.use(passport.initialize());
 
 // Passport JWT strategy
@@ -57,12 +57,10 @@ connectDB();
 
 // Routes
 // const matchmakingRoutes = require("../routes/matchmakingRoutes");
-// const mintRoutes = require("../routes/mintRoutes");
 const changeStatsRoutes = require("../routes/changeStatsRoutes");
 // const fightManagementRoutes = require("../routes/fightManagementRoutes");
 
 // app.use("/api/matchmaking", matchmakingRoutes);
-// app.use("/api/mint", mintRoutes);
 app.use("/api/changeStats", changeStatsRoutes);
 // app.use("/api/fightManagement", fightManagementRoutes);
 

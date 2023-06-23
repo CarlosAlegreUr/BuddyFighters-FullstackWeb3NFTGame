@@ -8,6 +8,7 @@ import "call-order-control-contract/CallOrderControl.sol";
 
 /* Customed erros */
 error BFNFT__Rndm__MinimumPriceNotPayed();
+error BFNFT__Rndm__NotValidRndmWordsQuantity();
 error BFNFT__Rndm__NotEnoughFunds();
 error BFNFT__Rndm__FailedToFundFight();
 error BFNFT__Rndm__RndomNumLengthNotValid();
@@ -116,6 +117,7 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
         uint32 _numOfWords
     )
         external
+        payable
         checkAllowedCall(
             bytes4(keccak256(bytes("requestRandomNumbers(uint32)"))),
             msg.sender

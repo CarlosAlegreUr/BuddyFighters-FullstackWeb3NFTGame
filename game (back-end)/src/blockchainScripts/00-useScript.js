@@ -1,8 +1,9 @@
 const mintNFT = require("./mint");
-const changeStats = require("./changeStats");
 const { ethers, getNamedAccounts, network } = require("hardhat");
 
-const { getRandomStatsGenerated } = require("../blockchainScripts/changeStats");
+const {
+    requAndGenRandomTesting,
+} = require("../blockchainScripts/getRandomNums");
 
 // Delay function.
 function delay(t) {

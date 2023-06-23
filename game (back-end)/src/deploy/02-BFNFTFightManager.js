@@ -7,7 +7,7 @@ const { verify } = require("../utils/blockchainUtils/etherscanVerifyContract");
 const {
     updateFrontEndData,
     FRONT_END_CONTRACTS_TESTING_FILE,
-} = require("../blockchainScripts/updateFrontEnd");
+} = require("../blockchainScripts/updateFrontEndLocal");
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deploy } = deployments;

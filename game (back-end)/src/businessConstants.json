@@ -1,0 +1,11 @@
+{
+    "prices": {
+        "changeStatsPrice": 0.1,
+        "mintPrice": 0.1
+    },
+
+    "callingCheckPaymentsFrom": {
+        "changeStatsFunc": 0,
+        "updateURI": 1
+    }
+}
