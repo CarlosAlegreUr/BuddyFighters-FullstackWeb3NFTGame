@@ -1,4 +1,4 @@
-const NewUri = require("../database/models/newUris");
+const NewUri = require("../database/models/newUriModel");
 
 async function getNewUri(clientAddress) {
     try {

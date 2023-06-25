@@ -7,15 +7,34 @@ import { useMoralis } from "react-moralis";
 import { getContractAddress, getContractAbi } from "../utils/getContractInfo";
 
 export default function Home() {
-  const getSignerMetamask = async () => {
+  const getSignerAddressMetamask = async () => {
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
     const address = signer.address;
     return address;
   };
+
+  const payAndGetBlock = async () => {
+    // When sending a transaction, the value is in wei, so parseEther
+    // converts ether to wei.
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const tx = await signer.sendTransaction({
+      to: "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      value: await ethers.parseEther("0.1"),
+    });
+
+    // Often you may wish to wait until the transaction is mined
+    const receipt = await tx.wait();
+    return receipt.blockNumber;
+  };
+
   const handleStatsChange = async () => {
-    const playerAddress = await getSignerMetamask();
     try {
+      const blockPaymentNum = await payAndGetBlock();
+      console.log(blockPaymentNum);
+      const playerAddress = await getSignerAddressMetamask();
+
       const response = await fetch(
         "http://localhost:3005/api/changeStats/requestChange",
         {
@@ -24,7 +43,7 @@ export default function Home() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ playerAddress }),
+          body: JSON.stringify({ playerAddress, blockPaymentNum }),
         }
       );
 
@@ -99,7 +118,7 @@ export default function Home() {
       const data = await response.json();
 
       // Step 1: Get the user's address from MetaMask
-      const address = await getSignerMetamask();
+      const address = await getSignerAddressMetamask();
       console.log(`Signer address is : ${address}`);
 
       // Step 2: Sign the nonce
@@ -159,6 +178,7 @@ export default function Home() {
         >
           AUTH
         </button>
+
         <button
           onClick={async () => {
             await handleStatsChange();
@@ -166,6 +186,15 @@ export default function Home() {
         >
           REQUEST STATS CHANGE!
         </button>
+
+        <button
+          onClick={async () => {
+            await payAndGetBlock();
+          }}
+        >
+          PAY
+        </button>
+
         <button
           onClick={async () => {
             await generateRandomNumbs();

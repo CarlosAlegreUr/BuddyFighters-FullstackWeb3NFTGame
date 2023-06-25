@@ -5,18 +5,12 @@ const clientPaymentSchema = new mongoose.Schema({
     address: {
         type: String,
         required: true,
-        unique: true,
     },
     block: {
         type: Number,
         required: true,
-        unique: true,
     },
     quantity: {
-        type: Number,
-        required: true,
-    },
-    checkingFromFunc: {
         type: Number,
         required: true,
     },

@@ -4,7 +4,7 @@ const {
 } = require("../blockchainScripts/changeStats");
 const agenda = require("./agenda");
 
-const NewUri = require("../database/models/newUris");
+const NewUri = require("../database/models/newUriModel");
 
 // Gives permission for 10min to playerAddress for generating random stats.
 async function requestChange(playerAddress) {

@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const { verifySignature } = require("../blockchainScripts/verifySignature");
 const agenda = require("./agenda");
 
-const BlockchainAuthNonce = require("../database/models/blockchainAuthNonce");
+const BlockchainAuthNonce = require("../database/models/blockchainAuthNonceModel");
 
 async function generateNonce() {
     try {

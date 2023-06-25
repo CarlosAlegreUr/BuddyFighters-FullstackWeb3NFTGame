@@ -25,8 +25,7 @@ exports.requestChange = async (req, res, next) => {
         const payed = await checkAndUpdatePayment(
             blockPaymentNum,
             prices.changeStatsPrice,
-            playerAddress,
-            callingCheckPaymentsFrom.changeStatsFunc
+            playerAddress
         );
         if (!payed) {
             return res.status(405).json({
@@ -58,8 +57,7 @@ exports.generateNewURIAndAllowClient = async (req, res) => {
         const payed = await checkAndUpdatePayment(
             blockPaymentNum,
             prices.changeStatsPrice,
-            playerAddress,
-            callingCheckPaymentsFrom.updateURI
+            playerAddress
         );
         if (!payed) {
             return res.status(400).json({
@@ -75,23 +73,6 @@ exports.generateNewURIAndAllowClient = async (req, res) => {
     } catch (error) {
         res.status(500).send(
             "Something went wrong in generateNewURIAndAllowClient() service!"
-        );
-    }
-};
-
-exports.payedButMaliciousActorFound = async (req, res) => {
-    try {
-        const { playerAddress } = req.body;
-        if (!playerAddress) {
-            return res.status(400).json({
-                message: "All fields are required: playerAddress",
-            });
-        }
-        const newTokenUri = await getNewUri(playerAddress);
-        res.status(200).json({ newTokenUri });
-    } catch (error) {
-        res.status(500).send(
-            "Something went wrong in payedButMaliciousActorFound() service!"
         );
     }
 };

@@ -3,8 +3,8 @@ dotenv.config();
 
 const Agenda = require("agenda");
 
-const NewUri = require("../database/models/newUris");
-const BlockchainAuthNonce = require("../database/models/blockchainAuthNonce");
+const NewUri = require("../database/models/newUriModel");
+const BlockchainAuthNonce = require("../database/models/blockchainAuthNonceModel");
 
 const {
     disallowStatsChange,

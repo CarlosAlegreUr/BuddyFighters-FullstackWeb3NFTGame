@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const changeStatsController = require("../controllers/changeStatsControllers");
 const verifyToken = require("../middleware/authMiddleware");
-// 
+//
 router.use(verifyToken);
 
 // Route for client to request change
@@ -13,9 +13,5 @@ router.post(
     "/allowURIChange",
     changeStatsController.generateNewURIAndAllowClient
 );
-
-// Route for clients to get their new URIs when changing stats, if this is ever called malicious actor might be
-// trying to mess with the system or just with the client.
-router.post("/getNewUri", changeStatsController.payedButMaliciousActorFound);
 
 module.exports = router;
