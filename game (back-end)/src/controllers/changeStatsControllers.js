@@ -14,7 +14,7 @@ const {
 // Controller for a route to request a change
 exports.requestChange = async (req, res, next) => {
     try {
-        const { playerAddress, blockPaymentNum } = req.body.playerAddress;
+        const { playerAddress, blockPaymentNum } = req.body;
         if (!playerAddress || !blockPaymentNum) {
             return res.status(400).json({
                 message:

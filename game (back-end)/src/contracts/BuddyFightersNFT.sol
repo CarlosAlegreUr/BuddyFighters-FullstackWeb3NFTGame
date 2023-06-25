@@ -6,8 +6,6 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "input-control-contract/modularVersion/IInputControlModular.sol";
 
-import "./Fight.sol";
-
 /* Customed erros */
 error BFNFT__IsNotTokenOwner();
 error BFNFT__IsNotContractOnwer();

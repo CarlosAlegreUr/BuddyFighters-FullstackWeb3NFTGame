@@ -4,6 +4,7 @@ dotenv.config();
 const Agenda = require("agenda");
 
 const NewUri = require("../database/models/newUris");
+const BlockchainAuthNonce = require("../database/models/blockchainAuthNonce");
 
 const {
     disallowStatsChange,
@@ -14,6 +15,12 @@ const {
 const { unpinByHashPinata } = require("../utils/blockchainUtils/pinataUploads");
 
 const agenda = new Agenda({ db: { address: process.env.DATABASE_URL } });
+
+// Handling nonce emitted.
+agenda.define("deleteNonce", async (job) => {
+    const { nonceCreated } = job.attrs.data;
+    await BlockchainAuthNonce.deleteOne({ nonce: nonceCreated });
+});
 
 // After the time has passed it deletes the object from database and the permissions from blockchain.
 agenda.define("updateRndmStatsAllowance", async (job) => {
