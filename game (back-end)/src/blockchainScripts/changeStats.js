@@ -98,16 +98,10 @@ async function allowChangeOfStats(
                 // Retrieve old JSON from IPFS
                 let metadataJSON = await retrieveJsonFromIpfs(token_Hash);
 
-                console.log("Old metadata: ");
-                console.log(metadataJSON);
-
                 // Change stats values
                 for (let i = 3; i <= 8; i++) {
                     metadataJSON.attributes[i].value = stats[i - 3];
                 }
-
-                console.log("New metadata: ");
-                console.log(metadataJSON);
 
                 // Pin new metadata
                 newToken_URI = await uploadMetadataJSONPinata(metadataJSON);
@@ -124,7 +118,6 @@ async function allowChangeOfStats(
                     "changeStats(string,uint256)",
                     false
                 );
-
                 return { newURI: newToken_URI, prevURI: token_URI };
             }
         }

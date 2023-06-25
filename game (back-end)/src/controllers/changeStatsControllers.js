@@ -4,12 +4,11 @@ const {
     generateNewURIAndAllowClient,
 } = require("../services/changeStatsServices");
 
-const { checkAndUpdatePayment } = require("../services/checkPayementService");
-const { getNewUri } = require("../services/getNewUriService");
 const {
-    prices,
-    callingCheckPaymentsFrom,
-} = require("../businessConstants.json");
+    checkAndUpdatePayment,
+    checkPaymentDb,
+} = require("../services/checkPayementService");
+const { prices } = require("../businessConstants.json");
 
 // Controller for a route to request a change
 exports.requestChange = async (req, res, next) => {
@@ -44,17 +43,19 @@ exports.requestChange = async (req, res, next) => {
 };
 
 // Controller for a route to generate a new stats URI and allow the client
-exports.generateNewURIAndAllowClient = async (req, res) => {
+exports.generateNewURIAndAllowClient = async (req, res, next) => {
     try {
         const { playerAddress, nftId, rndmNumsReqId, blockPaymentNum } =
             req.body;
+
         if (!playerAddress || !nftId || !rndmNumsReqId || !blockPaymentNum) {
             return res.status(400).json({
                 message:
                     "All fields required, fields are: playerAddress, nftId, rndmNumsReqId, blockPaymentNum ",
             });
         }
-        const payed = await checkAndUpdatePayment(
+
+        const payed = await checkPaymentDb(
             blockPaymentNum,
             prices.changeStatsPrice,
             playerAddress
@@ -64,6 +65,7 @@ exports.generateNewURIAndAllowClient = async (req, res) => {
                 message: dintPayMessage,
             });
         }
+
         const newTokenUri = await generateNewURIAndAllowClient(
             playerAddress,
             nftId,
@@ -71,9 +73,7 @@ exports.generateNewURIAndAllowClient = async (req, res) => {
         );
         res.status(200).json({ newTokenUri });
     } catch (error) {
-        res.status(500).send(
-            "Something went wrong in generateNewURIAndAllowClient() service!"
-        );
+        next(error);
     }
 };
 

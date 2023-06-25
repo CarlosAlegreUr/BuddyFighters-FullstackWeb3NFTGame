@@ -39,14 +39,15 @@ async function generateNewURIAndAllowClient(
             rndmNumsReqId,
             false
         );
+
         const newUriDatabase = new NewUri({
-            clientAddress,
-            newURI,
+            address: playerAddress,
+            uri: newURI,
         });
         await newUriDatabase.save();
 
         const waitTime = new Date();
-        await waitTime.setMinutes(waitTime.getMinutes() + 10);
+        await waitTime.setMinutes(waitTime.getMinutes() + 1);
 
         // Execute after 10 minutes.
         await agenda.schedule(waitTime, "updateStatsChangeAllowance", {

@@ -39,6 +39,7 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
     uint32 private immutable i_callBackGasLimit;
 
     /* Events */
+    event BFNFT__RndomWordsRequested(uint256 reqId);
     event BFNFT__RndomNumsGenerated(
         uint8[2] rndmNums,
         uint256 indexed requestId,
@@ -122,7 +123,6 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
             bytes4(keccak256(bytes("requestRandomNumbers(uint32)"))),
             msg.sender
         )
-        returns (uint256)
     {
         uint256 requestId = i_vrfCoordinator.requestRandomWords(
             i_keyHashGasLimit,
@@ -131,7 +131,7 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
             i_callBackGasLimit,
             _numOfWords
         );
-        return requestId;
+        emit BFNFT__RndomWordsRequested(requestId);
     }
 
     /* Public functions */

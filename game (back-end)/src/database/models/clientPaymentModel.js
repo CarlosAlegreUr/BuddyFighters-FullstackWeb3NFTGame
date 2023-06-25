@@ -14,6 +14,10 @@ const clientPaymentSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    changedUri: {
+        type: Boolean,
+        required: true,
+    },
 });
 
 // Create the ClientPayment model

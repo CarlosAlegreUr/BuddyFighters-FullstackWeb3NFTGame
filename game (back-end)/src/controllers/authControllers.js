@@ -7,16 +7,16 @@ const {
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-exports.getNonce = async (req, res) => {
+exports.getNonce = async (req, res, next) => {
     try {
         const nonce = await generateNonce();
         return res.json({ nonce });
     } catch (err) {
-        throw err;
+        next(err);
     }
 };
 
-exports.authenticate = async (req, res) => {
+exports.authenticate = async (req, res, next) => {
     try {
         const { address, nonce, signature } = req.body;
         if (!address || !nonce || !signature) {
@@ -41,6 +41,6 @@ exports.authenticate = async (req, res) => {
         const token = await generateJWT(address, JWT_SECRET);
         return res.json({ token });
     } catch (err) {
-        throw err;
+        next(err);
     }
 };
