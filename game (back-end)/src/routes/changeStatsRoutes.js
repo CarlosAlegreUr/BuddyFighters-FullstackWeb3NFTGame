@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const changeStatsController = require("../controllers/changeStatsControllers");
 const verifyToken = require("../middleware/authMiddleware");
-//
+
 router.use(verifyToken);
 
 // Route for client to request change

@@ -1,41 +1,33 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const fightSchema = new mongoose.Schema({
     fightId: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
     },
     player1: {
         type: String,
-        required: true
+        required: true,
     },
     player2: {
         type: String,
-        required: true
+        required: true,
     },
-    nftId1: {
+    p1Life: {
         type: Number,
-        required: true
+        required: true,
     },
-    nftId2: {
+    p2Life: {
         type: Number,
-        required: true
-    },
-    isActive: {
-        type: Boolean,
-        required: true
-    },
-    winner: {
-        type: String,
-        default: null
+        required: true,
     },
     created_at: {
         type: Date,
-        default: Date.now
-    }
+        default: Date.now,
+    },
 });
 
-const Fight = mongoose.model('Fight', fightSchema);
+const Fight = mongoose.model("Fight", fightSchema);
 
 module.exports = Fight;

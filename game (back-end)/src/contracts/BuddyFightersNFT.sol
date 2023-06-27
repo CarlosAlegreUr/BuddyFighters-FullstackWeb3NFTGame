@@ -9,6 +9,7 @@ import "input-control-contract/modularVersion/IInputControlModular.sol";
 /* Customed erros */
 error BFNFT__IsNotTokenOwner();
 error BFNFT__IsNotContractOnwer();
+error BFNFT__NotPayedEnough();
 
 /**
  * @title BuddyFighters' NFTs contract.
@@ -22,6 +23,9 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     /* State variables */
     bool public s_allowInputCheck;
     IInputControlModular private i_InputControl;
+
+    mapping(address => uint256) s_clientToTickects;
+    uint256 private constant TICKET_PRICE = 10000000000000000;
 
     /* Events */
     event BFNFT__NftMinted(
@@ -137,6 +141,7 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
         )
     {
         _setTokenURI(_tokenId, _newTokenURI);
+        s_clientToTickects[msg.sender] -= 1;
         emit BFNFT__StatsChanged(msg.sender, _tokenId, _newTokenURI);
     }
 
@@ -157,6 +162,15 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     /* Public functions */
     function changeInputControl(address _newContract) external onlyOwner {
         i_InputControl = IInputControlModular(_newContract);
+    }
+
+    function buyTicket() public payable {
+        if (msg.value >= TICKET_PRICE) s_clientToTickects[msg.sender] += 1;
+        else revert BFNFT__NotPayedEnough();
+    }
+
+    function getTicketsOf(address _address) public view returns (uint256) {
+        return s_clientToTickects[_address];
     }
 
     // Activates or deactivates input checkings.

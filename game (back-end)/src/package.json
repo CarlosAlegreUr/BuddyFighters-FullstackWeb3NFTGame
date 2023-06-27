@@ -1,7 +1,8 @@
 {
     "scripts": {
         "start": "hh run serverConfig/server.js --network localhost",
-        "dev": "nodemon --exec 'hh run serverConfig/server.js --network localhost'"
+        "dev": "nodemon --exec 'hh run serverConfig/server.js --network localhost'",
+        "test": "mocha ./tests/servicesTests/integrationTests/api.test.js"
     },
     "devDependencies": {
         "@chainlink/contracts": "^0.5.1",
@@ -11,10 +12,12 @@
         "chai": "^4.2.0",
         "hardhat-gas-reporter": "^1.0.8",
         "input-control-contract": "^3.1.1",
+        "mocha": "^10.2.0",
         "nodemon": "^2.0.22",
         "openzeppelin-contracts": "^4.0.0",
         "prettier": "^2.7.1",
-        "solidity-coverage": "^0.7.21"
+        "solidity-coverage": "^0.7.21",
+        "supertest": "^6.3.3"
     },
     "dependencies": {
         "@ethersproject/abi": "^5.4.7",

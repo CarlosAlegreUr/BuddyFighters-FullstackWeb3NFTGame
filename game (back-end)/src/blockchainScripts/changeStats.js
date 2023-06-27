@@ -13,6 +13,12 @@ const {
     retrieveJsonFromIpfs,
 } = require("../utils/blockchainUtils/getIPFSData");
 
+async function getTickets(player) {
+    const BuddyFightersNFT = await ethers.getContract("BuddyFightersNFT");
+    const ticketsNum = await BuddyFightersNFT.getTicketsOf(player);
+    return ticketsNum;
+}
+
 async function allowRandomStatsGeneration(clientAddress) {
     try {
         const { deployer } = await getNamedAccounts();
@@ -164,6 +170,7 @@ async function getTokenUri(tokenId) {
 }
 
 module.exports = {
+    getTickets,
     allowRandomStatsGeneration,
     allowChangeOfStats,
     disallowRandomStatsGeneration,

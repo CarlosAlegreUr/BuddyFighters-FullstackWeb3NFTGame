@@ -4,35 +4,22 @@ const {
     generateNewURIAndAllowClient,
 } = require("../services/changeStatsServices");
 
-const {
-    checkAndUpdatePayment,
-    checkPaymentDb,
-} = require("../services/checkPayementService");
 const { prices } = require("../businessConstants.json");
 
 // Controller for a route to request a change
 exports.requestChange = async (req, res, next) => {
     try {
-        const { playerAddress, blockPaymentNum } = req.body;
-        if (!playerAddress || !blockPaymentNum) {
+        const { playerAddress } = req.body;
+        if (!playerAddress) {
             return res.status(400).json({
-                message:
-                    "All fields are required: playerAddress, blockPaymentNum",
+                message: "All fields are required: playerAddress",
             });
         }
 
-        const payed = await checkAndUpdatePayment(
-            blockPaymentNum,
-            prices.changeStatsPrice,
-            playerAddress
-        );
-        if (!payed) {
-            return res.status(405).json({
-                message: dintPayMessage,
-            });
+        const response = await requestChange(playerAddress);
+        if (!response) {
+            res.status(400).json({ message: "You don't have tickets" });
         }
-
-        await requestChange(playerAddress);
         res.status(200).json({
             message:
                 "Change requested successfully, now you have 2.5mins to generate your random numbers.",
@@ -45,32 +32,22 @@ exports.requestChange = async (req, res, next) => {
 // Controller for a route to generate a new stats URI and allow the client
 exports.generateNewURIAndAllowClient = async (req, res, next) => {
     try {
-        const { playerAddress, nftId, rndmNumsReqId, blockPaymentNum } =
-            req.body;
+        const { playerAddress, nftId, rndmNumsReqId } = req.body;
 
-        if (!playerAddress || !nftId || !rndmNumsReqId || !blockPaymentNum) {
+        if (!playerAddress || !nftId || !rndmNumsReqId) {
             return res.status(400).json({
                 message:
-                    "All fields required, fields are: playerAddress, nftId, rndmNumsReqId, blockPaymentNum ",
+                    "All fields required, fields are: playerAddress, nftId, rndmNumsReqId ",
             });
         }
-
-        const payed = await checkPaymentDb(
-            blockPaymentNum,
-            prices.changeStatsPrice,
-            playerAddress
-        );
-        if (!payed) {
-            return res.status(400).json({
-                message: dintPayMessage,
-            });
-        }
-
         const newTokenUri = await generateNewURIAndAllowClient(
             playerAddress,
             nftId,
             rndmNumsReqId
         );
+        if (!newTokenUri) {
+            res.status(400).json({ message: "You don't have tickets" });
+        }
         res.status(200).json({ newTokenUri });
     } catch (error) {
         next(error);
