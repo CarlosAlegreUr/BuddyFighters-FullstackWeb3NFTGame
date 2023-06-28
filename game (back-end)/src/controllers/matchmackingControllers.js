@@ -6,6 +6,28 @@ const {
     acceptSomeonesChallenge,
 } = require("../services/matchmakingServices");
 
+const SSE = require("express-sse");
+const sseConnections = require("../middleware/sseConnections");
+
+exports.establishSSEConnectionAndSendChallenges = async (req, res, next) => {
+    try {
+        const playerAddress = req.user.address;
+        let sse = new SSE();
+        sseConnections[playerAddress] = sse;
+        sse.init(req, res);
+        console.log(`CONNECTION ESTABLISHED WITH PLAYER: ${playerAddress}`);
+
+        // Send available challenges
+        // const challenges = await getRandomChallenges();
+        // const returnValue = challenges
+        //     ? challenges
+        //     : "No challenges available.";
+        // return sse.send(returnValue); // Send the result through SSE
+    } catch (error) {
+        next(error);
+    }
+};
+
 exports.postChallenge = async (req, res, next) => {
     try {
         const { playerAddress, nftId, bidAmount } = req.body;
@@ -22,9 +44,6 @@ exports.postChallenge = async (req, res, next) => {
                 message: "You don't have enought tickets!",
             });
         }
-        res.status(200).json({
-            message: "Challenge posted!",
-        });
     } catch (error) {
         next(error);
     }
@@ -56,13 +75,6 @@ exports.removeChallenge = async (req, res, next) => {
 
 exports.getChallenges = async (req, res, next) => {
     try {
-        const challenges = await getRandomChallenges();
-        const returnValue = challenges
-            ? challenges
-            : "No challenges available.";
-        res.status(200).json({
-            returnValue,
-        });
     } catch (error) {
         next(error);
     }

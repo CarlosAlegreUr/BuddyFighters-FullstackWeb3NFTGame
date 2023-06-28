@@ -19,7 +19,7 @@ async function callMint(onBlockchain, quantity) {
     }
 }
 
-const numToMint = 2;
+const numToMint = 1;
 async function callMinting() {
     const { deployer } = await getNamedAccounts();
     const buddyFightersContract = await ethers.getContract(

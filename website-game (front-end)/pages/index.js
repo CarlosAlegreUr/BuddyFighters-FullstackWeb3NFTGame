@@ -54,6 +54,40 @@ export default function Home() {
     }
   };
 
+  const sseConnect = async () => {
+    try {
+      const sse = new EventSource(
+        "http://localhost:3005/api/matchmaking/fightradaron",
+        { withCredentials: true }
+      );
+
+      // sse.addEventListener(
+      //   "message",
+      //   function (event) {
+      //     // Handle general message event
+      //     console.log(event.data);
+      //   },
+      //   false
+      // );
+
+      // sse.addEventListener(
+      //   "errorMessage",
+      //   function (event) {
+      //     // Handle error message event
+      //     console.error(event.data);
+      //   },
+      //   false
+      // );
+
+      // sse.onerror = function (event) {
+      //   // Handle connection error
+      //   console.error("EventSource error:", event);
+      // };
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <Head>
@@ -70,10 +104,22 @@ export default function Home() {
             await auth();
           }}
         >
-          AUTH
+          VERIFY OWNERSHIP OF WALLET
         </button>
 
         <ChangeStats />
+
+        <button
+          onClick={async () => {
+            await sseConnect();
+          }}
+        >
+          ACTIVATE BATTLE RADAR
+        </button>
+
+        <button> POST CHALLENGE! </button>
+        <h1>Challenges list</h1>
+        <button> SEND FIGHT REQUEST </button>
       </main>
       <footer>Developed by: Carlos Alegre Urquizú</footer>
     </div>

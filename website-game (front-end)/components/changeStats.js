@@ -33,7 +33,6 @@ export default function ChangeStats() {
   const requestStatsChange = async () => {
     try {
       await payForTicket();
-      const playerAddress = await getSignerAddressMetamask();
 
       const response = await fetch(
         "http://localhost:3005/api/changeStats/requestChange",
@@ -43,7 +42,6 @@ export default function ChangeStats() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ playerAddress }),
         }
       );
       console.log(response);
@@ -79,8 +77,6 @@ export default function ChangeStats() {
       const bigIntValue = await BigInt(reqIdHexValue);
       const rndmNumsReqId = await Number(bigIntValue);
 
-      const playerAddress = await getSignerAddressMetamask();
-
       const nftId = "0";
 
       const response = await fetch(
@@ -92,7 +88,6 @@ export default function ChangeStats() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            playerAddress,
             nftId,
             rndmNumsReqId,
           }),

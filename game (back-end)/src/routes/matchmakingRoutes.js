@@ -2,10 +2,16 @@ const express = require("express");
 const router = express.Router();
 const matchmackingController = require("../controllers/matchmackingControllers");
 const verifyToken = require("../middleware/authMiddleware");
+const checkSSEConnection = require("../middleware/connectionsMiddleware");
 
 router.use(verifyToken);
 
-router.get("/getChallenges", matchmackingController.getChallenges);
+router.get(
+    "/fightradaron",
+    matchmackingController.establishSSEConnectionAndSendChallenges
+);
+
+router.use(checkSSEConnection);
 
 router.post("/postChallenge", matchmackingController.postChallenge);
 router.post("/deleteChallenge", matchmackingController.removeChallenge);

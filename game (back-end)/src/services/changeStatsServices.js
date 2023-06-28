@@ -23,6 +23,7 @@ async function requestChange(playerAddress) {
             await agenda.schedule(waitTime, "updateRndmStatsAllowance", {
                 playerAddress,
             });
+            return true;
         } else return false;
     } catch (error) {
         throw error;

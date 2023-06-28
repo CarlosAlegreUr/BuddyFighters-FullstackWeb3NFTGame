@@ -9,16 +9,10 @@ const { prices } = require("../businessConstants.json");
 // Controller for a route to request a change
 exports.requestChange = async (req, res, next) => {
     try {
-        const { playerAddress } = req.body;
-        if (!playerAddress) {
-            return res.status(400).json({
-                message: "All fields are required: playerAddress",
-            });
-        }
-
+        const playerAddress = req.user.address;
         const response = await requestChange(playerAddress);
         if (!response) {
-            res.status(400).json({ message: "You don't have tickets" });
+            return res.status(400).json({ message: "You don't have tickets" });
         }
         res.status(200).json({
             message:
@@ -32,12 +26,13 @@ exports.requestChange = async (req, res, next) => {
 // Controller for a route to generate a new stats URI and allow the client
 exports.generateNewURIAndAllowClient = async (req, res, next) => {
     try {
-        const { playerAddress, nftId, rndmNumsReqId } = req.body;
+        const { nftId, rndmNumsReqId } = req.body;
+        const playerAddress = req.user.address;
 
-        if (!playerAddress || !nftId || !rndmNumsReqId) {
+        if (!nftId || !rndmNumsReqId) {
             return res.status(400).json({
                 message:
-                    "All fields required, fields are: playerAddress, nftId, rndmNumsReqId ",
+                    "All fields required, fields are: nftId, rndmNumsReqId ",
             });
         }
         const newTokenUri = await generateNewURIAndAllowClient(
@@ -46,7 +41,7 @@ exports.generateNewURIAndAllowClient = async (req, res, next) => {
             rndmNumsReqId
         );
         if (!newTokenUri) {
-            res.status(400).json({ message: "You don't have tickets" });
+            return res.status(400).json({ message: "You don't have tickets" });
         }
         res.status(200).json({ newTokenUri });
     } catch (error) {

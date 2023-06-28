@@ -36,12 +36,12 @@ connectDB();
 // Routes
 const authRoutes = require("../routes/authRoutes");
 const changeStatsRoutes = require("../routes/changeStatsRoutes");
-// const matchmakingRoutes = require("../routes/matchmakingRoutes");
+const matchmakingRoutes = require("../routes/matchmakingRoutes");
 // const fightManagementRoutes = require("../routes/fightManagementRoutes");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/changeStats", changeStatsRoutes);
-// app.use("/api/matchmaking", matchmakingRoutes);
+app.use("/api/matchmaking", matchmakingRoutes);
 // app.use("/api/fightManagement", verifyToken, fightManagementRoutes);
 
 // Error handling
