@@ -1,3 +1,4 @@
+const logger = require("../logs/logger");
 const {
     createChallenge,
     deleteChallenge,
@@ -8,6 +9,7 @@ const {
 
 const {
     broadcastMatchmakingState,
+    notifyAcceptance,
 } = require("../services/matchmakingNotifyService");
 
 const SSE = require("express-sse");
@@ -19,7 +21,7 @@ exports.establishSSEConnectionAndSendChallenges = async (req, res, next) => {
         let sse = new SSE();
         sseConnections[playerAddress] = sse;
         await sse.init(req, res);
-        console.log(`CONNECTION ESTABLISHED WITH PLAYER: ${playerAddress}`);
+        logger.info(`SSE CONNECTION, PLAYER: ${playerAddress}`);
 
         // Send available challenges
         const challenges = await getRandomChallenges(playerAddress);
@@ -83,29 +85,24 @@ exports.removeChallenge = async (req, res, next) => {
     }
 };
 
-exports.getChallenges = async (req, res, next) => {
-    try {
-    } catch (error) {
-        next(error);
-    }
-};
-
 exports.acceptChallenge = async (req, res, next) => {
     try {
-        const { playerAddress, opponentAddress, nftId1, nftId2 } = req.body;
+        const { opponentAddress, nftId } = req.body;
+        const nftIdS = await nftId.toString();
+        const playerAddress = req.user.address;
 
-        if (!playerAddress || !opponentAddress || !nftId1 || !nftId2) {
+        if (!opponentAddress || !nftIdS) {
             return res.status(400).json({
                 message:
-                    "All fields required, fields are: playerAddress, opponentAddress, nftId1, nftId2",
+                    "All fields required, fields are: opponentAddress, nftId",
             });
         }
-        const result = await acceptChallenge(
+        let result = await acceptChallenge(
             playerAddress,
             opponentAddress,
-            nftId1,
-            nftId2
+            nftId
         );
+        result = await notifyAcceptance(opponentAddress);
         if (!result) {
             return res.status(400).json({
                 message:

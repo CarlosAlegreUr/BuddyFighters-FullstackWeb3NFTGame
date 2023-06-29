@@ -15,15 +15,11 @@ export default function ChallengesTable({ challenges, onAccept }) {
       <tbody>
         {Object.keys(challenges).map((key) => (
           <tr key={key}>
-            <td>{challenges[key].opponent}</td>
+            <td>{challenges[key].playerAddress}</td>
             <td>{challenges[key].nftId}</td>
-            <td>{challenges[key].bet}</td>
+            <td>{challenges[key].bidAmount}</td>
             <td>
-              <button
-                onClick={() =>
-                  onAccept(challenges[key].opponent, challenges[key].nftId)
-                }
-              >
+              <button onClick={() => onAccept(challenges[key].playerAddress)}>
                 Accept
               </button>
             </td>

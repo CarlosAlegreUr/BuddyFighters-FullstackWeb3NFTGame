@@ -55,25 +55,37 @@ async function acceptChallenge(
     playerAddress,
     opponentAddress,
     offeredBidAmount,
-    opponentNftId
+    ourNftId
 ) {
     try {
         const result = await Challenge.updateOne(
-            { playerAddress },
+            { playerAddress: opponentAddress },
             {
                 $push: {
                     accepted: {
-                        opponentAddress,
-                        offeredBidAmount,
-                        opponentNftId,
+                        opponentAddress: playerAddress,
+                        offeredBidAmount: offeredBidAmount,
+                        opponentNftId: ourNftId,
                     },
                 },
             }
         );
+        console.log(`Accepted updated for: ${opponentAddress}`);
         if (result.modifiedCount === 1) {
-            // Send notification to client via SSE
-            // ...
             return true;
+        } else return false;
+    } catch (err) {
+        throw err;
+    }
+}
+
+async function getAcceptedChallenges(playerAddress) {
+    try {
+        const challenge = await Challenge.findOne({
+            playerAddress: playerAddress,
+        });
+        if (challenge) {
+            return challenge.accepted;
         } else return false;
     } catch (err) {
         throw err;
@@ -110,5 +122,6 @@ module.exports = {
     deleteChallenge,
     getRandomChallenges,
     acceptChallenge,
+    getAcceptedChallenges,
     acceptSomeonesChallenge,
 };

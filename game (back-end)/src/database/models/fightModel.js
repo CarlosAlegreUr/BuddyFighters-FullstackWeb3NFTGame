@@ -22,6 +22,14 @@ const fightSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    p1Moved: {
+        type: Boolean,
+        required: true,
+    },
+    p2Moved: {
+        type: Boolean,
+        required: true,
+    },
     created_at: {
         type: Date,
         default: Date.now,

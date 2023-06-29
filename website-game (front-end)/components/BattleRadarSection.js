@@ -9,6 +9,8 @@ import ChallengesTable from "./ChallengesTable";
 export default function BattleRadarSection() {
   const [sse, setSse] = useState(null);
   const [challenges, setChallenges] = useState({});
+  const [acceptedChallengesDisplay, setAcceptedChallengesDisplay] =
+    useState(false);
 
   const sseConnect = async () => {
     try {
@@ -20,8 +22,19 @@ export default function BattleRadarSection() {
       sseInstance.addEventListener("message", function (event) {
         const eventData = JSON.parse(event.data);
         console.log("Received SSE Event:", eventData);
+        console.log("Analyzing frontend response to event");
         if (eventData.event === "challengesList") {
           setChallenges(eventData.data);
+          console.log(challenges);
+        }
+        console.log(`GEEEEEEEY :  ${eventData.data} ${eventData.data.length}`);
+        if (eventData.event === "acceptedChallenge") {
+          if (eventData.data && eventData.data.length === 0) {
+            setAcceptedChallengesDisplay(false);
+          } else {
+            console.log("Displaying challenges...");
+            setAcceptedChallengesDisplay(true);
+          }
         }
       });
 
@@ -31,9 +44,29 @@ export default function BattleRadarSection() {
     }
   };
 
-  const acceptChallenge = async (opponent, nftId) => {
-    console.log(`Accepting challenge from ${opponent} for NFT ID ${nftId}`);
-    // Call backend endpoint here
+  const acceptChallenge = async (opponent) => {
+    console.log(`Accepting challenge from ${opponent}`);
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const address = signer.address;
+    const n = address == "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" ? 0 : 1;
+
+    const response = await fetch(
+      "http://localhost:3005/api/matchmaking/acceptChallenge",
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          opponentAddress: opponent,
+          nftId: n,
+          bidAmount: 0.1,
+        }),
+      }
+    );
+    console.log(response);
   };
 
   const postC = async () => {
@@ -134,6 +167,12 @@ export default function BattleRadarSection() {
           >
             DELETE CHALLENGE
           </button>
+
+          {acceptedChallengesDisplay ? (
+            <h1> SOMEONE ACCEPTED CHALLENGE </h1>
+          ) : (
+            <h1> HEY WHATSAP BRO </h1>
+          )}
         </div>
       ) : (
         <></>
