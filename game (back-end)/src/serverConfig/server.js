@@ -29,6 +29,10 @@ app.use(express.json());
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
+// SSE seems to need this
+const compression = require("compression");
+app.use(compression());
+
 // Database
 const connectDB = require("../database/connect");
 connectDB();

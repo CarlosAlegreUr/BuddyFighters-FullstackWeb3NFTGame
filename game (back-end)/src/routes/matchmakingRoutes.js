@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const matchmackingController = require("../controllers/matchmackingControllers");
 const verifyToken = require("../middleware/authMiddleware");
-const checkSSEConnection = require("../middleware/connectionsMiddleware");
 
 router.use(verifyToken);
 
@@ -11,6 +10,7 @@ router.get(
     matchmackingController.establishSSEConnectionAndSendChallenges
 );
 
+const checkSSEConnection = require("../middleware/connectionsMiddleware");
 router.use(checkSSEConnection);
 
 router.post("/postChallenge", matchmackingController.postChallenge);

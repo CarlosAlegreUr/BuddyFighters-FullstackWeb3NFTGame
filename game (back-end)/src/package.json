@@ -31,6 +31,7 @@
         "@typechain/hardhat": "^6.1.2",
         "agenda": "^5.0.0",
         "axios": "^1.4.0",
+        "compression": "^1.7.4",
         "cookie-parser": "^1.4.6",
         "cors": "^2.8.5",
         "dotenv": "^16.0.1",

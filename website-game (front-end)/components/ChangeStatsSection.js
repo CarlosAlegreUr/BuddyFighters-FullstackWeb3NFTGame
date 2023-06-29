@@ -2,7 +2,7 @@ import React from "react";
 import { ethers } from "ethers";
 import { getContractAddress, getContractAbi } from "../utils/getContractInfo";
 
-export default function ChangeStats() {
+export default function ChangeStatsSection() {
   const getSignerAddressMetamask = async () => {
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
@@ -125,12 +125,14 @@ export default function ChangeStats() {
   };
 
   return (
-    <button
-      onClick={async () => {
-        await changeStatsProcess();
-      }}
-    >
-      CHANGE STATS!
-    </button>
+    <section>
+      <button
+        onClick={async () => {
+          await changeStatsProcess();
+        }}
+      >
+        CHANGE STATS!
+      </button>
+    </section>
   );
 }

@@ -5,7 +5,7 @@ const checkSSEConnection = (req, res, next) => {
         const playerAddress = req.user.address;
         const sse = sseConnections[playerAddress];
         if (!sse) {
-            res.status(400).json({
+            return res.status(400).json({
                 message: "You don't have an established connection.",
             });
         }

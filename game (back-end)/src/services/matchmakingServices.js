@@ -10,13 +10,17 @@ async function createChallenge(playerAddress, nftId, bidAmount) {
     try {
         const hasTickets = await getTickets(playerAddress);
         if (hasTickets) {
-            const newChallenge = new Challenge({
-                playerAddress,
-                nftId,
-                bidAmount,
-            });
-            await newChallenge.save();
-            return true;
+            const only1 = await Challenge.findOne({ playerAddress });
+            if (!only1) {
+                const newChallenge = new Challenge({
+                    playerAddress,
+                    nftId,
+                    bidAmount,
+                });
+                const res = await newChallenge.save();
+                return true;
+            }
+            return false;
         } else return false;
     } catch (err) {
         throw err;
@@ -25,8 +29,9 @@ async function createChallenge(playerAddress, nftId, bidAmount) {
 
 async function deleteChallenge(playerAddress) {
     try {
-        await Challenge.deleteOne({ playerAddress });
-        const deleteResult = await Challenge.deleteOne({ playerAddress });
+        const deleteResult = await Challenge.deleteOne({
+            playerAddress: playerAddress,
+        });
         if (deleteResult.deletedCount >= 1) return true;
         else return false;
     } catch (err) {
@@ -34,9 +39,10 @@ async function deleteChallenge(playerAddress) {
     }
 }
 
-async function getRandomChallenges(count = 3) {
+async function getRandomChallenges(addressToAvoid = "", count = 3) {
     try {
         const challenges = await Challenge.aggregate([
+            { $match: { playerAddress: { $ne: addressToAvoid } } },
             { $sample: { size: count } },
         ]);
         return challenges;

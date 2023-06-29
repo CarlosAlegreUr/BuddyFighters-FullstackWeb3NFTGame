@@ -6,6 +6,10 @@ const {
     acceptSomeonesChallenge,
 } = require("../services/matchmakingServices");
 
+const {
+    broadcastMatchmakingState,
+} = require("../services/matchmakingNotifyService");
+
 const SSE = require("express-sse");
 const sseConnections = require("../middleware/sseConnections");
 
@@ -14,15 +18,23 @@ exports.establishSSEConnectionAndSendChallenges = async (req, res, next) => {
         const playerAddress = req.user.address;
         let sse = new SSE();
         sseConnections[playerAddress] = sse;
-        sse.init(req, res);
+        await sse.init(req, res);
         console.log(`CONNECTION ESTABLISHED WITH PLAYER: ${playerAddress}`);
 
         // Send available challenges
-        // const challenges = await getRandomChallenges();
-        // const returnValue = challenges
-        //     ? challenges
-        //     : "No challenges available.";
-        // return sse.send(returnValue); // Send the result through SSE
+        const challenges = await getRandomChallenges(playerAddress);
+
+        if (challenges && challenges.length) {
+            return await sse.send({
+                event: "challengesList",
+                data: challenges,
+            }); // Send the challenges through SSE
+        } else {
+            return await sse.send({
+                event: "challengesList",
+                data: [],
+            }); // Send the result through SSE
+        }
     } catch (error) {
         next(error);
     }
@@ -30,20 +42,24 @@ exports.establishSSEConnectionAndSendChallenges = async (req, res, next) => {
 
 exports.postChallenge = async (req, res, next) => {
     try {
-        const { playerAddress, nftId, bidAmount } = req.body;
-
-        if (!playerAddress || !nftId || !bidAmount) {
+        const { nftId, bidAmount } = req.body;
+        const nftIdS = await nftId.toString();
+        const playerAddress = req.user.address;
+        if (!nftIdS || !bidAmount) {
             return res.status(400).json({
-                message:
-                    "All fields required, fields are: playerAddress, nftId, bidAmount",
+                message: "All fields required, fields are: nftId, bidAmount",
             });
         }
         const response = await createChallenge(playerAddress, nftId, bidAmount);
         if (!response) {
             return res.status(400).json({
-                message: "You don't have enought tickets!",
+                message: "All fields required, fields are: nftId, bidAmount",
             });
         }
+        await broadcastMatchmakingState();
+        return res.status(200).json({
+            message: "Challenge posted!",
+        });
     } catch (error) {
         next(error);
     }
@@ -51,20 +67,14 @@ exports.postChallenge = async (req, res, next) => {
 
 exports.removeChallenge = async (req, res, next) => {
     try {
-        const { playerAddress, nftId, bidAmount } = req.body;
-
-        if (!playerAddress || !nftId || !bidAmount) {
-            return res.status(400).json({
-                message:
-                    "All fields required, fields are: playerAddress, nftId, bidAmount",
-            });
-        }
-        const response = await deleteChallenge(playerAddress, nftId, bidAmount);
+        const playerAddress = req.user.address;
+        const response = await deleteChallenge(playerAddress);
         if (!response) {
             return res.status(400).json({
                 message: "Challenge doesn't exist!",
             });
         }
+        await broadcastMatchmakingState();
         res.status(200).json({
             message: "Challenge deleted!",
         });
