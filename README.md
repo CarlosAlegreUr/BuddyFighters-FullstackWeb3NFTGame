@@ -2,142 +2,206 @@
   <br>
   <a><img src="https://image.shutterstock.com/image-photo/pattaya-thailand-2-sep-2016-600w-477402835.jpg" width="200"></a>
   <br>
-  BuddyFighters (NOT FINISHED, DON'T USE)
+  BuddyFighters (IN DEVELOPMENT)
   <br>
 </h1>
   <a src="https://github.com/CarlosAlegreUr/BuddyFighters-FullstackWeb3NFTGame/tree/main "> <h3 align="center"> PLAY IN WEB! (not deployed yet) <H3> </a>
 <hr>
 
-<h4 align="center">A figthing game on the browser using NFT techonlogy that can be played in EVM compatible blockchains.</h4>
+<h4 align="center">A fighting game on the browser using NFT techonlogy that can be played in EVM compatible blockchains.</h4>
+
+<hr/>
 
 # Index
 
-- Special thanks.
-- Video using the app.
-- What offical production code can handle.
-- How the application works?
-- How to use locally.
-- Project Structure (so far).
-- Pakcages and technologies used.
-- License.
+- Purpose of this Repository
+- About the App
+  - Potential Misuse of Power
+  - Solution for a Trustless Scenario
+- App Demonstration Video
+- Packages and Technologies Utilized
+- How the System Functions
+- Project Structure
+- Capabilities Of Deployed App
+- Instructions for Local Usage
+- Special Thanks
+- License
+
+<hr/>
+
+# Purpose of this Repository
+
+This repository hosts the code required to run a robust full-stack web application. Besides interacting with traditional full-stack web systems, it also interfaces with EVM-compatible blockchains and decentralized networks like IPFS for certain services.
+
+<hr/>
+
+# About the App
+
+Essentially, this application is a fighting game where players can battle against each other using NFTs and wager their cryptocurrencies on these fights. It includes a "change stats" feature, allowing you to adjust your NFT's stats in a fully trustless, decentralized manner.
+
+The fighting and betting system isn't completely trustless as it requires a trusted backend to execute off-chain computations when battles occur. However, it's designed in a way that makes any backend misbehavior easy to detect, enhancing the overall trustworthiness of the app's betting system.
+
+## Potential Misuses of Power
+
+One point of concern is the declaration of the winner. The backend could potentially declare any winner it prefers, regardless of the actual battle outcome. As the system stands, it's impossible to fully verify via computations alone if the backend is being dishonest. A more resource-intensive system that resolves this issue could be implemented, as explained below.
+
+## Analysis of Trustless Scenarios
+
+To facilitate trustless fights, we'd need to introduce additional variables and functions to the FightsManager.sol contract. These would include:
+
+A mapping of the player's address to the last move executed. This variable should only be alterable by the same player, with moves potentially represented by integers.
+
+A mapping of the fightId to the last fight state. This would be a unique hashed representation of the fight state after each turn. This state should only be updated by the backend to prevent any party with a monetary interest from manipulating it to their advantage. Ideally, the client-selected moves should be sufficient to verify that applying the open-source game logic to a given fight state would unequivocally lead to a subsequent fight state. Note: For game mechanics with moves that have a certain chance to trigger a special effect, the backend should employ VRF Chainlink contracts to determine that chance. Any user wishing to validate that the fight state is updated correctly should use the VRF-generated value to compute the next state.
+
+Obviously, this would necessitate a transaction from both clients for every turn in the game, plus one or more additional transactions for the backend to generate random numbers, potentially increasing the cost of play. This cost could be mitigated by deploying the game on cheaper EVM-compatible blockchains, such as POLYGON.
+
+To calculate the costs you should take into account updating a fight state mapping value costs X gas, and updating an integer mapping value costs Y gas. With a current gas price of approximately Z GWei and the native POLYGON coin priced at $W, the minimum business cost for each round, excluding any random number generation mechanics, would be: X * Z*0.000000001 \* W
+
+The corresponding cost for the client would be: Y * Z*0.000000001 \* W
+
+Notice first time the map is asigned a value transaction will be more expensive due to new storage usage in the contract, but in all the other cases vlaues are aproxaimately calculated like this. Obviously using gas simulations before taking a decision must be done.
+
+<hr/>
+
+# App Demonstration Video (TODO)
+
+<hr/>
+
+# Packages and Technologies Utilized
+
+The application uses a range of packages to create a robust and efficient system. The front-end and back-end services rely on different sets of packages, tailored to suit their specific needs.
+
+For the complete list of dependencies, please check the package.json file in the respective front-end and back-end directories.
+
+Back-end dependencies include:
+
+- ethers: Ethereum blockchain and smart contracts JavaScript API.
+- @chainlink/contracts: VRF (Verifiable Random Function) Chainlink.
+- @openzeppelin/contracts: Secure open source smart contracts.
+- agenda: For lightweight job scheduling.
+- express: Web server framework.
+- mongoose: For MongoDB object modeling.
+- jsonwebtoken: For JSON Web Token sign and verify.
+- express-sse: Server-side events management in express framework.
+- cors: For enabling CORS in Express.
+- dotenv: Management of environment variables.
+- express-winston: Server side logging.
+
+Front-end dependencies include:
+
+- @web3uikit/core: UI components for DApps.
+- ethers: Ethereum blockchain and smart contracts JavaScript API.
+- moralis: For fast blockchain development.
+- react: For the UI.
+
+<hr/>
+
+# How the System Functions
+
+The front end handles API calls to the backend and also contains blockchain interaction code executed through a MetaMask provider.
+
+The backend comprises all the services, controllers, and route structures necessary for the traditional HTTP request-response cycle. Additionally, it uses Server-Side Events (SSE) to manage matchmaking and fight mechanics services. Moreover, it interacts with the blockchain via Alchemy as a provider.
+
+And don't forget to mention front end and backend are designed to be hosted in different servers therefore using CORS.
+
+<hr/>
+
+# Project Structure
+
+Here is the overall structure of the project, it's divided into two main parts: game (back-end) and website-game (front-end).
+
+Each directory is further structured to organize files based on their functionality. Not all files are listed here, only the most relevant ones for a high-level overview. For more detailed information, please navigate to the respective directories.
+
+This structure allows for modular development, easy maintainability, and scalability of the project.
+
+```
+.
+├── game (Contains the server-side logic, blockchain scripts, contracts and tests)
+│   ├── README.md
+│   ├── src
+│   │   ├── blockchainScripts (Scripts directly interacting with the blockchain)
+│   │   ├── contracts (Smart Contracts written in Solidity)
+│   │   ├── controllers (Controllers to manage route handling)
+│   │   ├── database (Mongoose models and DB connection settings)
+│   │   ├── logs (Different log files and the logger script)
+│   │   ├── middleware (Middleware for Express.js, JWT AUTH and SSE management)
+│   │   ├── routes (Routes for Express.js)
+│   │   ├── serverConfig (Server configuration file)
+│   │   ├── services (Services to handle business logic)
+│   │   ├── tasks (Background tasks setup)
+│   │   ├── tests (Unit and integration tests for the blockchain scripts and services)
+│   │   └── utils (Utility scripts used across the project)
+│   ├── hardhat.config.js
+│   ├── helper-hardhat-config.js
+│   ├── nodemon.json
+│   ├── package.json
+│   └── yarn.lock
+├── LICENSE
+├── package.json
+├── printChildrenDirectories.sh
+├── readme-images (images used in the readmes)
+├── README.md
+├── TODO.md
+├── website-game (Contains the client-side logic, UI components, and styles)
+│   ├── components (React components for UI)
+│   ├── constants (JSON and index files with constant values)
+│   ├── next.config.js
+│   ├── package.json
+│   ├── pages (React pages)
+│   ├── public (Static files served by Next.js)
+│   ├── README.md
+│   ├── styles (CSS and SCSS style files)
+│   ├── utils (Utility scripts used across the project)
+│   └── yarn.lock
+└── yarn.lock
+```
+
+<hr/>
+
+# Capabilities of the Deployed App
+
+As a personal portfolio project, the public website and backend are limited to supporting only 4 authenticated users playing or using backend services simultaneously. This restriction allows me to host the project for free. (:D)
+
+<hr/>
+
+# Instructions for Local Usage
+
+To run the application locally, follow these steps:
+
+1.Download the code.
+
+2.Start a Hardhat node.
+
+3.Mint some NFTs using the provided minting script.
+
+4.Launch the website on two different browsers or in sessions that don't share cookies.
+
+5.Connect MetaMask to the local Hardhat network using the first two default addresses, one for each browser.
+
+6.Run the server file.
+
+7.Start the MongoDB database.
+
+8.Make sure you have all the .env API keys for the services used by the app.
 
 <hr/>
 
 ## Special thanks
 
-Thanks <a href="https://twitter.com/aonsager" target="_blank"> @aonsager </a> for <a href="https://twitter.com/charlescheerfu1/status/1546925876494929927" target="_blank"> allowing </a> me to use his images.
+Thanks <a href="https://twitter.com/aonsager" target="_blank"> @aonsager </a> for <a href="https://twitter.com/charlescheerfu1/status/1546925876494929927" target="_blank"> allowing </a> me to use his images as long as I don't create a commercial product out of them.
 
 Creator of => <a href="https://pokemon.alexonsager.net/" target="_blank"> https://pokemon.alexonsager.net/ </a>
 
 Source of the pokemon fusions images used in this project.
 <br>
-<a><img src="https://images.alexonsager.net/pokemon/fused/34/34.103.png" width="75"></a>
-<img src="https://images.alexonsager.net/pokemon/fused/25/25.77.png" width="75"></a>
-<img src="https://images.alexonsager.net/pokemon/fused/78/78.132.png" width="75"></a>
-<img src="https://images.alexonsager.net/pokemon/fused/43/43.34.png" width="75"></a>
-<img src="https://images.alexonsager.net/pokemon/fused/150/150.22.png" width="75"></a>
-<img src="https://images.alexonsager.net/pokemon/fused/84/84.73.png" width="75"></a>
-
-<hr>
-
-## Video using the app
-
-<hr>
-
-## How the application works?
-
-Backend is managed by some business that owns the
-NFT collection and provides the game mechanics.
-
-Backend takes charge of:
-
-- Creates nfts with random Chainlink generated trait values. And then gives permision the client to mint the NFT with the values that have been generated. Like this client can be sure it's NFT was truly random and creates more trust in the business.
-
-- Executes the matchmaking and fighting logic when 2 players are looking for or in a fight.
-
-- If conditions met, allows clients to improve their
-  nft's traits but does not call that function on the blockchain. Client has to call it. This is done to create more reliability in the business because clients
-  can check the URI points or is the desired data and then they themselves call the update function from the front-end.
-
-Front-end takes charge of:
-
-- Abstract all the blockchain interactions or API backend interactions with simple user friendly buttons.
-
-<hr>
-
-## What offical production code can handle
-
-This is a personal portfolio project, so the public website and backend only handle 2 fights at the same time and can only handle 5 accounts. This is done so I
-can host the project for free.
+<img src="./readme-images/p0.png" width="75">
+<img src="./readme-images/p1.png" width="75">
+<img src="./readme-images/p2.png" width="75">
+<img src="./readme-images/p3.png" width="75">
+<img src="./readme-images/p4.png" width="75">
+<img src="./readme-images/p5.png" width="75">
 
 <hr/>
-
-## How To Use Locally
-
-> **Note:**
-> Project developed and tested only in Linux Ubuntu 20.04. Haven't tried if compatible with other OS.
-
-> **Note:**
-> Web developed and tested using Brave browser.
-
-<br>
-
-To play locally in your own blockchain, you'll need [Git](https://git-scm.com) and [Yarn](https://github.com/yarnpkg/berry), though you can use [Npm](https://www.npmjs.com/) to install dependencies if you like.
-
-From your command line:
-
-```bash
-# Clone this repository
-$ git clone https://github.com/CarlosAlegreUr/BuddyFighters-FullstackWeb3NFTGame.git
-
-# Install all the dependencies of package.json
-$ cd ./game\ \(back-end\)/src/
-$ yarn install
-
-# Run the blockchain on ./game\ \(back-end\)/src/
-$ yarn hardhat node
-
-# Use the mint script to mint some nfts.
-$ yarn hardhat run ./scripts/mint.js
-
-# You can buy them now in Opensea for Testnets
-(link here)
-
-# Open another terminal and go to /website-game (front-end)/
-$ cd ../../website-game\ \(front-end\)/
-
-# Install all the dependencies in package.json
-$ yarn install
-
-# Run NexJs dev mode
-$ yarn dev
-
-# Connect to your wallet and add your localhost blockchain to it.
-
-# Connect with 2 different accounts in different browsers
-
-# Start fighting and enjoy!
-
-ENJOY
-```
-
-<hr>
-
-## Project Structure (so far)
-
-- game(back-end)/src : all the code that runs the project in the backend servers.
-- website-game(front-end): all the code that conforms
-  the website that interact with the backend.
-
-<hr>
-
-## Pakcages and technologies used.
-
-This software uses the following packages and technologies:
-
-TODO TOWRITE
-
-<hr>
 
 ## License
 
