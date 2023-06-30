@@ -16,8 +16,12 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const nOfConfitmations = inDevNet ? 1 : 6;
 
     // console.log("Deploying BFNFT...")
+    const inputControlModularContract = await ethers.getContract(
+        "InputControlModular",
+        deployer
+    );
 
-    const args = [];
+    const args = [inputControlModularContract.address];
 
     await deploy("BFNFTFightsManager", {
         from: deployer,

@@ -128,7 +128,12 @@ exports.acceptSomeonesChallenge = async (req, res, next) => {
                     "All fields required, fields are: playerAddress, opponentAddress, nftId1, nftId2",
             });
         }
-        const result = await acceptSomeonesChallenge(
+
+        // TODO:
+        // Notify both users to DEPOSIT BETS IN BLOCKCHAIN, START FIGHT IN BLOCKCHAIN AND CALL FIGHT ENDPOINT!
+        // Also send them the battle info to display in battle page
+
+        const result = await dealDoneStartFight(
             playerAddress,
             opponentAddress,
             nftId1,

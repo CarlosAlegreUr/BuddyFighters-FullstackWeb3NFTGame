@@ -282,195 +282,8 @@
       ]
     },
     {
-      "contractName": "BFNFTFightsManager",
-      "address": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
-      "abi": [
-        {
-          "inputs": [],
-          "stateMutability": "nonpayable",
-          "type": "constructor"
-        },
-        {
-          "inputs": [],
-          "name": "BFNFT__FManager__BetsNotSent",
-          "type": "error"
-        },
-        {
-          "inputs": [],
-          "name": "BFNFT__FManager__FailedToSendFunds",
-          "type": "error"
-        },
-        {
-          "inputs": [],
-          "name": "BFNFT__FManager__NotAvailableFundsInContract",
-          "type": "error"
-        },
-        {
-          "inputs": [],
-          "name": "BFNFT__FManager__NotPayedEnough",
-          "type": "error"
-        },
-        {
-          "inputs": [],
-          "name": "BFNFT__FManager__PlayerHasNoTitckets",
-          "type": "error"
-        },
-        {
-          "inputs": [],
-          "name": "BFNFT__FManager__WinnerIsNotPlayer",
-          "type": "error"
-        },
-        {
-          "anonymous": false,
-          "inputs": [
-            {
-              "indexed": true,
-              "internalType": "bytes32",
-              "name": "battleId",
-              "type": "bytes32"
-            },
-            {
-              "indexed": true,
-              "internalType": "address",
-              "name": "winner",
-              "type": "address"
-            }
-          ],
-          "name": "BFNFT__FManager__FightResult",
-          "type": "event"
-        },
-        {
-          "anonymous": false,
-          "inputs": [
-            {
-              "indexed": true,
-              "internalType": "bytes32",
-              "name": "battleId",
-              "type": "bytes32"
-            }
-          ],
-          "name": "BFNFT__FManager__FightStarted",
-          "type": "event"
-        },
-        {
-          "anonymous": false,
-          "inputs": [
-            {
-              "indexed": true,
-              "internalType": "address",
-              "name": "previousOwner",
-              "type": "address"
-            },
-            {
-              "indexed": true,
-              "internalType": "address",
-              "name": "newOwner",
-              "type": "address"
-            }
-          ],
-          "name": "OwnershipTransferred",
-          "type": "event"
-        },
-        {
-          "inputs": [],
-          "name": "buyTicket",
-          "outputs": [],
-          "stateMutability": "payable",
-          "type": "function"
-        },
-        {
-          "inputs": [
-            {
-              "internalType": "bytes32",
-              "name": "_fightId",
-              "type": "bytes32"
-            },
-            { "internalType": "address", "name": "_winner", "type": "address" },
-            {
-              "internalType": "address[2]",
-              "name": "_players",
-              "type": "address[2]"
-            }
-          ],
-          "name": "declareWinner",
-          "outputs": [],
-          "stateMutability": "nonpayable",
-          "type": "function"
-        },
-        {
-          "inputs": [
-            { "internalType": "address", "name": "_address", "type": "address" }
-          ],
-          "name": "getTicketsOf",
-          "outputs": [
-            { "internalType": "uint256", "name": "", "type": "uint256" }
-          ],
-          "stateMutability": "view",
-          "type": "function"
-        },
-        {
-          "inputs": [],
-          "name": "owner",
-          "outputs": [
-            { "internalType": "address", "name": "", "type": "address" }
-          ],
-          "stateMutability": "view",
-          "type": "function"
-        },
-        {
-          "inputs": [],
-          "name": "renounceOwnership",
-          "outputs": [],
-          "stateMutability": "nonpayable",
-          "type": "function"
-        },
-        {
-          "inputs": [
-            {
-              "internalType": "address[2]",
-              "name": "_players",
-              "type": "address[2]"
-            },
-            {
-              "internalType": "uint256[2]",
-              "name": "_tokenIds",
-              "type": "uint256[2]"
-            },
-            {
-              "internalType": "uint256[2]",
-              "name": "_bets",
-              "type": "uint256[2]"
-            }
-          ],
-          "name": "startFight",
-          "outputs": [],
-          "stateMutability": "nonpayable",
-          "type": "function"
-        },
-        {
-          "inputs": [
-            { "internalType": "address", "name": "newOwner", "type": "address" }
-          ],
-          "name": "transferOwnership",
-          "outputs": [],
-          "stateMutability": "nonpayable",
-          "type": "function"
-        },
-        {
-          "inputs": [
-            { "internalType": "address", "name": "_sendTo", "type": "address" }
-          ],
-          "name": "withdrawAllowedFunds",
-          "outputs": [],
-          "stateMutability": "nonpayable",
-          "type": "function"
-        },
-        { "stateMutability": "payable", "type": "receive" }
-      ]
-    },
-    {
       "contractName": "InputControlModular",
-      "address": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+      "address": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
       "abi": [
         {
           "inputs": [],
@@ -615,6 +428,248 @@
       ]
     },
     {
+      "contractName": "BFNFTFightsManager",
+      "address": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_inputControlContractAddress",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "constructor"
+        },
+        {
+          "inputs": [],
+          "name": "BFNFT__FManager__CollisionWith0ValueModifyABitTheInputAndTryAgain",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "BFNFT__FManager__FailedToSendFunds",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "BFNFT__FManager__FightIsNotActive",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "BFNFT__FManager__FightStartedByOponentAlreadyDontWorry",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "BFNFT__FManager__NotAvailableFundsInContract",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "BFNFT__FManager__NotPayedEnough",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "BFNFT__FManager__OwnerMusntCallStartFightToPreventAbuse",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "BFNFT__FManager__PlayerHasNoTitckets",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "BFNFT__FManager__PlayerIsNotInThisFight",
+          "type": "error"
+        },
+        {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "bytes32",
+              "name": "battleId",
+              "type": "bytes32"
+            },
+            {
+              "indexed": false,
+              "internalType": "address",
+              "name": "winner",
+              "type": "address"
+            }
+          ],
+          "name": "BFNFT__FManager__FightResult",
+          "type": "event"
+        },
+        {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "bytes32",
+              "name": "battleId",
+              "type": "bytes32"
+            }
+          ],
+          "name": "BFNFT__FManager__FightStarted",
+          "type": "event"
+        },
+        {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "previousOwner",
+              "type": "address"
+            },
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "newOwner",
+              "type": "address"
+            }
+          ],
+          "name": "OwnershipTransferred",
+          "type": "event"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_callerAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "bytes32[]",
+              "name": "_validInputs",
+              "type": "bytes32[]"
+            },
+            {
+              "internalType": "string",
+              "name": "_funcSignature",
+              "type": "string"
+            },
+            { "internalType": "bool", "name": "_isSequence", "type": "bool" }
+          ],
+          "name": "allowInputs",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "buyTicket",
+          "outputs": [],
+          "stateMutability": "payable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "bytes32",
+              "name": "_fightId",
+              "type": "bytes32"
+            },
+            { "internalType": "address", "name": "_winner", "type": "address" },
+            {
+              "internalType": "address[2]",
+              "name": "_players",
+              "type": "address[2]"
+            }
+          ],
+          "name": "declareWinner",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            { "internalType": "bytes32", "name": "_fightId", "type": "bytes32" }
+          ],
+          "name": "getIsFightActive",
+          "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            { "internalType": "address", "name": "_address", "type": "address" }
+          ],
+          "name": "getTicketsOf",
+          "outputs": [
+            { "internalType": "uint256", "name": "", "type": "uint256" }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "owner",
+          "outputs": [
+            { "internalType": "address", "name": "", "type": "address" }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "renounceOwnership",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address[2]",
+              "name": "_players",
+              "type": "address[2]"
+            },
+            {
+              "internalType": "uint256[2]",
+              "name": "_tokenIds",
+              "type": "uint256[2]"
+            },
+            {
+              "internalType": "uint256[2]",
+              "name": "_bets",
+              "type": "uint256[2]"
+            },
+            { "internalType": "bool", "name": "betsChecker", "type": "bool" }
+          ],
+          "name": "startFight",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            { "internalType": "address", "name": "newOwner", "type": "address" }
+          ],
+          "name": "transferOwnership",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            { "internalType": "address", "name": "_sendTo", "type": "address" }
+          ],
+          "name": "withdrawAllowedFunds",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        { "stateMutability": "payable", "type": "receive" }
+      ]
+    },
+    {
       "contractName": "BuddyFightersNFT",
       "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
       "abi": [
@@ -631,7 +686,6 @@
           "stateMutability": "nonpayable",
           "type": "constructor"
         },
-        { "inputs": [], "name": "BFNFT__IsNotContractOnwer", "type": "error" },
         { "inputs": [], "name": "BFNFT__IsNotTokenOwner", "type": "error" },
         { "inputs": [], "name": "BFNFT__NotPayedEnough", "type": "error" },
         {
@@ -967,13 +1021,6 @@
           "type": "function"
         },
         {
-          "inputs": [],
-          "name": "s_allowInputCheck",
-          "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
-          "stateMutability": "view",
-          "type": "function"
-        },
-        {
           "inputs": [
             { "internalType": "address", "name": "from", "type": "address" },
             { "internalType": "address", "name": "to", "type": "address" },
@@ -1006,15 +1053,6 @@
             { "internalType": "bool", "name": "approved", "type": "bool" }
           ],
           "name": "setApprovalForAll",
-          "outputs": [],
-          "stateMutability": "nonpayable",
-          "type": "function"
-        },
-        {
-          "inputs": [
-            { "internalType": "bool", "name": "_new", "type": "bool" }
-          ],
-          "name": "setInputChekcer",
           "outputs": [],
           "stateMutability": "nonpayable",
           "type": "function"

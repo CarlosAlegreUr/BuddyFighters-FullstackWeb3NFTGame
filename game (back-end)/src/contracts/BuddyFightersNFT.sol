@@ -21,7 +21,6 @@ error BFNFT__NotPayedEnough();
  */
 contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     /* State variables */
-    bool public s_allowInputCheck;
     IInputControlModular private i_InputControl;
 
     mapping(address => uint256) s_clientToTickects;
@@ -57,19 +56,8 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
         address _callerAddress,
         bytes32 _input
     ) {
-        if (!s_allowInputCheck && modifierHelperOnlyOwner()) {
-            revert BFNFT__IsNotContractOnwer();
-        }
-
-        if (s_allowInputCheck) {
-            i_InputControl.isAllowedInput(_funcSelec, _callerAddress, _input);
-        }
+        i_InputControl.isAllowedInput(_funcSelec, _callerAddress, _input);
         _;
-    }
-
-    // When inputControl deactivated onlyOwner can call those functions.
-    function modifierHelperOnlyOwner() private view onlyOwner returns (bool) {
-        return false;
     }
 
     /* Functions */
@@ -91,7 +79,6 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
         address _inputControlContractAddress
     ) ERC721(_name, _symbol) {
         i_InputControl = IInputControlModular(_inputControlContractAddress);
-        s_allowInputCheck = true;
     }
 
     /* External functions */
@@ -102,17 +89,7 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
      *
      * @notice Client must call this function but first the interaction must me allowed by backend.
      */
-    function mintNft(
-        string memory _tokenURI
-    )
-        external
-        payable
-        checkAllowedInput(
-            bytes4(keccak256(bytes("mintNft(string)"))),
-            msg.sender,
-            keccak256(abi.encode(_tokenURI))
-        )
-    {
+    function mintNft(string memory _tokenURI) external payable onlyOwner {
         uint256 tokenId = totalSupply();
         _safeMint(msg.sender, tokenId);
         _setTokenURI(tokenId, _tokenURI);
@@ -171,11 +148,6 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
 
     function getTicketsOf(address _address) public view returns (uint256) {
         return s_clientToTickects[_address];
-    }
-
-    // Activates or deactivates input checkings.
-    function setInputChekcer(bool _new) external onlyOwner {
-        s_allowInputCheck = _new;
     }
 
     /**

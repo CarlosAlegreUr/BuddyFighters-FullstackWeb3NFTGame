@@ -18,7 +18,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
     // console.log("Deploying BFNFT...")
 
-    inputControlModularContract = await ethers.getContract(
+    const inputControlModularContract = await ethers.getContract(
         "InputControlModular",
         deployer
     );

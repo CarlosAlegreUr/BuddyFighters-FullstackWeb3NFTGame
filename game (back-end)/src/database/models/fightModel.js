@@ -22,11 +22,11 @@ const fightSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
-    p1Moved: {
+    p1Ready: {
         type: Boolean,
         required: true,
     },
-    p2Moved: {
+    p2Ready: {
         type: Boolean,
         required: true,
     },

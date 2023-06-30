@@ -3,6 +3,8 @@ const {
     startFight,
 } = require("../blockchainScripts/fightManagerFuncs");
 
+const { generateFightId } = require("../utils/fightsFunctions");
+
 const Challenge = require("../database/models/matchmakingModel");
 const Fight = require("../database/models/fightModel");
 
@@ -92,7 +94,7 @@ async function getAcceptedChallenges(playerAddress) {
     }
 }
 
-async function acceptSomeonesChallenge(
+async function dealDoneStartFight(
     playerAddress,
     opponentAddress,
     nftId1,
@@ -100,21 +102,14 @@ async function acceptSomeonesChallenge(
 ) {
     try {
         // Chekn in playerAddress Challenge object if opponent exists in accepted challengues array.
-        // Notify other player fight will start.
-        // Establish Socket connection with both.
-        // If notified sucessfully create fight in blockchain.
-        const started = await startFight();
-
-        // Delete challenge from database.
+        // Save in DB corresponding Fight object
+        // Program agenda job to call start fight in smart contract in 2.5min. If not all players ready
+        // agenda job also deletes Fight object from datbase and resets fight in blockchain.
+        // If both players get ready another agenda job will be called and this one canceled, but this
+        // is not anymore in this funciton
     } catch (err) {
         throw err;
     }
-}
-
-function generateFightId(p1, p2, nftId1, nftId2) {
-    return Buffer.from(
-        p1 + p2 + nftId1.toString() + nftId2.toString()
-    ).toString("base64");
 }
 
 module.exports = {
@@ -123,5 +118,5 @@ module.exports = {
     getRandomChallenges,
     acceptChallenge,
     getAcceptedChallenges,
-    acceptSomeonesChallenge,
+    dealDoneStartFight,
 };

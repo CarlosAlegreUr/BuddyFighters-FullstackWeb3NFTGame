@@ -20,6 +20,11 @@ async function startFight(players, tokenIds, bets) {
     );
 }
 
+async function returnBets(fightId, winnerAddress, players) {
+    // Call return bets to players who bet but their rival didnt.
+    // This is done with 1 callt o a function in the smart contract.
+}
+
 async function declareWinner(fightId, winnerAddress, players) {
     const { deployer } = await getNamedAccounts();
     const bfnftFightManager = await ethers.getContract(
@@ -49,6 +54,7 @@ async function withdrawAllowedFunds(sendToAddress) {
 module.exports = {
     getTickets,
     startFight,
+    returnBets,
     declareWinner,
     withdrawAllowedFunds,
 };
