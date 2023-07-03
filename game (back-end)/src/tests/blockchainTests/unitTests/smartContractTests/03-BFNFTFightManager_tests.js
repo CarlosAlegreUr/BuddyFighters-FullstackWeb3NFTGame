@@ -414,6 +414,8 @@ describe("BFNFTFightsManager.sol tests", function () {
 
         await allowStartFight(client1, startFightValues);
         await allowStartFight(client2, startFightValues);
+        await BFNFTFightsManagerClient1.setBet({ value: betInEthers });
+        await BFNFTFightsManagerClient2.setBet({ value: betInEthers });
         await BFNFTFightsManagerClient1.startFight(
             [client1, client2],
             [1, 0],
