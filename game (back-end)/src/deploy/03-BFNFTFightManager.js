@@ -17,7 +17,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
     // console.log("Deploying BFNFT...")
     const inputControlModularContract = await ethers.getContract(
-        "InputControlModular",
+        "InputControlModularFight",
         deployer
     );
 
@@ -37,6 +37,10 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         "BFNFTFightsManagerContract deployed at ",
         `${BFNFTFightsManagerContract.address}`
     );
+    await inputControlModularContract.setAdmin(
+        BFNFTFightsManagerContract.address
+    );
+
     await updateFrontEndData(BFNFTFightsManagerContract, "BFNFTFightsManager");
 
     // Verifies on Etherscan if deployed on Goerli.

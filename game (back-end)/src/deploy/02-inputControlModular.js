@@ -38,6 +38,25 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         "InputControlModular"
     );
 
+    // A second imput control for fights
+    await deploy("InputControlModularFight", {
+        from: deployer,
+        args: args,
+        log: true,
+        waitConfirmations: nOfConfitmations,
+    });
+    const InputControlModularContractFight = await deployments.get(
+        "InputControlModularFight"
+    );
+    console.log(
+        "InputControlModularContractFight deployed at ",
+        `${InputControlModularContractFight.address}`
+    );
+    await updateFrontEndData(
+        InputControlModularContractFight,
+        "InputControlModularFight"
+    );
+
     // Verifies on Etherscan if deployed on Goerli.
     if (
         process.env.ETHERSCAN_API_KEY &&

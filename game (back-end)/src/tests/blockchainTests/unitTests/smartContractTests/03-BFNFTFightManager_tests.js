@@ -7,25 +7,15 @@ describe("BFNFTFightsManager.sol tests", function () {
     let deployer,
         client1,
         client2,
-        BFNFTFightsManagerContractOnly,
         BFNFTFightsManagerContract,
         BFNFTFightsManagerClient1,
         fightStartedEventFilter,
         fightResultEventFilter,
         priceForFightTicket,
         betInEthers,
+        startFightValues,
         fightId;
     // Helper functions
-    async function checkWinnerInEvents(txReceipt) {
-        const txBlock = txReceipt.blockNumber;
-        const query = await BFNFTFightsManagerContract.queryFilter(
-            fightResultEventFilter,
-            txBlock
-        );
-        const winner = query[0].args[1];
-        return winner;
-    }
-
     async function allowStartFight(player, inputs) {
         const types = [
             { type: "string[2]" },
@@ -36,7 +26,7 @@ describe("BFNFTFightsManager.sol tests", function () {
         const coder = new ethers.AbiCoder();
         const abiEncodedInput = await coder.encode(types, inputs);
         const validInput = await ethers.keccak256(abiEncodedInput);
-        BFNFTFightsManagerContract.allowInputs(
+        await BFNFTFightsManagerContract.allowInputs(
             player,
             [validInput],
             "startFight(address[2],uint256[2],uint256[2],bool)",
@@ -70,10 +60,7 @@ describe("BFNFTFightsManager.sol tests", function () {
         client2 = c2;
         // Contracts with different signers
         inputControlModularJustContract = await ethers.getContract(
-            "InputControlModular"
-        );
-        BFNFTFightsManagerContractOnly = await ethers.getContract(
-            "BFNFTFightsManager"
+            "InputControlModularFight"
         );
         BFNFTFightsManagerContract = await ethers.getContract(
             "BFNFTFightsManager",
@@ -99,6 +86,12 @@ describe("BFNFTFightsManager.sol tests", function () {
         );
         betInEthers = await ethers.parseEther("0.1");
         fightId = await getFightId([client1, client2], [1, 0]);
+        startFightValues = [
+            [client1, client2],
+            [1, 0],
+            [betInEthers, betInEthers],
+            false,
+        ];
     });
 
     it("buyTicket(): Only buys 1 ticket per call.", async () => {
@@ -116,6 +109,12 @@ describe("BFNFTFightsManager.sol tests", function () {
         await BFNFTFightsManagerClient2.buyTicket({
             value: priceForFightTicket,
         });
+        await BFNFTFightsManagerClient1.buyTicket({
+            value: priceForFightTicket,
+        });
+        await BFNFTFightsManagerClient2.buyTicket({
+            value: priceForFightTicket,
+        });
     });
 
     it("setBet(): Is called correctly.", async () => {
@@ -128,57 +127,16 @@ describe("BFNFTFightsManager.sol tests", function () {
     });
 
     it("startFight(): Owner can't start fights.", async () => {
-        await BFNFTFightsManagerClient1.buyTicket();
-        await BFNFTFightsManagerClient2.buyTicket();
         await expect(
             BFNFTFightsManagerContract.startFight(
                 [client1, client2],
                 [0, 1],
                 [betInEthers, betInEthers],
-                false
-            )
-        ).to.be.revertedWithCustomError(
-            inputControlModularJustContract,
-            "InputControlModular__NotAllowedInput"
-        );
-
-        const types = [
-            { type: "string[2]" },
-            { type: "uint256[2]" },
-            { type: "uint256[2]" },
-            { type: "bool" },
-        ];
-        const values = [
-            [client1, client2],
-            [0, 1],
-            [betInEthers, betInEthers],
-            false,
-        ];
-        const coder = new ethers.AbiCoder();
-        const abiEncodedInput = await coder.encode(types, values);
-        const validInput = await ethers.keccak256(abiEncodedInput);
-        await expect(
-            BFNFTFightsManagerContract.allowInputs(
-                deployer,
-                [validInput],
-                "startFight(address[2],uint256[2],uint256[2],bool)",
                 false
             )
         ).to.be.revertedWithCustomError(
             BFNFTFightsManagerContract,
             "BFNFT__FManager__OwnerMusntCallStartFightToPreventAbuse"
-        );
-
-        await expect(
-            BFNFTFightsManagerContract.startFight(
-                [client1, client2],
-                [0, 1],
-                [betInEthers, betInEthers],
-                false
-            )
-        ).to.be.revertedWithCustomError(
-            inputControlModularJustContract,
-            "InputControlModular__NotAllowedInput"
         );
     });
 
@@ -195,12 +153,6 @@ describe("BFNFTFightsManager.sol tests", function () {
             inputControlModularJustContract,
             "InputControlModular__NotAllowedInput"
         );
-        const values = [
-            [client1, client2],
-            [1, 0],
-            [betInEthers, betInEthers],
-            false,
-        ];
         // To later check if tickets correctly decrease.
         const ticketsC1prev = await BFNFTFightsManagerContract.getTicketsOf(
             client1
@@ -210,15 +162,45 @@ describe("BFNFTFightsManager.sol tests", function () {
         );
 
         // Giving permission to players
-        await allowStartFight(client1, values);
-        await allowStartFight(client2, values);
+        await allowStartFight(client1, startFightValues);
+        await allowStartFight(client2, startFightValues);
 
         // Permision given to both players, checking for
-        // correct fightId update and emitted event values.
+        // correct fightId update and emitted event startFightValues.
         // Notice getFightId() is tested here too
-        let fightState = await getIsFightActive(fightId);
+        let fightState = await BFNFTFightsManagerContract.getIsFightActive(
+            fightId
+        );
         assert.equal(fightState, false);
         // Getting event from logs
+
+        const types = [
+            { type: "string[2]" },
+            { type: "uint256[2]" },
+            { type: "uint256[2]" },
+            { type: "bool" },
+        ];
+        const inputs = [
+            [client1, client2],
+            [1, 0],
+            [betInEthers, betInEthers],
+            false,
+        ];
+        const coder = new ethers.AbiCoder();
+        const abiEncodedInput = await coder.encode(types, inputs);
+        const validInput = await ethers.keccak256(abiEncodedInput);
+
+        const xd = await inputControlModularJustContract.getAllowedInputs(
+            "startFight(address[2],uint256[2],uint256[2],bool)",
+            client1
+        );
+
+        const executed = await BFNFTFightsManagerContract.whatsGoingOn(
+            [client1, client2],
+            [1, 0],
+            [betInEthers, betInEthers],
+            false
+        );
         const txResponse = await BFNFTFightsManagerClient1.startFight(
             [client1, client2],
             [1, 0],
@@ -233,7 +215,7 @@ describe("BFNFTFightsManager.sol tests", function () {
         );
         const fightIdSet = query[0].args[0];
         assert.deepEqual(fightId, fightIdSet);
-        fightState = await getIsFightActive(fightId);
+        fightState = awaitBFNFTFightsManagerContract.getIsFightActive(fightId);
         assert.equal(fightState, true);
 
         // Only 1 ticket should have been used.
@@ -255,7 +237,7 @@ describe("BFNFTFightsManager.sol tests", function () {
             )
         ).to.be.revertedWithCustomError(
             BFNFTFightsManagerContract,
-            "BFNFT__FManager__FightStartedByOponentAlreadyDontWorry"
+            "BFNFT__FManager__CalledByOponentAlreadyDontWorry"
         );
 
         // Only 1 ticket should still have been used.
@@ -300,7 +282,7 @@ describe("BFNFTFightsManager.sol tests", function () {
     });
 
     it("declareWinner(): Player set as winner recieves the price and event is emitted correctly.", async () => {
-        const provider = await ethers.getDefaultProvider();
+        const provider = new ethers.JsonRpcProvider("http://localhost:8545");
         const prevBalanceC1 = await provider.getBalance(client1);
 
         const prevBalanceC2 = await provider.getBalance(client2);
@@ -329,12 +311,91 @@ describe("BFNFTFightsManager.sol tests", function () {
     });
 
     it("declareWinner(): Fight settings are reseted.", async () => {
-        let fightState = await getIsFightActive(fightId);
+        let fightState = await BFNFTFightsManagerContract.getIsFightActive(
+            fightId
+        );
         assert.equal(fightState, false);
     });
 
-    it("startFight(): Tickets of players must be higher than 0.", async () => {});
-    it("startFight(): If a bet sent is lower or not sent, tickets to 0 penalty is applied all bets are returned..", async () => {});
+    it("startFight(): Tickets of players must be higher than 0.", async () => {
+        await allowStartFight(client1, startFightValues);
+        await expect(
+            BFNFTFightsManagerClient1.startFight(
+                [client1, client2],
+                [1, 0],
+                [betInEthers, betInEthers],
+                false
+            )
+        ).to.be.revertedWithCustomError(
+            BFNFTFightsManagerContract,
+            "BFNFT__FManager__PlayerHasNoTitckets"
+        );
+    });
+
+    it("startFight(): If a bet sent is lower than agreed, tickets to 0 penalty is applied all bets are returned.", async () => {
+        // Player 1 wont set the bet correctly.
+        await BFNFTFightsManagerClient1.buyTicket({
+            value: priceForFightTicket,
+        });
+        await BFNFTFightsManagerClient1.buyTicket({
+            value: priceForFightTicket,
+        });
+        await BFNFTFightsManagerClient1.buyTicket({
+            value: priceForFightTicket,
+        });
+        const ticketsOfC1prev = await ethers.toNumber(
+            await BFNFTFightsManagerContract.getTicketsOf(client1)
+        );
+        assert.notEqual(0, ticketsOfC1prev);
+        const ticketsOfC2prev = await ethers.toNumber(
+            await BFNFTFightsManagerContract.getTicketsOf(client2)
+        );
+
+        await allowStartFight(client2, startFightValues);
+        await BFNFTFightsManagerClient2.buyTicket({
+            value: priceForFightTicket,
+        });
+        await BFNFTFightsManagerClient2.setBet(betInEthers);
+
+        const provider = new ethers.JsonRpcProvider("http://localhost:8545");
+        const prevBalanceC1 = await provider.getBalance(client1);
+        const prevBalanceC2 = await provider.getBalance(client2);
+
+        // Client2 which bet as it should wants to start but 1 doesn't bet.
+        await BFNFTFightsManagerClient2.startFight(
+            [client1, client2],
+            [1, 0],
+            [betInEthers, betInEthers],
+            false
+        );
+
+        // Client 1 can't call startFight now.
+        await expect(
+            BFNFTFightsManagerClient1.startFight(
+                [client1, client2],
+                [1, 0],
+                [betInEthers, betInEthers],
+                false
+            )
+        ).to.be.reverted;
+
+        // Client 2 behave properly so it's bet is returned.
+        const currentBalanceC2 = await provider.getBalance(client2);
+        assert.isAbove(currentBalanceC2, prevBalanceC2);
+        const currentBalanceC1 = await provider.getBalance(client1);
+        assert.equal(currentBalanceC1, prevBalanceC1);
+
+        // Client 1 didnt bet what he said, punishment tickets go to 0.
+        const ticketsOfC1 = await ethers.toNumber(
+            await BFNFTFightsManagerContract.getTicketsOf(client1)
+        );
+        // Client 2 should have same tickets.
+        assert.equal(0, ticketsOfC1);
+        const ticketsOfC2 = await ethers.toNumber(
+            await BFNFTFightsManagerContract.getTicketsOf(client2)
+        );
+        assert.equal(ticketsOfC2prev, ticketsOfC2);
+    });
 
     it("buyTicket(): Must pay the correct price.", async () => {
         const badPrice = await ethers.parseEther(
