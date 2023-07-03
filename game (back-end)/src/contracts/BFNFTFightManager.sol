@@ -12,6 +12,7 @@ error BFNFT__FManager__NotPayedEnough();
 error BFNFT__FManager__PlayerIsNotInThisFight();
 error BFNFT__FManager__FightIsNotActive();
 error BFNFT__FManager__CantBetDuringFight();
+error BFNFT__FManager__Only1FightAtATime();
 error BFNFT__FManager__OwnerMusntCallStartFightToPreventAbuse();
 error BFNFT__FManager__CollisionWith0ValueModifyABitTheInputAndTryAgain();
 error BFNFT__FManager__CalledByOponentAlreadyDontWorry();
@@ -62,44 +63,6 @@ contract BFNFTFightsManager is Ownable {
     /* Modifiers */
 
     /**
-     * @dev Checks if a player has more than 0 tickets.
-     * If not tx reverts.
-     *
-     * @param _players is an array with the 2 players participating.
-     * It's provided by the backend.
-     */
-    modifier checkTickets(address[2] memory _players) {
-        if (
-            s_playerToTickects[_players[0]] == 0 ||
-            s_playerToTickects[_players[1]] == 0
-        ) {
-            revert BFNFT__FManager__PlayerHasNoTitckets();
-        }
-        _;
-    }
-
-    /**
-     * @dev Checks if both players have sent the bet's money.
-     * If any hasn't, that one will lose all the fight tickets.
-     */
-    modifier checkBets(
-        address[2] memory _players,
-        uint256[2] memory _bets,
-        bool _betsChecker
-    ) {
-        _betsChecker = true;
-        if (_bets[0] < s_playerToLastBet[_players[0]]) {
-            delete s_playerToTickects[_players[0]];
-            _betsChecker = false;
-        }
-        if (_bets[1] < s_playerToLastBet[_players[1]]) {
-            delete s_playerToTickects[_players[1]];
-            _betsChecker = false;
-        }
-        _;
-    }
-
-    /**
      * @dev Checks if both players are in the same fight and if that fight is active.
      * Otherwise it reverts.
      */
@@ -115,6 +78,18 @@ contract BFNFTFightsManager is Ownable {
         }
         if (!s_figthIdIsActive[_fightId]) {
             revert BFNFT__FManager__FightIsNotActive();
+        }
+        _;
+    }
+
+    modifier playersAreNotInBattle(address[2] memory _players) {
+        if (
+            s_playerToOnGoingFight[_players[0]] !=
+            0x0000000000000000000000000000000000000000000000000000000000000000 ||
+            s_playerToOnGoingFight[_players[1]] !=
+            0x0000000000000000000000000000000000000000000000000000000000000000
+        ) {
+            revert BFNFT__FManager__Only1FightAtATime();
         }
         _;
     }
@@ -190,22 +165,18 @@ contract BFNFTFightsManager is Ownable {
     function startFight(
         address[2] calldata _players,
         uint256[2] calldata _tokenIds,
-        uint256[2] calldata _bets,
-        bool betsChecker
+        uint256[2] calldata _bets
     )
         external
         preventOwner
+        playersAreNotInBattle(_players)
         checkAllowedInput(
             bytes4(
-                keccak256(
-                    bytes("startFight(address[2],uint256[2],uint256[2],bool)")
-                )
+                keccak256(bytes("startFight(address[2],uint256[2],uint256[2])"))
             ),
             msg.sender,
-            keccak256(abi.encode(_players, _tokenIds, _bets, betsChecker))
+            keccak256(abi.encode(_players, _tokenIds, _bets))
         )
-        checkTickets(_players)
-        checkBets(_players, _bets, betsChecker)
     {
         bytes32 fightId = keccak256(
             abi.encode(_players[0], _players[1], _tokenIds[0], _tokenIds[1])
@@ -218,48 +189,44 @@ contract BFNFTFightsManager is Ownable {
             revert BFNFT__FManager__CollisionWith0ValueModifyABitTheInputAndTryAgain();
         }
 
-        if (betsChecker && !s_figthIdIsActive[fightId]) {
-            s_figthIdIsActive[fightId] = true;
-            if (s_playerToTickects[_players[0]] >= 1) {
-                s_playerToTickects[_players[0]] -= 1;
-            }
-            if (s_playerToTickects[_players[1]] >= 1) {
-                s_playerToTickects[_players[1]] -= 1;
-            }
-            CURRENT_BETS_VALUE += s_playerToLastBet[_players[0]];
-            CURRENT_BETS_VALUE += s_playerToLastBet[_players[1]];
-            s_playerToOnGoingFight[_players[0]] = fightId;
-            s_playerToOnGoingFight[_players[1]] = fightId;
-            emit BFNFT__FManager__FightStarted(fightId);
-        } else {
+        // Check Bets returns false if anything is wrong
+        if (checkBets(_players, _bets)) {
             if (!s_figthIdIsActive[fightId]) {
-                // In case 1 bet is not valid we return the bets and take input permissions
-                // so other player can't keep returning money from the contract.
-                returnBets(_players);
+                if (
+                    s_playerToTickects[_players[0]] == 0 ||
+                    s_playerToTickects[_players[1]] == 0
+                ) {
+                    revert BFNFT__FManager__PlayerHasNoTitckets();
+                }
 
-                address denyAccessPlayer = _players[1];
-                if (_players[1] == msg.sender) denyAccessPlayer = _players[0];
-                bytes32[] memory empty;
-                i_InputControl.allowInputsFor(
-                    denyAccessPlayer,
-                    empty,
-                    "startFight(address[2],uint256[2],uint256[2],bool)",
-                    false
-                );
-            } else {
-                // Both bets were valid but oponent already set the fight started.
-                revert BFNFT__FManager__CalledByOponentAlreadyDontWorry();
+                s_figthIdIsActive[fightId] = true;
+                if (s_playerToTickects[_players[0]] >= 1) {
+                    s_playerToTickects[_players[0]] -= 1;
+                }
+                if (s_playerToTickects[_players[1]] >= 1) {
+                    s_playerToTickects[_players[1]] -= 1;
+                }
+                CURRENT_BETS_VALUE += s_playerToLastBet[_players[0]];
+                CURRENT_BETS_VALUE += s_playerToLastBet[_players[1]];
+                s_playerToOnGoingFight[_players[0]] = fightId;
+                s_playerToOnGoingFight[_players[1]] = fightId;
+                emit BFNFT__FManager__FightStarted(fightId);
             }
+        } else {
+            returnBets(_players);
+            // Deny access to prevent other player to force you
+            // lose all your tickets. The only way they could is if
+            // backend cooperated.
+            address denyAccessPlayer = _players[1];
+            if (_players[1] == msg.sender) denyAccessPlayer = _players[0];
+            bytes32[] memory empty;
+            i_InputControl.allowInputsFor(
+                denyAccessPlayer,
+                empty,
+                "startFight(address[2],uint256[2],uint256[2])",
+                false
+            );
         }
-    }
-
-    function whatsGoingOn(
-        address[2] calldata _players,
-        uint256[2] calldata _tokenIds,
-        uint256[2] calldata _bets,
-        bool betsChecker
-    ) external pure returns (bytes32) {
-        return keccak256(abi.encode(_players, _tokenIds, _bets, betsChecker));
     }
 
     /**
@@ -318,15 +285,12 @@ contract BFNFTFightsManager is Ownable {
         string calldata _funcSignature,
         bool _isSequence
     ) external onlyOwner {
-        console.log("HEREEEEEEEEEEE!!");
-        console.log(msg.sender);
         i_InputControl.allowInputsFor(
             _callerAddress,
             _validInputs,
             _funcSignature,
             _isSequence
         );
-        console.log("DIDINT PASS HEREEEEEEEEEEEE!!");
     }
 
     /* Public functions */
@@ -412,5 +376,28 @@ contract BFNFTFightsManager is Ownable {
         if (!success2) {
             revert BFNFT__FManager__FailedToSendFunds();
         }
+
+        delete s_playerToLastBet[_players[0]];
+        delete s_playerToLastBet[_players[1]];
+    }
+
+    /**
+     * @dev Checks if both players have sent the bet's money.
+     * If any hasn't, that one will lose all the fight tickets.
+     */
+    function checkBets(
+        address[2] memory _players,
+        uint256[2] memory _bets
+    ) private returns (bool) {
+        bool betsChecker = true;
+        if (s_playerToLastBet[_players[0]] < _bets[0]) {
+            delete s_playerToTickects[_players[0]];
+            betsChecker = false;
+        }
+        if (s_playerToLastBet[_players[1]] < _bets[1]) {
+            delete s_playerToTickects[_players[1]];
+            betsChecker = false;
+        }
+        return betsChecker;
     }
 }
