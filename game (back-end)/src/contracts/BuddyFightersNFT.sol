@@ -7,8 +7,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "input-control-contract/modularVersion/IInputControlModular.sol";
 
 /* Customed erros */
-error BFNFT__IsNotTokenOwner();
+error BFNFT__YouAreNotTokenOwner();
 error BFNFT__IsNotContractOnwer();
+error BFNFT__YouHaveNoTcikets();
 error BFNFT__NotPayedEnough();
 
 /**
@@ -24,7 +25,7 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     IInputControlModular private i_InputControl;
 
     mapping(address => uint256) s_clientToTickects;
-    uint256 private constant TICKET_PRICE = 10000000000000000;
+    uint256 private constant TICKET_PRICE = 0.1 ether;
 
     /* Events */
     event BFNFT__NftMinted(
@@ -38,15 +39,25 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
         string newURI
     );
 
+    modifier hasTickets() {
+        if (s_clientToTickects[msg.sender] == 0 && msg.sender != this.owner()) {
+            revert BFNFT__YouHaveNoTcikets();
+        }
+        if (msg.sender != this.owner()) {
+            s_clientToTickects[msg.sender] -= 1;
+        }
+        _;
+    }
+
     /**
      * Checking if an address is owner of a token.
      *
      * @dev Checks if `_tokenOwner` address owns token with `_tokenId`.
      * If not reverts with customed error.
      */
-    modifier isTokenOwner(uint256 _tokenId, address _tokenOwner) {
-        if (ownerOf(_tokenId) != _tokenOwner) {
-            revert BFNFT__IsNotTokenOwner();
+    modifier isTokenOwner(uint256 _tokenId) {
+        if (ownerOf(_tokenId) != msg.sender) {
+            revert BFNFT__YouAreNotTokenOwner();
         }
         _;
     }
@@ -56,7 +67,9 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
         address _callerAddress,
         bytes32 _input
     ) {
-        i_InputControl.isAllowedInput(_funcSelec, _callerAddress, _input);
+        if (msg.sender != this.owner()) {
+            i_InputControl.isAllowedInput(_funcSelec, _callerAddress, _input);
+        }
         _;
     }
 
@@ -110,7 +123,8 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     )
         external
         payable
-        isTokenOwner(_tokenId, msg.sender)
+        isTokenOwner(_tokenId)
+        hasTickets
         checkAllowedInput(
             bytes4(keccak256(bytes("changeStats(string,uint256)"))),
             msg.sender,
@@ -118,7 +132,6 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
         )
     {
         _setTokenURI(_tokenId, _newTokenURI);
-        s_clientToTickects[msg.sender] -= 1;
         emit BFNFT__StatsChanged(msg.sender, _tokenId, _newTokenURI);
     }
 
@@ -137,10 +150,6 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     }
 
     /* Public functions */
-    function changeInputControl(address _newContract) external onlyOwner {
-        i_InputControl = IInputControlModular(_newContract);
-    }
-
     function buyTicket() public payable {
         if (msg.value >= TICKET_PRICE) s_clientToTickects[msg.sender] += 1;
         else revert BFNFT__NotPayedEnough();

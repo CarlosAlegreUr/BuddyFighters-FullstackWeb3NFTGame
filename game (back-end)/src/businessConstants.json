@@ -1,7 +1,7 @@
 {
     "prices": {
-        "changeStatsPrice": 0.1,
-        "mintPrice": 0.1
+        "changeStatsTicket": 0.1,
+        "fightTicket": 0.1
     },
 
     "addresses": {

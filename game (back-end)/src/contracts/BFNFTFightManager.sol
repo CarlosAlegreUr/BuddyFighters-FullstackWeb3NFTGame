@@ -9,6 +9,7 @@ error BFNFT__FManager__PlayerHasNoTitckets();
 error BFNFT__FManager__NotPayedEnough();
 error BFNFT__FManager__PlayerIsNotInThisFight();
 error BFNFT__FManager__FightIsNotActive();
+error BFNFT__FManager__CantBetDuringFight();
 error BFNFT__FManager__OwnerMusntCallStartFightToPreventAbuse();
 error BFNFT__FManager__CollisionWith0ValueModifyABitTheInputAndTryAgain();
 error BFNFT__FManager__FightStartedByOponentAlreadyDontWorry();
@@ -36,7 +37,7 @@ error BFNFT__FManager__NotAvailableFundsInContract();
  */
 contract BFNFTFightsManager is Ownable {
     /* State variables */
-    uint256 private constant TICKET_PRICE = 10000000000000000;
+    uint256 private constant TICKET_PRICE = 0.1 ether;
     uint256 private CURRENT_BETS_VALUE;
 
     // Battles' bets managing variables.
@@ -77,7 +78,7 @@ contract BFNFTFightsManager is Ownable {
 
     /**
      * @dev Checks if both players have sent the bet's money.
-     * If any hasn't, that one will lose an extra fight ticket.
+     * If any hasn't, that one will lose all the fight tickets.
      */
     modifier checkBets(
         address[2] memory _players,
@@ -86,11 +87,11 @@ contract BFNFTFightsManager is Ownable {
     ) {
         _betsChecker = true;
         if (_bets[0] < s_playerToLastBet[_players[0]]) {
-            s_playerToTickects[_players[0]] -= 1;
+            delete s_playerToTickects[_players[0]];
             _betsChecker = false;
         }
         if (_bets[1] < s_playerToLastBet[_players[1]]) {
-            s_playerToTickects[_players[1]] -= 1;
+            delete s_playerToTickects[_players[1]];
             _betsChecker = false;
         }
         _;
@@ -155,18 +156,6 @@ contract BFNFTFightsManager is Ownable {
     constructor(address _inputControlContractAddress) {
         i_InputControl = IInputControlModular(_inputControlContractAddress);
         CURRENT_BETS_VALUE = 0;
-    }
-
-    /**
-     * @dev Used to send bets to the contract, should be called by the client before starting a fight.
-     *
-     * @notice Only non battling players can update their bets.
-     */
-    receive() external payable {
-        if (
-            s_playerToOnGoingFight[msg.sender] ==
-            0x0000000000000000000000000000000000000000000000000000000000000000
-        ) s_playerToLastBet[msg.sender] = msg.value;
     }
 
     /* External functions */
@@ -327,6 +316,22 @@ contract BFNFTFightsManager is Ownable {
     function buyTicket() public payable {
         if (msg.value >= TICKET_PRICE) s_playerToTickects[msg.sender] += 1;
         else revert BFNFT__FManager__NotPayedEnough();
+    }
+
+    /**
+     * @dev Used to send bets to the contract, should be called by the client before starting a fight.
+     *
+     * @notice Only non battling players can update their bets.
+     */
+    function setBet() public payable {
+        if (
+            s_playerToOnGoingFight[msg.sender] ==
+            0x0000000000000000000000000000000000000000000000000000000000000000
+        ) {
+            s_playerToLastBet[msg.sender] = msg.value;
+        } else {
+            revert BFNFT__FManager__CantBetDuringFight();
+        }
     }
 
     /**

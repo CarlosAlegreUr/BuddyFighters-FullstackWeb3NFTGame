@@ -21,7 +21,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         deployer
     );
 
-    const args = [inputControlModularContract.address];
+    const args = [await inputControlModularContract.getAddress()];
 
     await deploy("BFNFTFightsManager", {
         from: deployer,

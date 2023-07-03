@@ -26,7 +26,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const args = [
         collectionName,
         collecitonSymbol,
-        inputControlModularContract.address,
+        await inputControlModularContract.getAddress(),
     ];
 
     await deploy("BuddyFightersNFT", {
