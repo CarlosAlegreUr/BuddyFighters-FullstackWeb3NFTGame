@@ -4,11 +4,12 @@ const {
     deleteChallenge,
     getRandomChallenges,
     acceptChallenge,
-    acceptSomeonesChallenge,
+    dealDoneHanldeStartFightPermissions,
 } = require("../services/matchmakingServices");
 
 const {
     broadcastMatchmakingState,
+    notifyClient,
     notifyAcceptance,
 } = require("../services/matchmakingNotifyService");
 
@@ -129,11 +130,18 @@ exports.acceptSomeonesChallenge = async (req, res, next) => {
             });
         }
 
-        // TODO:
-        // Notify both users to DEPOSIT BETS IN BLOCKCHAIN, START FIGHT IN BLOCKCHAIN AND CALL FIGHT ENDPOINT!
-        // Also send them the battle info to display in battle page
+        const notification = `You have 1min!!! For calling setBet() with the money as value and when
+        the minute passes call startFight() with the correct inputs.`;
+        let notified = await notifyAcceptance(playerAddress, notification);
+        notified = await notifyAcceptance(opponentAddress, notification);
+        if (!notified) {
+            return res.status(400).json({
+                message:
+                    "Failed to notify, no start fight permissions will be given.",
+            });
+        }
 
-        const result = await dealDoneStartFight(
+        const result = await dealDoneHanldeStartFightPermissions(
             playerAddress,
             opponentAddress,
             nftId1,
@@ -142,7 +150,7 @@ exports.acceptSomeonesChallenge = async (req, res, next) => {
         if (!result) {
             return res.status(400).json({
                 goFight: false,
-                message: "Failed to accept the challenge.",
+                message: "Something failed whrn accepting the challenge.",
             });
         }
         res.status(200).json({

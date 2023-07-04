@@ -3,6 +3,10 @@ const {
     startFight,
 } = require("../blockchainScripts/fightManagerFuncs");
 
+const { getTokenUri } = require("../blockchainScripts/changeStats");
+const {
+    retrieveJsonFromIpfs,
+} = require("../utils/blockchainUtils/getIPFSData");
 const { generateFightId } = require("../utils/fightsFunctions");
 
 const Challenge = require("../database/models/matchmakingModel");
@@ -94,19 +98,77 @@ async function getAcceptedChallenges(playerAddress) {
     }
 }
 
-async function dealDoneStartFight(
+async function dealDoneHanldeStartFightPermissions(
     playerAddress,
     opponentAddress,
     nftId1,
-    p1bet
+    nftId2
 ) {
     try {
-        // Chekn in playerAddress Challenge object if opponent exists in accepted challengues array.
         // Save in DB corresponding Fight object
-        // Program agenda job to call start fight in smart contract in 2.5min. If not all players ready
-        // agenda job also deletes Fight object from datbase and resets fight in blockchain.
-        // If both players get ready another agenda job will be called and this one canceled, but this
-        // is not anymore in this funciton
+        const challenge = await Challenge.findOne({
+            playerAddress: playerAddress,
+        });
+        if (!challenge) return false;
+        const acceptances = challenge.accepted;
+        const bet1 = acceptances.betAmount;
+        const { offeredBetAmount: bet2 } = await acceptances.find(
+            (obj) =>
+                obj.opponentAddress === opponentAddress &&
+                obj.opponentNftId === nftId2
+        );
+
+        const fId = await generateFightId(
+            playerAddress,
+            opponentAddress,
+            nftId1,
+            nftId2
+        );
+
+        const nft1URI = await getTokenUri(nftId1);
+        const nft2URI = await getTokenUri(nftId2);
+        const token1_Hash = await nft1URI.replace("ipfs://", "");
+        const token2_Hash = await nft2URI.replace("ipfs://", "");
+        let { attributes: attr1 } = await retrieveJsonFromIpfs(token1_Hash);
+        let { attributes: attr2 } = await retrieveJsonFromIpfs(token2_Hash);
+
+        const newFight = new Fight({
+            fightId: fId,
+            player1: playerAddress,
+            player2: opponentAddress,
+            p1Life: attr1["HP"],
+            p2Life: attr2["HP"],
+            p1Ready: false,
+            p2Ready: false,
+            created_at: new Date(),
+        });
+        await newFight.save();
+
+        // Execute after 1 minute. Gives permissions to players but first lets them time to
+        //send the bets and get ready.
+        const waitTime = new Date();
+        await waitTime.setMinutes(waitTime.getMinutes() + 1);
+        await agenda.schedule(waitTime, "giveStartFightPermissions", {
+            playerAddress,
+            opponentAddress,
+            nftId1,
+            nftId2,
+            bet1,
+            bet2,
+        });
+
+        // 45 seconds later permissions check if they started the fight,
+        // if didnt, delete permissions and delete fight from database
+        const waitTime2 = new Date();
+        await waitTime2.setMinutes(waitTime.getSeconds() + 45);
+        await agenda.schedule(waitTime2, "deleteIfFightNotStarted", {
+            playerAddress,
+            opponentAddress,
+            fId,
+        });
+
+        // Everything was set correctly
+        return true;
     } catch (err) {
         throw err;
     }
@@ -118,5 +180,5 @@ module.exports = {
     getRandomChallenges,
     acceptChallenge,
     getAcceptedChallenges,
-    dealDoneStartFight,
+    dealDoneHanldeStartFightPermissions,
 };

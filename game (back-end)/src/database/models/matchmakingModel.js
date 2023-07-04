@@ -1,32 +1,32 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const challengeSchema = new mongoose.Schema({
     playerAddress: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
     },
     nftId: {
         type: Number,
-        required: true
+        required: true,
     },
-    bidAmount: {
+    betAmount: {
         type: Number,
-        required: true
+        required: true,
     },
     created_at: {
         type: Date,
-        default: Date.now
+        default: Date.now,
     },
     accepted: [
         {
             opponentAddress: String,
-            offeredBidAmount: Number,
-            opponentNftId: Number
-        }
-    ]
+            offeredBetAmount: Number,
+            opponentNftId: Number,
+        },
+    ],
 });
 
-const Challenge = mongoose.model('Challenge', challengeSchema);
+const Challenge = mongoose.model("Challenge", challengeSchema);
 
 module.exports = Challenge;
