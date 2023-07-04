@@ -2,108 +2,123 @@
   <br>
   <a><img src="https://image.shutterstock.com/image-photo/pattaya-thailand-2-sep-2016-600w-477402835.jpg" width="200"></a>
   <br>
-  BuddyFighters (IN DEVELOPMENT)
+  <strong>BuddyFighters (IN DEVELOPMENT)</strong>
   <br>
 </h1>
-  <a src="https://github.com/CarlosAlegreUr/BuddyFighters-FullstackWeb3NFTGame/tree/main "> <h3 align="center"> PLAY IN WEB! (not deployed yet) <H3> </a>
+  <a src="https://github.com/CarlosAlegreUr/BuddyFighters-FullstackWeb3NFTGame/tree/main "> <h3 align="center"><strong> PLAY IN WEB! (not deployed yet) </strong><H3> </a>
 <hr>
 
-<h4 align="center">A fighting game on the browser using NFT techonlogy that can be played in EVM compatible blockchains.</h4>
+<h4 align="center"><strong>A fighting game on the browser using NFT technology that can be played in EVM compatible blockchains.
+
+(completely decentralized version incoming...)</strong></h4>
 
 <hr/>
 
 # Index
 
-- Purpose of this Repository
-- About the App
-  - Potential Misuse of Power
-  - Solution for a Trustless Scenario
-  - Decentralized Matchmaking
-- App Demonstration Video
-- Packages and Technologies Utilized
-- How the System Functions
-- Project Structure
-- Capabilities Of Deployed App
-- Instructions for Local Usage
-- Special Thanks
-- TODO
-- License
+- **Purpose of this Repository 🤔**
+
+- **About the App ℹ️**
+  - Potential Misuse of Power 💢
+  - **A Trustless Fully Decentralized Scenario 👼**
+- **App Demonstration Video: 📹** (TODO)
+- **Packages & Technologies Utilized 🧰**
+- **How the System Functions ⚙️**
+- **Project Structure 📁**
+- **Capabilities Of Deployed App 🏃**
+- **Instructions for Local Usage ℹ️🏠**
+- **Special Thanks 😄**
+- **TODO 🚧**
+- **License 📎**
 
 <hr/>
 
-# Purpose of this Repository
+# **Purpose of this Repository 🤔**
 
 This repository hosts the code required to run a robust full-stack web application. Besides interacting with traditional full-stack web systems, it also interfaces with EVM-compatible blockchains and decentralized networks like IPFS for certain services.
 
 <hr/>
 
-# About the App
+# **About the App ℹ️**
 
 Essentially, this application is a fighting game where players can battle against each other using NFTs and wager their cryptocurrencies on these fights. It includes a "change stats" feature, allowing you to adjust your NFT's stats in a fully trustless, decentralized manner.
 
 The fighting and betting system isn't completely trustless as it requires a trusted backend to execute off-chain computations when battles occur. However, it's designed in a way that makes any backend misbehavior easy to detect, enhancing the overall trustworthiness of the app's betting system.
 
-## Potential Misuses of Power
+## **Potential Misuse of Power 💢**
 
-One point of concern is the declaration of the winner. The backend could potentially declare any winner it prefers, regardless of the actual battle outcome. As the system stands, it's impossible to fully verify veia computations alone if the backend is being dishonest. A more resource-intensive system that resolves this issue could be implemented, as explained below.
+One point of concern is the declaration of the winner. The backend could potentially declare any winner it prefers, regardless of the actual battle outcome. As the system stands, it's impossible to fully verify via computations alone if the backend is being dishonest. A more resource-intensive system on-chain that resolves this issue could be implemented, as explained below.
 
-# TODO:
+So backend can potentially steal your current bet in an active fight if desired.
 
-(fake calculations durint turns explain) (give someone permission to start fight with you
-without telling you => abuse of tickets)
+The second point of concern is in `startFight()` function, specifically in the `_bets` variable. You have to trust
+the backend will give input permissions with the correct bets and not with higher ones. Backend can potentially
+cooperate with a party player to give permissions saying your bet was higher than the one you deposited which will
+result in you losing your tickets.
 
-## Analysis of Trustless Scenarios
+## **A Trustless Fully Decentralized Scenario 👼**
 
-To facilitate trustless fights, we'd need to introduce additional variables and functions to the FightsManager.sol contract. These would include:
+Basically the decentralized scenario consists of contracts that implement:
 
-A mapping of the player's address to the last move executed. This variable should only be alterable by the same player, with moves potentially represented by integers.
+- **Decentralized matchmaking**.
+- **Decentralized activation of events on blockchain**.
+- **Decentralized fight state management**.
 
-A mapping of the fightId to the last fight state. This would be a unique hashed representation of the fight state after each turn. This state should only be updated by the backend to prevent any party with a monetary interest from manipulating it to their advantage. Ideally, the client-selected moves should be sufficient to verify that applying the open-source game logic to a given fight state would unequivocally lead to a subsequent fight state. Note: For game mechanics with moves that have a certain chance to trigger a special effect, the backend should employ VRF Chainlink contracts to determine that chance. Any user wishing to validate that the fight state is updated correctly should use the VRF-generated value to compute the next state.
+All this is already possible, I've just haven't programmed it yet.
+Disadvantage is it results in a more expensive game to play due to the need for more transactions and on-chain
+computations. The following solution just focuses on making
+it truly decentralized and as cheap as possible, but prioritizing always fair play and trustless decentralized gameplay.
 
-Obviously, this would necessitate a transaction from both clients for every turn in the game, plus one or more additional transactions for the backend to generate random numbers, potentially increasing the cost of play. This cost could be mitigated by deploying the game on cheaper EVM-compatible blockchains, such as POLYGON.
+This is how it would be done though:
 
-To calculate the costs you should take into account updating a fight state mapping value costs X gas, and updating an integer mapping value costs Y gas. With a current gas price of approximately Z GWei and the native POLYGON coin priced at $W, the minimum business cost for each round, excluding any random number generation mechanics, would be: X * Z*0.000000001 \* W
-
-The corresponding cost for the client would be: Y * Z*0.000000001 \* W
-
-Notice first time the map is asigned a value transaction will be more expensive due to new storage usage in the contract, but in all the other cases vlaues are aproxaimately calculated like this. Obviously using gas simulations before taking a decision must be done.
-
-## Decentralized Matchmaking (TO FINISH WRITING CLEARLY)
+### **Decentralized Matchmaking**
 
 You could even decentralize this app more without even requiring a backend to execute
-the matchmaking doing the following:
+the matchmaking by doing the following:
 
-Using input control allow addresses to allow other player's addresses to call
-the startFight() function with a specific input.
+Using `InputControl` contract you can allow player to give each other permissions to call
+`startFight()` with a previously agreed value so now no bets would be faked.
 
-But in order for other player to give permission to another to start a fight with him
-you have to add an extra variable:
-First addres => Player giving permision
-Second address => Player that will recieve permission
-Bool => Has permission or not?
-mapping(address => mapping(address => bool)) s_playerToHasPermission
+If you mix this with the fight's states management on-chain described above there would
+not even be a need for a trusted backend or a backend at all.
 
-So one player would grant permission, only the first address can modify
-the values that mapping map from it's address.
+### **Decentralized Activation of Events on Blockchain**
 
-So then in InputControl before calling allowInputsFor() there would be a filter
-on one of the addresses inputs must be equal to the caller address...
+This feature would be needed in order for fights, turns, or matchmaking not to potentially last forever.
 
-### IF BOTH MECHANICS IMPLEMENTED THEN IT WOULD BECOME A REAL FULLY DECENTRALIZED TRUSTLESS BETTING ON POKEMON STYLE BATTLES APP
+This feature idea has already been explored and implemented by Chainlink team with
+their [Time Based Automation](https://docs.chain.link/chainlink-automation/job-scheduler).
+
+### **Decentralized Fight State Management**
+
+To facilitate trustless fights, we'd need to introduce additional variables and functions to the `FightsManager` contract.
+
+These would include:
+
+- Mapping of the player's address to the last move executed. This variable should only be alterable by the same player, with moves potentially represented by integers.
+- Mapping of the `fightId` to the last fight state. This would be a unique hashed representation of the fight state after each turn.
+
+Once the next move is updated, the next fight's state should be predictable by both clients. For the clients to agree on the next state, the game logic must be open-source.
+
+There must also be a function that validates next fight states, if different fight states are calculated by clients this function could be called to figure out the right one and punish just the players who actually didn't behave correctly.
+
+> **Note**: For game mechanics with **luck based moves**, **VRF Chainlink** contracts should be used to determine the **random luck based result**. So users can validate the next fight state, even if the
+> process is deterministic, now they can **use a verified
+> random value for the deterministically computed next state.**
 
 <hr/>
 
-# App Demonstration Video (TODO)
+# **App Demonstration Video: 📹*** (TODO)
 
 <hr/>
 
-# Packages and Technologies Utilized
+# **Packages & Technologies Utilized 🧰**
 
 The application uses a range of packages to create a robust and efficient system. The front-end and back-end services rely on different sets of packages, tailored to suit their specific needs.
 
-For the complete list of dependencies, please check the package.json file in the respective front-end and back-end directories.
+For the complete list of dependencies, please check the `package.json` file in the respective front-end and back-end directories.
 
-Back-end dependencies include:
+**Back-end dependencies** include:
 
 - ethers: Ethereum blockchain and smart contracts JavaScript API.
 - @chainlink/contracts: VRF (Verifiable Random Function) Chainlink.
@@ -115,9 +130,9 @@ Back-end dependencies include:
 - express-sse: Server-side events management in express framework.
 - cors: For enabling CORS in Express.
 - dotenv: Management of environment variables.
-- express-winston: Server side logging.
+- express-winston: Server-side logging.
 
-Front-end dependencies include:
+**Front-end dependencies** include:
 
 - @web3uikit/core: UI components for DApps.
 - ethers: Ethereum blockchain and smart contracts JavaScript API.
@@ -126,23 +141,21 @@ Front-end dependencies include:
 
 <hr/>
 
-# How the System Functions
+# **How the System Functions ⚙️**
 
-The front end handles API calls to the backend and also contains blockchain interaction code executed through a MetaMask provider.
+The **front end** handles API calls to the **backend** and also contains blockchain interaction code executed through a **MetaMask** provider.
 
-The backend comprises all the services, controllers, and route structures necessary for the traditional HTTP request-response cycle. Additionally, it uses Server-Side Events (SSE) to manage matchmaking and fight mechanics services. Moreover, it interacts with the blockchain via Alchemy as a provider.
+The **backend** comprises all the services, controllers, and route structures necessary for the **request-response communication** cycle. Additionally, it uses **Server-Side Events (SSE)** to manage matchmaking and fight mechanics services. Moreover, it interacts with the blockchain via **Alchemy** as a provider.
 
-And don't forget to mention front end and backend are designed to be hosted in different servers therefore using CORS.
+And don't forget to mention the front end and backend are designed to be hosted on different servers, therefore utilizing **CORS**.
 
-<hr/>
+# **Project Structure 📁**
 
-# Project Structure
+Here is the **overall structure** of the project. It's divided into **two main parts**: `game` (back-end) and `website-game` (front-end).
 
-Here is the overall structure of the project, it's divided into two main parts: game (back-end) and website-game (front-end).
+Each directory is **further structured** to organize files based on their functionality. Not all files are listed here, only the **most relevant ones** for a high-level overview. For more detailed information, please navigate to the respective directories.
 
-Each directory is further structured to organize files based on their functionality. Not all files are listed here, only the most relevant ones for a high-level overview. For more detailed information, please navigate to the respective directories.
-
-This structure allows for modular development, easy maintainability, and scalability of the project.
+This structure allows for **modular development**, **easy maintainability**, and **scalability** of the project.
 
 ```
 .
@@ -188,42 +201,34 @@ This structure allows for modular development, easy maintainability, and scalabi
 
 <hr/>
 
-# Capabilities of the Deployed App
+# **Capabilities of the Deployed App 🏃**
 
-As a personal portfolio project, the public website and backend are limited to supporting only 4 authenticated users playing or using backend services simultaneously. This restriction allows me to host the project for free. (:D)
+As a personal portfolio project, the public website and backend are limited to supporting only **4 authenticated users** playing or using backend services simultaneously. This restriction allows me to host the project for free. (:D)
 
-<hr/>
+---
 
-# Instructions for Local Usage
+# **Instructions for Local Usage ℹ️🏠**
 
 To run the application locally, follow these steps:
 
-1.Download the code.
+1. Download the code.
+2. Start a Hardhat node.
+3. Mint some NFTs using the provided minting script.
+4. Launch the website on two different browsers or in sessions that don't share cookies.
+5. Connect MetaMask to the local Hardhat network using the first two default addresses, one for each browser.
+6. Run the server file.
+7. Start the MongoDB database.
+8. Make sure you have all the `.env` API keys for the services used by the app.
 
-2.Start a Hardhat node.
+---
 
-3.Mint some NFTs using the provided minting script.
+## **Special thanks 😄**
 
-4.Launch the website on two different browsers or in sessions that don't share cookies.
-
-5.Connect MetaMask to the local Hardhat network using the first two default addresses, one for each browser.
-
-6.Run the server file.
-
-7.Start the MongoDB database.
-
-8.Make sure you have all the .env API keys for the services used by the app.
-
-<hr/>
-
-## Special thanks
-
-Thanks <a href="https://twitter.com/aonsager" target="_blank"> @aonsager </a> for <a href="https://twitter.com/charlescheerfu1/status/1546925876494929927" target="_blank"> allowing </a> me to use his images as long as I don't create a commercial product out of them.
+Thanks to <a href="https://twitter.com/aonsager" target="_blank"> @aonsager </a> for <a href="https://twitter.com/charlescheerfu1/status/1546925876494929927" target="_blank"> allowing </a> me to use his images as long as I don't create a commercial product out of them.
 
 Creator of => <a href="https://pokemon.alexonsager.net/" target="_blank"> https://pokemon.alexonsager.net/ </a>
 
-Source of the pokemon fusions images used in this project.
-<br>
+Source of the pokemon fusions images used in this project. <br>
 <img src="./readme-images/p0.png" width="75">
 <img src="./readme-images/p1.png" width="75">
 <img src="./readme-images/p2.png" width="75">
@@ -231,23 +236,20 @@ Source of the pokemon fusions images used in this project.
 <img src="./readme-images/p4.png" width="75">
 <img src="./readme-images/p5.png" width="75">
 
-<hr/>
+---
 
-# TODO:
+# **TODO 🚧**
 
 1. Apply static analysis, fuzz testing and symbolic analysis in smart contracts.
-
 2. Try to improve smart contract tests.
-
 3. Finish and test frontend, API and backend services.
+4. Improve READMEs: intructions for local usage.
+5. Try to improve tests' readability.
+6. Create the completely decentralized trustless version of BuddyFighters!
 
-4. Try to improve tests' readability.
+---
 
-5. Create the completely decentralized trustless version of BuddyFighters!
-
-<hr/>
-
-## License
+## **License 📎**
 
 MIT
 
