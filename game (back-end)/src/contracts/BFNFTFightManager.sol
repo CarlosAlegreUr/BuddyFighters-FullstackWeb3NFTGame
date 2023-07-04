@@ -206,8 +206,6 @@ contract BFNFTFightsManager is Ownable {
                 if (s_playerToTickects[_players[1]] >= 1) {
                     s_playerToTickects[_players[1]] -= 1;
                 }
-                CURRENT_BETS_VALUE += s_playerToLastBet[_players[0]];
-                CURRENT_BETS_VALUE += s_playerToLastBet[_players[1]];
                 s_playerToOnGoingFight[_players[0]] = fightId;
                 s_playerToOnGoingFight[_players[1]] = fightId;
                 emit BFNFT__FManager__FightStarted(fightId);
@@ -317,6 +315,7 @@ contract BFNFTFightsManager is Ownable {
             0x0000000000000000000000000000000000000000000000000000000000000000
         ) {
             s_playerToLastBet[msg.sender] = msg.value;
+            CURRENT_BETS_VALUE += msg.value;
         } else {
             revert BFNFT__FManager__CantBetDuringFight();
         }
@@ -377,6 +376,8 @@ contract BFNFTFightsManager is Ownable {
             revert BFNFT__FManager__FailedToSendFunds();
         }
 
+        CURRENT_BETS_VALUE -= s_playerToLastBet[_players[0]];
+        CURRENT_BETS_VALUE -= s_playerToLastBet[_players[1]];
         delete s_playerToLastBet[_players[0]];
         delete s_playerToLastBet[_players[1]];
     }

@@ -390,20 +390,23 @@ describe("BFNFTFightsManager.sol tests", function () {
     it("withdrawAllowedFunds(): Only owner withdraws and only withdraws funds from ticket income.", async () => {
         const provider = new ethers.JsonRpcProvider("http://localhost:8545");
         let prevBalance = await provider.getBalance(deployer);
+        // Clients can't call withdraw
         await expect(BFNFTFightsManagerClient1.withdrawAllowedFunds(client1)).to
             .be.reverted;
+
+        // Checking if money arrives to address.
         await BFNFTFightsManagerClient1.buyTicket({
             value: priceForFightTicket,
         });
         await BFNFTFightsManagerClient2.buyTicket({
             value: priceForFightTicket,
         });
-        // Checking if money arrives to address.
         await BFNFTFightsManagerContract.withdrawAllowedFunds(deployer);
         await delay(1000);
         let newBalance = await provider.getBalance(deployer);
         assert.isAbove(newBalance, prevBalance);
 
+        // Withdrawal before fight, only withdraws ticket amounts.
         prevBalance = newBalance;
         await BFNFTFightsManagerClient1.buyTicket({
             value: priceForFightTicket,
@@ -411,25 +414,37 @@ describe("BFNFTFightsManager.sol tests", function () {
         await BFNFTFightsManagerClient2.buyTicket({
             value: priceForFightTicket,
         });
-
-        await allowStartFight(client1, startFightValues);
-        await allowStartFight(client2, startFightValues);
         await BFNFTFightsManagerClient1.setBet({ value: betInEthers });
         await BFNFTFightsManagerClient2.setBet({ value: betInEthers });
+        await BFNFTFightsManagerContract.withdrawAllowedFunds(deployer);
+        await delay(1000);
+        newBalance = await provider.getBalance(deployer);
+        let retired = newBalance - prevBalance;
+        assert.isAtMost(retired, await ethers.parseEther("0.2"));
+
+        // Withdrawal during fight, only withdraws ticket amounts.
+        prevBalance = newBalance;
+        await BFNFTFightsManagerClient1.buyTicket({
+            value: priceForFightTicket,
+        });
+        await BFNFTFightsManagerClient2.buyTicket({
+            value: priceForFightTicket,
+        });
+        await allowStartFight(client1, startFightValues);
+        await allowStartFight(client2, startFightValues);
         await BFNFTFightsManagerClient1.startFight(
             [client1, client2],
             [1, 0],
             [betInEthers, betInEthers]
         );
-        // Withdrawal during fight, only withdraws ticket amounts.
         await BFNFTFightsManagerContract.withdrawAllowedFunds(deployer);
-
         await delay(1000);
         newBalance = await provider.getBalance(deployer);
         assert.isAbove(newBalance, prevBalance);
-        let retired = newBalance - prevBalance;
+        retired = newBalance - prevBalance;
         assert.isAtMost(retired, await ethers.parseEther("0.2"));
 
+        // Withdrawal after fight, only withdraws ticket amounts.
         prevBalance = newBalance;
         await BFNFTFightsManagerClient1.buyTicket({
             value: priceForFightTicket,
@@ -437,14 +452,72 @@ describe("BFNFTFightsManager.sol tests", function () {
         await BFNFTFightsManagerClient2.buyTicket({
             value: priceForFightTicket,
         });
-
         await BFNFTFightsManagerContract.declareWinner(fightId, client1, [
             client1,
             client2,
         ]);
-        // Withdrawal after fight, only withdraws ticket amounts.
         await BFNFTFightsManagerContract.withdrawAllowedFunds(deployer);
+        await delay(1000);
+        newBalance = await provider.getBalance(deployer);
+        assert.isAbove(newBalance, prevBalance);
+        retired = newBalance - prevBalance;
+        assert.isAtMost(retired, await ethers.parseEther("0.2"));
 
+        // Withdrawal before fight with invalid bets, only withdraws ticket amounts.
+        prevBalance = newBalance;
+        await delay(1500);
+        await BFNFTFightsManagerClient1.buyTicket({
+            value: priceForFightTicket,
+        });
+        await BFNFTFightsManagerClient2.buyTicket({
+            value: priceForFightTicket,
+        });
+        await BFNFTFightsManagerClient1.setBet({ value: betInEthers });
+        await allowStartFight(client1, startFightValues);
+        await allowStartFight(client2, startFightValues);
+        await BFNFTFightsManagerContract.withdrawAllowedFunds(deployer);
+        await BFNFTFightsManagerClient2.startFight(
+            [client1, client2],
+            [1, 0],
+            [betInEthers, betInEthers]
+        );
+        await expect(
+            BFNFTFightsManagerClient1.startFight(
+                [client1, client2],
+                [1, 0],
+                [betInEthers, betInEthers]
+            )
+        ).to.be.reverted;
+        await delay(1000);
+        newBalance = await provider.getBalance(deployer);
+        assert.isAbove(newBalance, prevBalance);
+        retired = newBalance - prevBalance;
+        assert.isAtMost(retired, await ethers.parseEther("0.2"));
+
+        // Withdrawal after fight with invalid bets, only withdraws ticket amounts.
+        prevBalance = newBalance;
+        await BFNFTFightsManagerClient1.buyTicket({
+            value: priceForFightTicket,
+        });
+        await BFNFTFightsManagerClient2.buyTicket({
+            value: priceForFightTicket,
+        });
+        await BFNFTFightsManagerClient1.setBet({ value: betInEthers });
+        await allowStartFight(client1, startFightValues);
+        await allowStartFight(client2, startFightValues);
+        await BFNFTFightsManagerClient2.startFight(
+            [client1, client2],
+            [1, 0],
+            [betInEthers, betInEthers]
+        );
+        await expect(
+            BFNFTFightsManagerClient1.startFight(
+                [client1, client2],
+                [1, 0],
+                [betInEthers, betInEthers]
+            )
+        ).to.be.reverted;
+        await BFNFTFightsManagerContract.withdrawAllowedFunds(deployer);
         await delay(1000);
         newBalance = await provider.getBalance(deployer);
         assert.isAbove(newBalance, prevBalance);
