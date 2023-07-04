@@ -1,8 +1,9 @@
 const mintNFT = require("./mint");
-const changeStats = require("./changeStats");
 const { ethers, getNamedAccounts, network } = require("hardhat");
 
-const { getRandomStatsGenerated } = require("../blockchainScripts/changeStats");
+const {
+    requAndGenRandomTesting,
+} = require("../blockchainScripts/getRandomNums");
 
 // Delay function.
 function delay(t) {
@@ -29,7 +30,15 @@ async function callMinting() {
     txReceipt = await txResponse.wait(1);
 
     // Now we can specify how many NFTs we want to mint.
-    callMint(false, numToMint);
+    await callMint(false, numToMint);
+
+    txResponse = await buddyFightersContract.transferFrom(
+        deployer,
+        "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        1
+    );
+    txReceipt = await txResponse.wait();
+    console.log("Ownership transfered.");
 }
 
 callMinting();

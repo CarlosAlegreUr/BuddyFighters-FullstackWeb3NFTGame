@@ -7,7 +7,7 @@ const { verify } = require("../utils/blockchainUtils/etherscanVerifyContract");
 const {
     updateFrontEndData,
     FRONT_END_CONTRACTS_TESTING_FILE,
-} = require("../blockchainScripts/updateFrontEnd");
+} = require("../blockchainScripts/updateFrontEndLocal");
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deploy } = deployments;
@@ -26,17 +26,21 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
             "VRFCoordinatorV2Mock",
             deployer
         );
-        coordinatorAddress = VRFCoordinatorV2MockContract.address;
+        coordinatorAddress = await VRFCoordinatorV2MockContract.getAddress();
         const transactionResponse =
             await VRFCoordinatorV2MockContract.createSubscription();
-        const transactionReceipt = await transactionResponse.wait(1);
-        vrfSubsId = await transactionReceipt.events[0].args.subId;
+        const txReceipt = await transactionResponse.wait(1);
+        // vrfSubsId = await txReceipt.events[0].args.subId;
+        const reqIdHexValue = txReceipt.logs[0].args[0];
+        const bigIntValue = await BigInt(reqIdHexValue);
+        vrfSubsId = await Number(bigIntValue);
         await VRFCoordinatorV2MockContract.fundSubscription(
             vrfSubsId,
-            ethers.utils.parseEther("40")
+            ethers.parseEther("40")
         );
     } else {
-        // Testnet
+        // TODO:
+        // Testnet (ADAPT TO ETHERS 6.6!!!!!)
         console.log("Deployer account ---> ", `${deployer}`);
         // Goerli => Get coordinator and subscription ID
         if (network.config.chainId == networks.goerli.chainId) {
@@ -82,18 +86,19 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     await updateFrontEndData(BFNFTRndmWordsContract, "BFNFTRndmWords");
 
     if (inDevNet) {
-        // Once IndependentFundsManager contract is created, add it as a consumer of the
+        // Add contract as a consumer of the
         // subscibtion to the mocks.
         response = await VRFCoordinatorV2MockContract.addConsumer(
-            ethers.utils.formatUnits(vrfSubsId, 0),
+            ethers.formatUnits(vrfSubsId, 0),
             BFNFTRndmWordsContract.address
         );
         // console.log("Consumer added.")
     } else {
-        // TODO: Add independentFundsManager as a consumer to VRFCoordinator in testnet.
+        // TODO:
+        // ADAPT TO ETHERS 6.6!!!!!!!!!!!
         await VRFCoordinatorV2Contract.addConsumer(
             process.env.GOERLI_CHAINLINK_SUBS_ID,
-            BFNFTRndmWordsContract.address
+            await BFNFTRndmWordsContract.getAddress()
         );
         console.log("BFNFTRndmWordsContract added as consumer!");
 

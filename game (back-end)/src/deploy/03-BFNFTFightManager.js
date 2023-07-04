@@ -7,7 +7,7 @@ const { verify } = require("../utils/blockchainUtils/etherscanVerifyContract");
 const {
     updateFrontEndData,
     FRONT_END_CONTRACTS_TESTING_FILE,
-} = require("../blockchainScripts/updateFrontEnd");
+} = require("../blockchainScripts/updateFrontEndLocal");
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deploy } = deployments;
@@ -15,47 +15,52 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     let inDevNet = developmentNets.includes(network.name);
     const nOfConfitmations = inDevNet ? 1 : 6;
 
-    // console.log("Deploying InputControlModular...")
+    // console.log("Deploying BFNFT...")
+    const inputControlModularContract = await ethers.getContract(
+        "InputControlModularFight",
+        deployer
+    );
 
-    const args = [];
+    const args = [await inputControlModularContract.getAddress()];
 
-    await deploy("InputControlModular", {
+    await deploy("BFNFTFightsManager", {
         from: deployer,
         args: args,
         log: true,
         waitConfirmations: nOfConfitmations,
     });
 
-    const InputControlModularContract = await deployments.get(
-        "InputControlModular"
+    const BFNFTFightsManagerContract = await deployments.get(
+        "BFNFTFightsManager"
     );
     console.log(
-        "InputControlModularContract deployed at ",
-        `${InputControlModularContract.address}`
+        "BFNFTFightsManagerContract deployed at ",
+        `${BFNFTFightsManagerContract.address}`
     );
-    await updateFrontEndData(
-        InputControlModularContract,
-        "InputControlModular"
+    await inputControlModularContract.setAdmin(
+        BFNFTFightsManagerContract.address
     );
+
+    await updateFrontEndData(BFNFTFightsManagerContract, "BFNFTFightsManager");
 
     // Verifies on Etherscan if deployed on Goerli.
     if (
         process.env.ETHERSCAN_API_KEY &&
         network.config.chainId == networks.goerli.chainId
     ) {
-        await verify(InputControlModularContract.address, args);
+        await verify(BFNFTFightsManagerContract.address, args);
         console.log("Verified on Etherscan!");
     }
 
     // Only run when testing in local network
     if (process.env.TESTING_ON_LOCAL === "true") {
         await updateFrontEndData(
-            InputControlModularContract,
-            "InputControlModular",
+            BFNFTFightsManagerContract,
+            "BFNFTFightsManager",
             FRONT_END_CONTRACTS_TESTING_FILE
         );
     }
     console.log("-----------------------------------");
 };
 
-module.exports.tags = ["all", "inputcontrolmodular"];
+module.exports.tags = ["all", "BFNFTFightsManager"];

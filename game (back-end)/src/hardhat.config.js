@@ -1,19 +1,24 @@
-require("dotenv").config()
-require("@nomicfoundation/hardhat-toolbox")
-require("@nomiclabs/hardhat-etherscan")
-require("./tasks/tasks")
-require("hardhat-gas-reporter")
-require("solidity-coverage")
-require("hardhat-deploy")
+require("dotenv").config();
+require("@nomicfoundation/hardhat-toolbox");
+require("@nomiclabs/hardhat-etherscan");
+require("@nomicfoundation/hardhat-chai-matchers");
+require("./tasks/tasks");
+require("hardhat-gas-reporter");
+require("solidity-coverage");
+require("hardhat-deploy");
 
-const RINKEBY_RPC_URL = process.env.GOERLI_RPC_URL
-const RINKEBY_SK_01 = process.env.RINKEBY_SK_01
-const ETHSCAN_API_KEY = process.env.ETHERSCAN_API_KEY
+const RINKEBY_RPC_URL = process.env.GOERLI_RPC_URL;
+const RINKEBY_SK_01 = process.env.RINKEBY_SK_01;
+const ETHSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 
 module.exports = {
     solidity: "0.8.9",
 
     defaultNetwork: "hardhat",
+
+    paths: {
+        tests: "./tests/blockchainTests/unitTests/smartContractTests",
+    },
 
     networks: {
         hardhat: {},
@@ -68,4 +73,4 @@ module.exports = {
         // CHOSE COIN YOU WANNA SEE THE PRICE
         // token: "MATIC",
     },
-}
+};

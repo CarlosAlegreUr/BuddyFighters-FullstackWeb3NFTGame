@@ -4,6 +4,11 @@ This project demonstrates a basic Hardhat use case. It comes with a sample contr
 
 Try running some of the following tasks:
 
+# TODO: Write more tests
+
+1.- Like staging test for tesnets in blockchain test.
+2.- Unit tests for services tests.
+
 ```shell
 npx hardhat help
 npx hardhat test

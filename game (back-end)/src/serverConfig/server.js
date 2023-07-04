@@ -1,70 +1,52 @@
 // serverConfig/server.js
-const express = require("express");
-const connectDB = require("../database/connect");
-const cors = require("cors");
-const logger = require("../logs/logger");
-
-// const passport = require("passport");
-// const JwtStrategy = require("passport-jwt").Strategy;
-const dotenv = require("dotenv");
-
 // Initialize dotenv
+const dotenv = require("dotenv");
 dotenv.config();
 
 // Initialize express
+const express = require("express");
 const app = express();
 
 // Middleware
 
-// Express-Wiston Logger
+// Logger: Express-Wiston
+const logger = require("../logs/logger");
 app.use((req, res, next) => {
     logger.info(`HTTP ${req.method} ${req.url}`);
     next();
 });
 
 // CORS
-app.use(
-    cors({
-        origin: "http://localhost:3000", // only allow requests from this origin
-    })
-);
+const cors = require("cors");
+app.use(cors({ credentials: true, origin: process.env.CORS_ORIGIN }));
 
 // JSON converter
 app.use(express.json());
 
-// Passport.js
-// app.use(passport.initialize());
+// Auth: JWT verifycation. Check code in middleware.
 
-// Passport JWT strategy
-// let opts = {};
-// opts.jwtFromRequest = function (req) {
-//     // Provide the way to extract JWT from request
-//     let token = null;
-//     if (req && req.cookies) token = req.cookies["jwt"];
-//     return token;
-// };
-// opts.secretOrKey = process.env.JWT_SECRET; // Define your secret or key
+// Cookie parser, JWT are sent via cookies.
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
 
-// passport.use(
-//     new JwtStrategy(opts, function (jwt_payload, done) {
-//         // In this callback, you would verify if the JWT payload is valid
-//         // ...
-//     })
-// );
+// SSE seems to need this
+const compression = require("compression");
+app.use(compression());
 
 // Database
+const connectDB = require("../database/connect");
 connectDB();
 
 // Routes
-// const matchmakingRoutes = require("../routes/matchmakingRoutes");
-// const mintRoutes = require("../routes/mintRoutes");
+const authRoutes = require("../routes/authRoutes");
 const changeStatsRoutes = require("../routes/changeStatsRoutes");
+const matchmakingRoutes = require("../routes/matchmakingRoutes");
 // const fightManagementRoutes = require("../routes/fightManagementRoutes");
 
-// app.use("/api/matchmaking", matchmakingRoutes);
-// app.use("/api/mint", mintRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/changeStats", changeStatsRoutes);
-// app.use("/api/fightManagement", fightManagementRoutes);
+app.use("/api/matchmaking", matchmakingRoutes);
+// app.use("/api/fightManagement", verifyToken, fightManagementRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {
@@ -80,3 +62,5 @@ const port = process.env.PORT || 3005;
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
+
+module.exports = app;

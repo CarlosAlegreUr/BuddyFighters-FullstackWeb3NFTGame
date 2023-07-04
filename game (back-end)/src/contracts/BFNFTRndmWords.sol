@@ -6,10 +6,9 @@ import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "call-order-control-contract/CallOrderControl.sol";
 
+// import "hardhat/console.sol";
+
 /* Customed erros */
-error BFNFT__Rndm__MinimumPriceNotPayed();
-error BFNFT__Rndm__NotEnoughFunds();
-error BFNFT__Rndm__FailedToFundFight();
 error BFNFT__Rndm__RndomNumLengthNotValid();
 error BFNFT__Rndm__IsNotTokenOwner();
 error BFNFT__Rndm__IsNotContractOnwer();
@@ -25,10 +24,6 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
     /* State variables */
     uint8 private constant MAX_PKMN_NUM = 151;
     uint8 private constant MAX_STATS_VALUE = 255;
-    uint8 private constant STATS_NUM = 6;
-
-    // Call Control Locker
-    bool public s_allowCallsCheck;
 
     // Chainlink Random numbers generation
     uint8 private constant BLOCK_CONFIRMATION_FOR_RANDOMNESS = 3;
@@ -38,13 +33,14 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
     uint32 private immutable i_callBackGasLimit;
 
     /* Events */
+    event BFNFT__RndomWordsRequested(uint256 reqId);
     event BFNFT__RndomNumsGenerated(
         uint8[2] rndmNums,
         uint256 indexed requestId,
         address indexed callerAddress
     );
     event BFNFT__RndomStatsGenerated(
-        uint8[STATS_NUM] rndmNums,
+        uint8[6] rndmNums,
         uint256 indexed requestId,
         address indexed callerAddress
     );
@@ -52,19 +48,10 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
     /* Modifiers */
 
     modifier checkAllowedCall(bytes4 _funcSelec, address _callerAddress) {
-        if (!s_allowCallsCheck && modifierHelperOnlyOwner()) {
-            revert BFNFT__Rndm__IsNotContractOnwer();
-        }
-
-        if (s_allowCallsCheck) {
+        if (msg.sender != this.owner()) {
             modifierHelperCallOrder(_funcSelec, _callerAddress);
         }
         _;
-    }
-
-    // When inputControl deactivated onlyOwner can call those functions.
-    function modifierHelperOnlyOwner() private view onlyOwner returns (bool) {
-        return false;
     }
 
     function modifierHelperCallOrder(
@@ -72,11 +59,6 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
         address _callerAddress
     ) private isAllowedCall(_funcSelec, _callerAddress) returns (bool) {
         return false;
-    }
-
-    // Activates or deactivates input checkings.
-    function setCallsChekcer(bool _new) external onlyOwner {
-        s_allowCallsCheck = _new;
     }
 
     /* Functions */
@@ -116,20 +98,24 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
         uint32 _numOfWords
     )
         external
+        payable
         checkAllowedCall(
             bytes4(keccak256(bytes("requestRandomNumbers(uint32)"))),
             msg.sender
         )
-        returns (uint256)
     {
-        uint256 requestId = i_vrfCoordinator.requestRandomWords(
-            i_keyHashGasLimit,
-            i_vrfSubsId,
-            BLOCK_CONFIRMATION_FOR_RANDOMNESS,
-            i_callBackGasLimit,
-            _numOfWords
-        );
-        return requestId;
+        if (_numOfWords == 2 || _numOfWords == 6) {
+            uint256 requestId = i_vrfCoordinator.requestRandomWords(
+                i_keyHashGasLimit,
+                i_vrfSubsId,
+                BLOCK_CONFIRMATION_FOR_RANDOMNESS,
+                i_callBackGasLimit,
+                _numOfWords
+            );
+            emit BFNFT__RndomWordsRequested(requestId);
+        } else {
+            revert BFNFT__Rndm__RndomNumLengthNotValid();
+        }
     }
 
     /* Public functions */
@@ -165,8 +151,6 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
                 stats[4] = uint8((randomWords[4] % (MAX_STATS_VALUE)) + 1);
                 stats[5] = uint8((randomWords[5] % (MAX_STATS_VALUE)) + 1);
                 emit BFNFT__RndomStatsGenerated(stats, requestId, msg.sender);
-            } else {
-                revert BFNFT__Rndm__RndomNumLengthNotValid();
             }
         }
     }

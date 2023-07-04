@@ -1,7 +1,5 @@
-const pinataSDK = require("@pinata/sdk");
-
 const { ethers, getNamedAccounts, network } = require("hardhat");
-const generateRandomNums = require("./generateRandomNums");
+const { requAndGenRandomTesting } = require("./getRandomNums");
 const generateImage = require("../utils/generateNFTImage");
 const {
     uploadNFTImagePinata,
@@ -30,7 +28,7 @@ module.exports = async function (saveOnBlockchain) {
     }
 
     // Generating random numbers and stats.
-    const { num1, num2, stats } = await generateRandomNums(true, true);
+    const { num1, num2, stats } = await requAndGenRandomTesting(true, true);
 
     // Assigning more traits from random values generated
     const nftName = await mixNames(num1, num2);

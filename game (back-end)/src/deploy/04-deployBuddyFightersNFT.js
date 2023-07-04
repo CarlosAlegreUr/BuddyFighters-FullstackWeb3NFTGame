@@ -8,7 +8,7 @@ const { verify } = require("../utils/blockchainUtils/etherscanVerifyContract");
 const {
     updateFrontEndData,
     FRONT_END_CONTRACTS_TESTING_FILE,
-} = require("../blockchainScripts/updateFrontEnd");
+} = require("../blockchainScripts/updateFrontEndLocal");
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deploy } = deployments;
@@ -18,7 +18,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
     // console.log("Deploying BFNFT...")
 
-    inputControlModularContract = await ethers.getContract(
+    const inputControlModularContract = await ethers.getContract(
         "InputControlModular",
         deployer
     );
@@ -26,7 +26,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const args = [
         collectionName,
         collecitonSymbol,
-        inputControlModularContract.address,
+        await inputControlModularContract.getAddress(),
     ];
 
     await deploy("BuddyFightersNFT", {
