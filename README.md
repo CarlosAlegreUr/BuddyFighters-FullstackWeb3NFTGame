@@ -18,6 +18,7 @@
 - About the App
   - Potential Misuse of Power
   - Solution for a Trustless Scenario
+  - Decentralized Matchmaking
 - App Demonstration Video
 - Packages and Technologies Utilized
 - How the System Functions
@@ -25,6 +26,7 @@
 - Capabilities Of Deployed App
 - Instructions for Local Usage
 - Special Thanks
+- TODO
 - License
 
 <hr/>
@@ -43,7 +45,12 @@ The fighting and betting system isn't completely trustless as it requires a trus
 
 ## Potential Misuses of Power
 
-One point of concern is the declaration of the winner. The backend could potentially declare any winner it prefers, regardless of the actual battle outcome. As the system stands, it's impossible to fully verify via computations alone if the backend is being dishonest. A more resource-intensive system that resolves this issue could be implemented, as explained below.
+One point of concern is the declaration of the winner. The backend could potentially declare any winner it prefers, regardless of the actual battle outcome. As the system stands, it's impossible to fully verify veia computations alone if the backend is being dishonest. A more resource-intensive system that resolves this issue could be implemented, as explained below.
+
+# TODO:
+
+(fake calculations durint turns explain) (give someone permission to start fight with you
+without telling you => abuse of tickets)
 
 ## Analysis of Trustless Scenarios
 
@@ -60,6 +67,29 @@ To calculate the costs you should take into account updating a fight state mappi
 The corresponding cost for the client would be: Y * Z*0.000000001 \* W
 
 Notice first time the map is asigned a value transaction will be more expensive due to new storage usage in the contract, but in all the other cases vlaues are aproxaimately calculated like this. Obviously using gas simulations before taking a decision must be done.
+
+## Decentralized Matchmaking (TO FINISH WRITING CLEARLY)
+
+You could even decentralize this app more without even requiring a backend to execute
+the matchmaking doing the following:
+
+Using input control allow addresses to allow other player's addresses to call
+the startFight() function with a specific input.
+
+But in order for other player to give permission to another to start a fight with him
+you have to add an extra variable:
+First addres => Player giving permision
+Second address => Player that will recieve permission
+Bool => Has permission or not?
+mapping(address => mapping(address => bool)) s_playerToHasPermission
+
+So one player would grant permission, only the first address can modify
+the values that mapping map from it's address.
+
+So then in InputControl before calling allowInputsFor() there would be a filter
+on one of the addresses inputs must be equal to the caller address...
+
+### IF BOTH MECHANICS IMPLEMENTED THEN IT WOULD BECOME A REAL FULLY DECENTRALIZED TRUSTLESS BETTING ON POKEMON STYLE BATTLES APP
 
 <hr/>
 
@@ -200,6 +230,20 @@ Source of the pokemon fusions images used in this project.
 <img src="./readme-images/p3.png" width="75">
 <img src="./readme-images/p4.png" width="75">
 <img src="./readme-images/p5.png" width="75">
+
+<hr/>
+
+# TODO:
+
+1. Apply static analysis, fuzz testing and symbolic analysis in smart contracts.
+
+2. Try to improve smart contract tests.
+
+3. Finish and test frontend, API and backend services.
+
+4. Try to improve tests' readability.
+
+5. Create the completely decentralized trustless version of BuddyFighters!
 
 <hr/>
 
