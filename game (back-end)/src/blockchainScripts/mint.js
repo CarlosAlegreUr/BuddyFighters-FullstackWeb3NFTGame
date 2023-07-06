@@ -109,7 +109,6 @@ module.exports = async function (saveOnBlockchain) {
     //Calling mint through bfnftRndmWords
     console.log("Trying to call mint...");
     try {
-        // Input allowance must be deactivated for this to work.
         txResponse = await buddyFightersContract.mintNft(token_URI);
         console.log(
             "Transaction minitng sent... Now waiting for confirmations..."

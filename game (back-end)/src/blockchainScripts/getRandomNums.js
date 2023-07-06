@@ -26,11 +26,11 @@ async function geteRandomNumsLocalhost(generateNums, generateStats, reqId) {
             // Pokemon Nums
             txResponse =
                 await VRFCoordinatorV2MockContract.fulfillRandomWordsWithOverride(
-                    await requestId.toNumber(),
-                    bfnftRndmWords.address,
+                    await ethers.toNumber(requestId),
+                    await bfnftRndmWords.getAddress(),
                     [
-                        parseInt(Math.random() * 1000),
-                        parseInt(Math.random() * 1000),
+                        await parseInt(Math.random() * 1000),
+                        await parseInt(Math.random() * 1000),
                     ]
                 );
             txReceipt = await txResponse.wait();
@@ -42,8 +42,10 @@ async function geteRandomNumsLocalhost(generateNums, generateStats, reqId) {
                 txBlock,
                 txBlock
             );
-            num1 = query[0].args.rndmNums[0];
-            num2 = query[0].args.rndmNums[1];
+            num1BigInt = query[0].args.rndmNums[0];
+            num2BigInt = query[0].args.rndmNums[1];
+            num1 = await Number(num1BigInt);
+            num2 = await Number(num2BigInt);
         }
 
         if (generateStats) {
@@ -51,14 +53,14 @@ async function geteRandomNumsLocalhost(generateNums, generateStats, reqId) {
             txResponse =
                 await VRFCoordinatorV2MockContract.fulfillRandomWordsWithOverride(
                     reqId,
-                    bfnftRndmWords.address,
+                    await bfnftRndmWords.getAddress(),
                     [
-                        parseInt(Math.random() * 1000),
-                        parseInt(Math.random() * 1000),
-                        parseInt(Math.random() * 1000),
-                        parseInt(Math.random() * 1000),
-                        parseInt(Math.random() * 1000),
-                        parseInt(Math.random() * 1000),
+                        await parseInt(Math.random() * 1000),
+                        await parseInt(Math.random() * 1000),
+                        await parseInt(Math.random() * 1000),
+                        await parseInt(Math.random() * 1000),
+                        await parseInt(Math.random() * 1000),
+                        await parseInt(Math.random() * 1000),
                     ]
                 );
             txReceipt = await txResponse.wait();
@@ -70,7 +72,8 @@ async function geteRandomNumsLocalhost(generateNums, generateStats, reqId) {
                 txBlock,
                 txBlock
             );
-            stats = query[0].args.rndmNums;
+            let statsInt = query[0].args.rndmNums;
+            stats = await statsInt.map((bigIntValue) => Number(bigIntValue));
         }
 
         return { num1: num1, num2: num2, stats: stats };
@@ -127,11 +130,11 @@ async function requAndGenRandomTesting(generateNums, generateStats) {
             // Pokemon Nums
             txResponse =
                 await VRFCoordinatorV2MockContract.fulfillRandomWordsWithOverride(
-                    await requestId.toNumber(),
-                    bfnftRndmWords.address,
+                    await ethers.toNumber(requestId),
+                    await bfnftRndmWords.getAddress(),
                     [
-                        parseInt(Math.random() * 1000),
-                        parseInt(Math.random() * 1000),
+                        await parseInt(Math.random() * 1000),
+                        await parseInt(Math.random() * 1000),
                     ]
                 );
             txReceipt = await txResponse.wait();
@@ -143,8 +146,10 @@ async function requAndGenRandomTesting(generateNums, generateStats) {
                 txBlock,
                 txBlock
             );
-            num1 = query[0].args.rndmNums[0];
-            num2 = query[0].args.rndmNums[1];
+            num1BigInt = query[0].args.rndmNums[0];
+            num2BigInt = query[0].args.rndmNums[1];
+            num1 = await Number(num1BigInt);
+            num2 = await Number(num2BigInt);
         }
 
         if (generateStats) {
@@ -160,15 +165,15 @@ async function requAndGenRandomTesting(generateNums, generateStats) {
             requestId = query[0].args.requestId;
             txResponse =
                 await VRFCoordinatorV2MockContract.fulfillRandomWordsWithOverride(
-                    await requestId.toNumber(),
-                    bfnftRndmWords.address,
+                    await ethers.toNumber(requestId),
+                    await bfnftRndmWords.getAddress(),
                     [
-                        parseInt(Math.random() * 1000),
-                        parseInt(Math.random() * 1000),
-                        parseInt(Math.random() * 1000),
-                        parseInt(Math.random() * 1000),
-                        parseInt(Math.random() * 1000),
-                        parseInt(Math.random() * 1000),
+                        await parseInt(Math.random() * 1000),
+                        await parseInt(Math.random() * 1000),
+                        await parseInt(Math.random() * 1000),
+                        await parseInt(Math.random() * 1000),
+                        await parseInt(Math.random() * 1000),
+                        await parseInt(Math.random() * 1000),
                     ]
                 );
             txReceipt = await txResponse.wait();
@@ -180,7 +185,8 @@ async function requAndGenRandomTesting(generateNums, generateStats) {
                 txBlock,
                 txBlock
             );
-            stats = query[0].args.rndmNums;
+            let statsInt = query[0].args.rndmNums;
+            stats = await statsInt.map((bigIntValue) => Number(bigIntValue));
         }
     }
     return { num1: num1, num2: num2, stats: stats };

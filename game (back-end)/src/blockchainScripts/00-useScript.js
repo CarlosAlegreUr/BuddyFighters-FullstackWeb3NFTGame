@@ -1,57 +1,63 @@
 const mintNFT = require("./mint");
 const { ethers, getNamedAccounts, network } = require("hardhat");
-
 const {
-    requAndGenRandomTesting,
-} = require("../blockchainScripts/getRandomNums");
+    declareWinner,
+    getFightId,
+    withdrawAllowedFunds,
+} = require("./fightManagerFuncs");
 
 // Delay function.
 function delay(t) {
     return new Promise((resolve) => setTimeout(resolve, t));
 }
 
-// We can accept a number for the quantity of NFTs to mint.
 async function callMint(onBlockchain, quantity) {
     // Loop and call mintNFT with a delay between each call.
     for (let i = 0; i < quantity; i++) {
         await mintNFT(onBlockchain);
-        await delay(4500); // Delay for 4.5 seconds
+        await delay(3500); // Delay for 3.5 seconds
     }
 }
 
-const numToMint = 2;
+// Mints 2 NFTs and transfer them to the first 2 hardhat addresses.
+// Nft Id 0 => address 1 && Nft Id 1 => address 2
 async function callMinting() {
-    const { deployer } = await getNamedAccounts();
+    const numToMint = 2;
+    await callMint(false, numToMint);
+    const { deployer, client1, client2 } = await getNamedAccounts();
     const buddyFightersContract = await ethers.getContract(
         "BuddyFightersNFT",
         deployer
     );
-    txResponse = await buddyFightersContract.setInputChekcer(false);
-    txReceipt = await txResponse.wait(1);
+    let txResponse;
+    txResponse = await buddyFightersContract.transferFrom(deployer, client1, 0);
+    let txReceipt = await txResponse.wait();
 
-    // Now we can specify how many NFTs we want to mint.
-    await callMint(false, numToMint);
-
-    txResponse = await buddyFightersContract.transferFrom(
-        deployer,
-        "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
-        1
-    );
+    txResponse = await buddyFightersContract.transferFrom(deployer, client2, 1);
     txReceipt = await txResponse.wait();
     console.log("Ownership transfered.");
 }
 
-callMinting();
-
-// exe();
+const execute = "withdraw";
 async function exe() {
-    await getRandomStatsGenerated();
-    // await changeStats("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", 0, false);
+    const { deployer, client1, client2 } = await getNamedAccounts();
+    switch (execute) {
+        case "mint":
+            await callMinting();
+            break;
+        case "getFightId":
+            console.log(await getFightId([client1, client2], [0, 1]));
+            break;
+        case "declareWinner":
+            const fId = await getFightId([client1, client2], [0, 1]);
+            await declareWinner(fId, client1, [client1, client2]);
+            break;
+        case "withdraw":
+            await withdrawAllowedFunds(deployer);
+            break;
+        default:
+            console.log("Please specify a valid flag!");
+    }
 }
 
-// async function callWithdrawal() {
-// const { client2 } = await getNamedAccounts();
-// await withdrawal(client2);
-// }
-
-// callWithdrawal()
+exe();

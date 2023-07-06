@@ -35,7 +35,13 @@
 
 # **Purpose of this Repository 🤔**
 
-This repository hosts the code required to run a robust full-stack web application. Besides interacting with traditional full-stack web systems, it also interfaces with EVM-compatible blockchains and decentralized networks like IPFS for certain services.
+This repository serves multiple purposes in my **learning journey**. It has been created with the purpose of **learning how to develop a robust full-stack web application**. Involving traditional full-stack web systems and **interactions with EVM-compatible blockchains** and **decentralized networks such as IPFS**.
+
+The **primary focus** of this repository is to gain **practical experience** in **designing and implementing smart contracts** while **testing** their **functionality** and **security**.
+
+While smart contracts have been the main focus, I have also developed the foundational code for developing a **full-stack app**. However, please note that the current implementation does not have extensive functionality or have the highest standards of bug-free and versatile code. The focus has been on simulating the initial stages and conclusion of a 2 players battle, allowing me to better **understand the intricate interactions and workings of all components in a full-stack system**.
+
+I'm aware of all the following steps I have to take in order to make the fullstack app secure and clean, for now the only **secure and clean code** will be the one **related to smart contracts and it's testing**. I might develop this project properly in the future 😄.
 
 <hr/>
 
@@ -108,7 +114,7 @@ There must also be a function that validates next fight states, if different fig
 
 <hr/>
 
-# **App Demonstration Video: 📹*** (TODO)
+# **App Demonstration Video: 📹\*** (TODO)
 
 <hr/>
 

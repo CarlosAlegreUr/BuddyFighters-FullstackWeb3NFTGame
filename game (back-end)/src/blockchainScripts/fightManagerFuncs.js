@@ -12,6 +12,20 @@ async function getTickets(player) {
     }
 }
 
+async function getFightId(players, tokenIds) {
+    const types = [
+        { type: "address" },
+        { type: "address" },
+        { type: "uint256" },
+        { type: "uint256" },
+    ];
+    const inputs = [players[0], players[1], tokenIds[0], tokenIds[1]];
+    const coder = new ethers.AbiCoder();
+    const abiEncodedInput = await coder.encode(types, inputs);
+    const fightId = await ethers.keccak256(abiEncodedInput);
+    return fightId;
+}
+
 async function isFightActive(fightId) {
     try {
         const { deployer } = await getNamedAccounts();
@@ -29,6 +43,10 @@ async function isFightActive(fightId) {
 
 async function allowStartFight(players, tokenIds, bets) {
     try {
+        console.log("Allow start fight entered with:");
+        console.log(players);
+        console.log(tokenIds);
+        console.log(bets);
         const { deployer } = await getNamedAccounts();
         const bfnftFightManager = await ethers.getContract(
             "BFNFTFightsManager",
@@ -39,14 +57,18 @@ async function allowStartFight(players, tokenIds, bets) {
             { type: "uint256[2]" },
             { type: "uint256[2]" },
         ];
+        const bet1Eth = await ethers.parseEther(await bets[0].toString());
+        const bet2Eth = await ethers.parseEther(await bets[1].toString());
         const inputs = [
             [players[0], players[1]],
             [tokenIds[0], tokenIds[1]],
-            [bets[0], bets[1]],
+            [bet1Eth, bet2Eth],
         ];
         const coder = new ethers.AbiCoder();
+        console.log("Before encoding");
         const abiEncodedInput = await coder.encode(types, inputs);
         const validInput = await ethers.keccak256(abiEncodedInput);
+        console.log(`Giving input permissions to ${players[0]}`);
         let txResponse = await bfnftFightManager.allowInputs(
             players[0],
             [validInput],
@@ -54,6 +76,8 @@ async function allowStartFight(players, tokenIds, bets) {
             false
         );
         await txResponse.wait();
+        console.log("Player 1 permission given");
+        console.log(`Giving input permissions to ${players[1]}`);
         txResponse = await bfnftFightManager.allowInputs(
             players[1],
             [validInput],
@@ -61,6 +85,7 @@ async function allowStartFight(players, tokenIds, bets) {
             false
         );
         await txResponse.wait();
+        console.log("Player 2 permission given");
     } catch (error) {
         throw error;
     }
@@ -128,6 +153,7 @@ async function withdrawAllowedFunds(sendToAddress) {
 
 module.exports = {
     getTickets,
+    getFightId,
     isFightActive,
     allowStartFight,
     disallowStartFight,

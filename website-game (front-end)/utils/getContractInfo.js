@@ -5,7 +5,6 @@ module.exports = {
     const contract = contractsInfo[chainId].find(
       (contract) => contract.contractName === contractName
     );
-
     if (contract) {
       return contract.address;
     } else {
@@ -17,7 +16,6 @@ module.exports = {
     const contract = contractsInfo[chainId].find(
       (contract) => contract.contractName === contractName
     );
-
     if (contract) {
       return contract.abi;
     } else {
