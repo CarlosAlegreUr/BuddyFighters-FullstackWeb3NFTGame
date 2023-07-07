@@ -11,6 +11,7 @@ error BFNFT__YouAreNotTokenOwner();
 error BFNFT__IsNotContractOnwer();
 error BFNFT__YouHaveNoTcikets();
 error BFNFT__NotPayedEnough();
+error BFNFT__FailedToSendFunds();
 
 /**
  * @title BuddyFighters' NFTs contract.
@@ -75,22 +76,11 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
 
     /* Functions */
 
-    /**
-     * Runs on deploy.
-     *
-     * @dev Initializes the collection and makes it a Chainlink VRF consumer.
-     *
-     * @param _name Name of NFT collection.
-     *
-     * @param _symbol Symbol of NFT collection.
-     *
-     * See Chainlink VRF docs for more info on arguments required.
-     */
     constructor(
-        string memory _name,
-        string memory _symbol,
+        string memory _collectionName,
+        string memory _collectionSymbol,
         address _inputControlContractAddress
-    ) ERC721(_name, _symbol) {
+    ) ERC721(_collectionName, _collectionSymbol) {
         i_InputControl = IInputControlModular(_inputControlContractAddress);
     }
 
@@ -147,6 +137,15 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
             _funcSignature,
             _isSequence
         );
+    }
+
+    function withdrawFunds() external onlyOwner {
+        (bool success, ) = payable(this.owner()).call{
+            value: address(this).balance
+        }("");
+        if (!success) {
+            revert BFNFT__FailedToSendFunds();
+        }
     }
 
     /* Public functions */

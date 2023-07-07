@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-  <a><img src="https://image.shutterstock.com/image-photo/pattaya-thailand-2-sep-2016-600w-477402835.jpg" width="200"></a>
+  <a><img src="./readme-images/pokeball.png" width="200"></a>
   <br>
   <strong>BuddyFighters (IN DEVELOPMENT)</strong>
   <br>
@@ -21,7 +21,7 @@
 - **About the App ℹ️**
   - Potential Misuse of Power 💢
   - **A Trustless Fully Decentralized Scenario 👼**
-- **App Demonstration Video: 📹** (TODO)
+- **App So Far Demo Video: 📹**
 - **Packages & Technologies Utilized 🧰**
 - **How the System Functions ⚙️**
 - **Project Structure 📁**
@@ -114,7 +114,7 @@ There must also be a function that validates next fight states, if different fig
 
 <hr/>
 
-# **App Demonstration Video: 📹\*** (TODO)
+# **App So Far Demo Video: 📹\*** (TODO)
 
 <hr/>
 

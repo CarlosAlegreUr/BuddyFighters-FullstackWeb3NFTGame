@@ -98,7 +98,6 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
         uint32 _numOfWords
     )
         external
-        payable
         checkAllowedCall(
             bytes4(keccak256(bytes("requestRandomNumbers(uint32)"))),
             msg.sender

@@ -16,6 +16,7 @@ error BFNFT__FManager__Only1FightAtATime();
 error BFNFT__FManager__OwnerMusntCallStartFightToPreventAbuse();
 error BFNFT__FManager__CollisionWith0ValueModifyABitTheInputAndTryAgain();
 error BFNFT__FManager__CalledByOponentAlreadyDontWorry();
+error BFNFT__FManager__NullAddressNotAllowed();
 error BFNFT__FManager__FailedToSendFunds();
 error BFNFT__FManager__NotAvailableFundsInContract();
 
@@ -84,10 +85,8 @@ contract BFNFTFightsManager is Ownable {
 
     modifier playersAreNotInBattle(address[2] memory _players) {
         if (
-            s_playerToOnGoingFight[_players[0]] !=
-            0x0000000000000000000000000000000000000000000000000000000000000000 ||
-            s_playerToOnGoingFight[_players[1]] !=
-            0x0000000000000000000000000000000000000000000000000000000000000000
+            s_playerToOnGoingFight[_players[0]] != bytes32(0) ||
+            s_playerToOnGoingFight[_players[1]] != bytes32(0)
         ) {
             revert BFNFT__FManager__Only1FightAtATime();
         }
@@ -124,12 +123,16 @@ contract BFNFTFightsManager is Ownable {
      */
     modifier idIsNot0(bytes32 fightId) {
         _;
-        if (
-            fightId ==
-            0x0000000000000000000000000000000000000000000000000000000000000000
-        ) {
+        if (fightId == bytes32(0)) {
             revert BFNFT__FManager__CollisionWith0ValueModifyABitTheInputAndTryAgain();
         }
+    }
+
+    modifier isNotNullAddress(address check) {
+        if (check == address(0)) {
+            revert BFNFT__FManager__NullAddressNotAllowed();
+        }
+        _;
     }
 
     /* Functions */
@@ -182,10 +185,7 @@ contract BFNFTFightsManager is Ownable {
             abi.encode(_players[0], _players[1], _tokenIds[0], _tokenIds[1])
         );
 
-        if (
-            fightId ==
-            0x0000000000000000000000000000000000000000000000000000000000000000
-        ) {
+        if (fightId == bytes32(0)) {
             revert BFNFT__FManager__CollisionWith0ValueModifyABitTheInputAndTryAgain();
         }
 
@@ -217,7 +217,7 @@ contract BFNFTFightsManager is Ownable {
             // backend cooperated.
             address denyAccessPlayer = _players[1];
             if (_players[1] == msg.sender) denyAccessPlayer = _players[0];
-            bytes32[] memory empty;
+            bytes32[] memory empty = new bytes32[](0);
             i_InputControl.allowInputsFor(
                 denyAccessPlayer,
                 empty,
@@ -237,20 +237,19 @@ contract BFNFTFightsManager is Ownable {
         bytes32 _fightId,
         address _winner,
         address[2] calldata _players
-    ) external onlyOwner {
+    ) external onlyOwner isNotNullAddress(_winner) {
         // Get how much money to send.
         uint256 quantity = s_playerToLastBet[_players[0]] +
             s_playerToLastBet[_players[1]];
+
+        // Reset fight and players' values
+        resetFight(_players, _fightId);
 
         // Send money to the winner
         (bool success, ) = payable(_winner).call{value: quantity}("");
         if (!success) {
             revert BFNFT__FManager__FailedToSendFunds();
         }
-
-        // Reset fight and players' values
-        resetFight(_players, _fightId);
-
         emit BFNFT__FManager__FightResult(_fightId, _winner);
     }
 
@@ -259,15 +258,12 @@ contract BFNFTFightsManager is Ownable {
      * Takes into account ongoing bets and can't withdraw that money.
      * Therefore only withdraws money spend on buying tickets.
      */
-    function withdrawAllowedFunds(address _sendTo) external onlyOwner {
-        if (
-            address(this).balance == 0 ||
-            address(this).balance < CURRENT_BETS_VALUE
-        ) {
+    function withdrawAllowedFunds() external onlyOwner {
+        if (address(this).balance <= CURRENT_BETS_VALUE) {
             revert BFNFT__FManager__NotAvailableFundsInContract();
         }
         uint256 quantity = address(this).balance - CURRENT_BETS_VALUE;
-        (bool success, ) = payable(_sendTo).call{value: quantity}("");
+        (bool success, ) = payable(this.owner()).call{value: quantity}("");
         if (!success) {
             revert BFNFT__FManager__FailedToSendFunds();
         }
@@ -310,10 +306,7 @@ contract BFNFTFightsManager is Ownable {
      * @notice Only non battling players can update their bets.
      */
     function setBet() public payable {
-        if (
-            s_playerToOnGoingFight[msg.sender] ==
-            0x0000000000000000000000000000000000000000000000000000000000000000
-        ) {
+        if (s_playerToOnGoingFight[msg.sender] == bytes32(0)) {
             s_playerToLastBet[msg.sender] = msg.value;
             CURRENT_BETS_VALUE += msg.value;
         } else {
@@ -360,7 +353,15 @@ contract BFNFTFightsManager is Ownable {
      *
      * @param _players Both players participating in a fight.
      */
-    function returnBets(address[2] calldata _players) private {
+    function returnBets(
+        address[2] calldata _players
+    ) private isNotNullAddress(_players[0]) isNotNullAddress(_players[1]) {
+        // Resets
+        CURRENT_BETS_VALUE -= s_playerToLastBet[_players[0]];
+        CURRENT_BETS_VALUE -= s_playerToLastBet[_players[1]];
+        delete s_playerToLastBet[_players[0]];
+        delete s_playerToLastBet[_players[1]];
+
         // Get how much each one bet.
         uint256 quantityP1 = s_playerToLastBet[_players[0]];
         uint256 quantityP2 = s_playerToLastBet[_players[1]];
@@ -375,11 +376,6 @@ contract BFNFTFightsManager is Ownable {
         if (!success2) {
             revert BFNFT__FManager__FailedToSendFunds();
         }
-
-        CURRENT_BETS_VALUE -= s_playerToLastBet[_players[0]];
-        CURRENT_BETS_VALUE -= s_playerToLastBet[_players[1]];
-        delete s_playerToLastBet[_players[0]];
-        delete s_playerToLastBet[_players[1]];
     }
 
     /**

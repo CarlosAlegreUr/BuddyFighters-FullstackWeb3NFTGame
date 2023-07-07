@@ -38,7 +38,7 @@ async function callMinting() {
     console.log("Ownership transfered.");
 }
 
-const execute = "withdraw";
+const execute = "mint";
 async function exe() {
     const { deployer, client1, client2 } = await getNamedAccounts();
     switch (execute) {
