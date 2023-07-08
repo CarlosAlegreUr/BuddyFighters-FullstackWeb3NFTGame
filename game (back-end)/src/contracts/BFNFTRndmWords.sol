@@ -6,7 +6,7 @@ import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "call-order-control-contract/CallOrderControl.sol";
 
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 /* Customed erros */
 error BFNFT__Rndm__RndomNumLengthNotValid();
@@ -48,10 +48,10 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
     /* Modifiers */
 
     modifier checkAllowedCall(bytes4 _funcSelec, address _callerAddress) {
+        _;
         if (msg.sender != this.owner()) {
             modifierHelperCallOrder(_funcSelec, _callerAddress);
         }
-        _;
     }
 
     function modifierHelperCallOrder(

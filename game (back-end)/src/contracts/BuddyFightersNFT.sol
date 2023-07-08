@@ -68,10 +68,10 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
         address _callerAddress,
         bytes32 _input
     ) {
+        _;
         if (msg.sender != this.owner()) {
             i_InputControl.isAllowedInput(_funcSelec, _callerAddress, _input);
         }
-        _;
     }
 
     /* Functions */
@@ -92,7 +92,7 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
      *
      * @notice Client must call this function but first the interaction must me allowed by backend.
      */
-    function mintNft(string memory _tokenURI) external payable onlyOwner {
+    function mintNft(string calldata _tokenURI) external payable onlyOwner {
         uint256 tokenId = totalSupply();
         _safeMint(msg.sender, tokenId);
         _setTokenURI(tokenId, _tokenURI);
@@ -108,7 +108,7 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
      * metadata in JSON format encoded in base64.
      */
     function changeStats(
-        string memory _newTokenURI,
+        string calldata _newTokenURI,
         uint256 _tokenId
     )
         external
@@ -148,13 +148,12 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
         }
     }
 
-    /* Public functions */
-    function buyTicket() public payable {
+    function buyTicket() external payable {
         if (msg.value >= TICKET_PRICE) s_clientToTickects[msg.sender] += 1;
         else revert BFNFT__NotPayedEnough();
     }
 
-    function getTicketsOf(address _address) public view returns (uint256) {
+    function getTicketsOf(address _address) external view returns (uint256) {
         return s_clientToTickects[_address];
     }
 
