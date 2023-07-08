@@ -6,7 +6,7 @@ import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "call-order-control-contract/CallOrderControl.sol";
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 /* Customed erros */
 error BFNFT__Rndm__RndomNumLengthNotValid();
@@ -18,7 +18,7 @@ error BFNFT__Rndm__IsNotContractOnwer();
  * @author Carlos Alegre Urquizú
  *
  * @notice This contract manages the random number generation fort the BuddyFighters collection.
- * For that it uses Chainlink VRF.
+ * For that it uses Chainlink VRF v2.
  */
 contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
     /* State variables */
@@ -47,6 +47,10 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
 
     /* Modifiers */
 
+    /**
+     * @dev Checks if caller has permissions to generate random numbers
+     * and akes owner always have permission.
+     */
     modifier checkAllowedCall(bytes4 _funcSelec, address _callerAddress) {
         _;
         if (msg.sender != this.owner()) {
@@ -54,6 +58,10 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
         }
     }
 
+    /**
+     * @dev Helps the modifier above checkAllowedCall() to call the function
+     * that controls the calls inherited from CallOrderControl.sol contract.
+     */
     function modifierHelperCallOrder(
         bytes4 _funcSelec,
         address _callerAddress
@@ -64,10 +72,7 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
     /* Functions */
 
     /**
-     * @notice Runs on deploy.
-     *
      * @dev Initializes the collection and makes it a Chainlink VRF consumer.
-     *
      * See Chainlink VRF docs for more info on arguments required.
      */
     constructor(
@@ -86,10 +91,7 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
 
     /**
      * @dev Request random numbers to Chainlink network via VRFCoordinator.
-     * Backend calls this function and it requests to the VRFCoordinator to
-     * get random numbers trhough Chainlink network. Number will be recieved
-     * in function:
-     *
+     *  Numbers will be recieved in function:
      * `fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override`
      *
      * @param _numOfWords quantity of random numbers to generate.
@@ -120,17 +122,15 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
     /* Public functions */
 
     /**
-     * @dev Chainlink coordinator returns random numbers requested.
-     *
-     * @notice Emits an event so client can see backend called this function on his token.
-     *
-     * @dev Override comes from VRFConsumerBaseV2. After `requestRandomNumbers(uint32 _numOfWords)`
-     * has been called then i_vrfCoordinator proceeds request and calls this function.
+     * @dev Chainlink coordinator returns random numbers requested via this function.
+     * @dev It sets the random number generated in a valid range for BuddyFighters NFTs traits
+     * and emits an event with the results.
      *
      * @param randomWords If pokemon numbers generated then length == 2, if stats generated
      * then length == 6.
      *
-     * @param requestId Allows the client to indentify it's request and verify it was indeed proceed.
+     * @param requestId Allows the client to indentify it's request and verify that their NFT
+     * attributes were indeed randomly created.
      */
     function fulfillRandomWords(
         uint256 requestId,
@@ -154,6 +154,10 @@ contract BFNFTRndmWords is Ownable, VRFConsumerBaseV2, CallOrderControl {
         }
     }
 
+    /**
+     * @dev Allow backend to give client permissions to generate
+     * random numbers via this contract.
+     */
     function callAllowFuncCallsFor(
         address _callerAddress,
         bytes4[] calldata _validFuncCalls,

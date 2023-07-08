@@ -4,18 +4,17 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "input-control-contract/modularVersion/IInputControlModular.sol";
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 /* Customed erros */
-error BFNFT__FManager__PlayerHasNoTitckets();
 error BFNFT__FManager__NotPayedEnough();
+error BFNFT__FManager__PlayerHasNoTitckets();
 error BFNFT__FManager__PlayerIsNotInThisFight();
 error BFNFT__FManager__FightIsNotActive();
 error BFNFT__FManager__CantBetDuringFight();
 error BFNFT__FManager__Only1FightAtATime();
 error BFNFT__FManager__OwnerMusntCallStartFightToPreventAbuse();
 error BFNFT__FManager__CollisionWith0ValueModifyABitTheInputAndTryAgain();
-error BFNFT__FManager__CalledByOponentAlreadyDontWorry();
 error BFNFT__FManager__NullAddressNotAllowed();
 error BFNFT__FManager__FailedToSendFunds();
 error BFNFT__FManager__NotAvailableFundsInContract();
@@ -24,20 +23,20 @@ error BFNFT__FManager__NotAvailableFundsInContract();
  * @title BuddyFighters' NFTs Fights Manager contract.
  * @author Carlos Alegre Urquizú
  *
- * @notice This contract is used by backend to manage the bets money and by clients
- * to buyt their tickets to start the fights and cover the backend expenses.
+ * @notice This contract manages the correct management of the fights.
+ * From setting them to active to the correct bets setting and distribution or to the
+ * purchase of fight tickets.
  *
  * @notice Due to the nature of the backend as a trusted third party to execute in a
  * cheap way the computations for the game logic, abuse of power or corruption
- * are a feasable scenario.
+ * are a feasable scenario. Even with that clients have different ways of making sure
+ * backend is doing what promises, so this is an incentive for the backend to behave.
  *
  * There exists a truly trustless solution but it's more expensive for players.
- * Changes required and calculous costs are detailedly explained on the README.md file:
+ * Changes required and detailedly explained on the README.md file:
  * ( https://github.com/CarlosAlegreUr/BuddyFighters-FullstackWeb3NFTGame/blob/finishingBackedLogic/README.md )
  *
- * How backend could abuse it's power in the delcaring a winner part is also explained there. Despite this abuse
- * of power is easlily detectable by a client so backend has less incentives to behave badly and makes the system
- * more trustworthy.
+ * How backend could abuse it's power is also better explained there.
  */
 contract BFNFTFightsManager is Ownable {
     /* State variables */
@@ -58,9 +57,14 @@ contract BFNFTFightsManager is Ownable {
     event BFNFT__FManager__FightStarted(bytes32 indexed battleId);
     event BFNFT__FManager__FightResult(
         bytes32 indexed battleId,
-        address winner
+        address winner,
+        uint256 prize
     );
-    event BFNFT__FManager__WithdrawnAmmount(uint256 quantity);
+    event BFNFT__FManager__FundsWithdrawn(uint256 quantity);
+    event BFNFT__FManager__BetReturned(
+        address indexed player,
+        uint256 quantity
+    );
 
     /* Modifiers */
 
@@ -84,6 +88,10 @@ contract BFNFTFightsManager is Ownable {
         _;
     }
 
+    /**
+     * @dev Checks if both players are not in a fight.
+     * Otherwise it reverts.
+     */
     modifier playersAreNotInBattle(address[2] calldata _players) {
         if (
             s_playerToOnGoingFight[_players[0]] != bytes32(0) ||
@@ -95,8 +103,7 @@ contract BFNFTFightsManager is Ownable {
     }
 
     /**
-     * @dev InputControl function.
-     * In this contract it's used to prevent Owner to destroy client's tickets.
+     * @dev Used to execute InputControl checking.
      */
     modifier checkAllowedInput(
         bytes4 _funcSelec,
@@ -107,6 +114,10 @@ contract BFNFTFightsManager is Ownable {
         i_InputControl.isAllowedInput(_funcSelec, _callerAddress, _input);
     }
 
+    /**
+     * @dev Prohibits call to the owner.
+     * It just makes the code a bit more anoying for corrupted owners.
+     */
     modifier preventOwner() {
         if (msg.sender == this.owner()) {
             revert BFNFT__FManager__OwnerMusntCallStartFightToPreventAbuse();
@@ -129,6 +140,9 @@ contract BFNFTFightsManager is Ownable {
         }
     }
 
+    /**
+     * @dev Prevents sending funds to dead addresses.
+     */
     modifier isNotNullAddress(address check) {
         if (check == address(0)) {
             revert BFNFT__FManager__NullAddressNotAllowed();
@@ -139,7 +153,8 @@ contract BFNFTFightsManager is Ownable {
     /* Functions */
 
     /**
-     * @dev Initializes the quantity of money unavailable to withdraw to 0 and the InputControl contract.
+     * @dev Initializes InputControl contract
+     * and sets to 0 the unavailable money quantity to withdraw.
      */
     constructor(address _inputControlContractAddress) {
         i_InputControl = IInputControlModular(_inputControlContractAddress);
@@ -150,13 +165,20 @@ contract BFNFTFightsManager is Ownable {
 
     /**
      * @dev Makes fight active in blockchain.
-     * @notice Becareful if fightId ever collides with 0 value, backend should take charge of no
-     * collisions before calling this contract!!
+     * @notice Becareful if fightId ever collides with 0 value, if so tx will revert.
      *
      * @dev One of the participants will call this function. Both will have access.
-     * It's designed in sucha a way that when one of them calls it the fight is started
-     * and if the other one calls it again then it just reverts and informs that fight
-     * has already started.
+     * It's designed in such a way that when one of them calls, if bets are set and both
+     * players have tickes, the fight will be started  and the other player's permission
+     * to call this func will be denied.
+     *
+     * If a player didnt send it's agreed bet, the bets of both players are returned to them
+     * but the tickets from the players who didnt send the agreed bet are set to 0.
+     * If any player doesnt have enough tickets tx reverts.
+     *
+     * @notice Front-end should take this into account when starting fights and if it's
+     * reverted just check if he fightId is active to know if the opponent address called
+     * this first.
      *
      * @param _players Both players participating in a fight.
      *
@@ -193,11 +215,6 @@ contract BFNFTFightsManager is Ownable {
         // Check Bets returns false if anything is wrong
         if (checkBets(_players, _bets)) {
             if (!s_figthIdIsActive[fightId]) {
-                console.log(_players[0]);
-                console.log(s_playerToTickects[_players[0]]);
-
-                console.log(_players[1]);
-                console.log(s_playerToTickects[_players[1]]);
                 if (
                     s_playerToTickects[_players[0]] == 0 ||
                     s_playerToTickects[_players[1]] == 0
@@ -236,8 +253,8 @@ contract BFNFTFightsManager is Ownable {
     /**
      * @dev Declares a winner for a fightId and resets the values after.
      * @notice Here is where backend can get bribed to act maliciously.
-     * Anyway if backend does that the affected client would realize immediately and stop
-     * using the services.
+     * Anyway if backend is corrupted the affected client has means to realize and stop
+     * using the services. So at least there is an incentive for backend to behave correctly.
      */
     function declareWinner(
         bytes32 _fightId,
@@ -250,13 +267,13 @@ contract BFNFTFightsManager is Ownable {
 
         // Reset fight and players' values
         resetFight(_players, _fightId);
+        emit BFNFT__FManager__FightResult(_fightId, _winner, quantity);
 
         // Send money to the winner
         (bool success, ) = payable(_winner).call{value: quantity}("");
         if (!success) {
             revert BFNFT__FManager__FailedToSendFunds();
         }
-        emit BFNFT__FManager__FightResult(_fightId, _winner);
     }
 
     /**
@@ -269,8 +286,7 @@ contract BFNFTFightsManager is Ownable {
             revert BFNFT__FManager__NotAvailableFundsInContract();
         }
         uint256 quantity = address(this).balance - current_bets_value;
-        console.log(quantity);
-        emit BFNFT__FManager__WithdrawnAmmount(quantity);
+        emit BFNFT__FManager__FundsWithdrawn(quantity);
         (bool success, ) = payable(this.owner()).call{value: quantity}("");
         if (!success) {
             revert BFNFT__FManager__FailedToSendFunds();
@@ -285,20 +301,14 @@ contract BFNFTFightsManager is Ownable {
     function setBet() external payable {
         if (s_playerToOnGoingFight[msg.sender] == bytes32(0)) {
             s_playerToLastBet[msg.sender] = msg.value;
-            console.log("Before:");
-            console.log(current_bets_value);
             current_bets_value += msg.value;
-            console.log("Bets modified, player added bet");
-            console.log(msg.sender);
-            console.log("Now:");
-            console.log(current_bets_value);
         } else {
             revert BFNFT__FManager__CantBetDuringFight();
         }
     }
 
     /**
-     * @dev Clients must call this function with the correct msg.value to recieve 1 ticket
+     * @dev Clients must call this function with a high enough msg.value to recieve 1 ticket
      * at a time.
      *
      * With this money backend finances it's operations as referee.
@@ -324,7 +334,6 @@ contract BFNFTFightsManager is Ownable {
 
     /**
      * @dev InputConrol function.
-     * @notice It's been a bit modified to prevent tickets control from Owner.
      */
     function allowInputs(
         address _callerAddress,
@@ -343,32 +352,16 @@ contract BFNFTFightsManager is Ownable {
     /* Private functions */
 
     /**
-     * @dev Resets all the values modified when a fight is started to the values
-     * they should have when fights are declared finished.
+     * @dev Resets all the values modified when fight was started.
      */
     function resetFight(
         address[2] calldata _players,
         bytes32 _fightId
     ) private validPlayersInValidFight(_players, _fightId) idIsNot0(_fightId) {
         delete s_figthIdIsActive[_fightId];
-        console.log("Bets modified");
-        console.log("Before:");
-        console.log(current_bets_value);
-        current_bets_value -= s_playerToLastBet[_players[0]];
-        console.log("Now after 1:");
-        console.log(_players[0]);
-        console.log("Players bet was:");
-        console.log(s_playerToLastBet[_players[0]]);
-        console.log("Final:");
-        console.log(current_bets_value);
 
+        current_bets_value -= s_playerToLastBet[_players[0]];
         current_bets_value -= s_playerToLastBet[_players[1]];
-        console.log("Now after 2:");
-        console.log(_players[0]);
-        console.log("Players bet was:");
-        console.log(s_playerToLastBet[_players[1]]);
-        console.log("Final:");
-        console.log(current_bets_value);
 
         delete s_playerToLastBet[_players[0]];
         delete s_playerToLastBet[_players[1]];
@@ -396,6 +389,9 @@ contract BFNFTFightsManager is Ownable {
         // Deleted now to avoid any kind of reentrancy vulnerability.
         delete s_playerToLastBet[_players[0]];
         delete s_playerToLastBet[_players[1]];
+
+        emit BFNFT__FManager__BetReturned(_players[0], quantityP1);
+        emit BFNFT__FManager__BetReturned(_players[1], quantityP2);
 
         // Send the money.
         (bool success, ) = payable(_players[0]).call{value: quantityP1}("");

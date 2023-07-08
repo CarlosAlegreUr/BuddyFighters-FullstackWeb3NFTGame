@@ -7,19 +7,18 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "input-control-contract/modularVersion/IInputControlModular.sol";
 
 /* Customed erros */
-error BFNFT__YouAreNotTokenOwner();
-error BFNFT__IsNotContractOnwer();
-error BFNFT__YouHaveNoTcikets();
 error BFNFT__NotPayedEnough();
+error BFNFT__YouHaveNoTcikets();
+error BFNFT__YouAreNotTokenOwner();
 error BFNFT__FailedToSendFunds();
 
 /**
  * @title BuddyFighters' NFTs contract.
  * @author Carlos Alegre Urquizú
  *
- * @notice This contract manages your nfts from BuddyFighters collection. It uses
- * InteractionControl contract to create "agreements" on which NFT's to minst and how
- * to upgrade them between costumer and the collection devs.
+ * @notice This contract manages your Nfts from BuddyFighters collection. It uses
+ * InteractionControl contract to create "agreements" between costumer and the collection devs
+ * on how to upgrade their NFTs.
  */
 contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     /* State variables */
@@ -39,7 +38,12 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
         uint256 indexed tokenID,
         string newURI
     );
+    event BFNFT__MoneySent(uint256 quantity);
 
+    /**
+     * @dev Checks if caller has more than 0 tickets, if it does it decreases them by 1.
+     * If caller is onwer nothing is done.
+     */
     modifier hasTickets() {
         if (s_clientToTickects[msg.sender] == 0 && msg.sender != this.owner()) {
             revert BFNFT__YouHaveNoTcikets();
@@ -51,8 +55,6 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     }
 
     /**
-     * Checking if an address is owner of a token.
-     *
      * @dev Checks if `_tokenOwner` address owns token with `_tokenId`.
      * If not reverts with customed error.
      */
@@ -63,6 +65,12 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
         _;
     }
 
+    /**
+     * @dev Controls inputs.
+     * Owner has total uncontroled input calls. Doen't affect the agreement
+     * because if Owner doesn't own NFT he won't be able to call any function
+     * that affects the NFT's URI.
+     */
     modifier checkAllowedInput(
         bytes4 _funcSelec,
         address _callerAddress,
@@ -87,10 +95,7 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     /* External functions */
 
     /**
-     * @dev Mints new token calling _safeMint(), new token's ID is totalSupply() and sets tokenURI with
-     * _setTokenURI(). BaseURI is empty.
-     *
-     * @notice Client must call this function but first the interaction must me allowed by backend.
+     * @dev Mints new token calling _safeMint(), new token's ID is totalSupply().
      */
     function mintNft(string calldata _tokenURI) external payable onlyOwner {
         uint256 tokenId = totalSupply();
@@ -100,9 +105,12 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
     }
 
     /**
-     * @dev Changes stats of NFT because of change in URI.
+     * @dev Changes stats of NFT changing it's URI.
      *
      * @notice Client must call this function but first the interaction must me allowed by backend.
+     * Client request change to backend, backend sends back an URI and if client likes the changes
+     * they can call this function with the allowed URI backend gave them. Therefore creating an
+     * agreement.
      *
      * @param _newTokenURI is URI pointing to JSON metadata on IPFS or on-chain
      * metadata in JSON format encoded in base64.
@@ -125,6 +133,9 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
         emit BFNFT__StatsChanged(msg.sender, _tokenId, _newTokenURI);
     }
 
+    /**
+     * @dev Allows backend to give permissions to clients.
+     */
     function allowInputs(
         address _callerAddress,
         bytes32[] calldata _validInputs,
@@ -139,7 +150,11 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
         );
     }
 
+    /**
+     * @dev Withdraws funds gathered from change stat tickets sold..
+     */
     function withdrawFunds() external onlyOwner {
+        emit BFNFT__MoneySent(address(this).balance);
         (bool success, ) = payable(this.owner()).call{
             value: address(this).balance
         }("");
@@ -148,11 +163,18 @@ contract BuddyFightersNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
         }
     }
 
+    /**
+     * @dev Clients call this to buy tickets.
+     * 1 at a time and money sent myst be higher or equal to the price.
+     */
     function buyTicket() external payable {
         if (msg.value >= TICKET_PRICE) s_clientToTickects[msg.sender] += 1;
         else revert BFNFT__NotPayedEnough();
     }
 
+    /**
+     * @return Num of tickets that `_address` has.
+     */
     function getTicketsOf(address _address) external view returns (uint256) {
         return s_clientToTickects[_address];
     }

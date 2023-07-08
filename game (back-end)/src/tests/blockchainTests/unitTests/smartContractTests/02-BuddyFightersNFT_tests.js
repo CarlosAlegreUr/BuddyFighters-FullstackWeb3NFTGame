@@ -13,6 +13,7 @@ describe("BuddyFigthersNFT.sol tests", function () {
         buddyFightersNFTClient2,
         mintedEventFilter,
         statsChangeEventFilter,
+        withdrawalEventFilter,
         priceToChangeStats;
 
     // Helper functions
@@ -59,6 +60,8 @@ describe("BuddyFigthersNFT.sol tests", function () {
             .BFNFT__NftMinted;
         statsChangeEventFilter = await buddyFightersNFTClient1.filters
             .BFNFT__StatsChanged;
+        withdrawalEventFilter = await buddyFightersNFTContract.filters
+            .BFNFT__MoneySent;
         // Prices
         priceToChangeStats = await ethers.parseEther(
             await prices.changeStatsTicket.toString()
@@ -119,6 +122,28 @@ describe("BuddyFigthersNFT.sol tests", function () {
             await buddyFightersNFTContract.getTicketsOf(client1)
         );
         assert.equal(1, ticketsOfC1);
+    });
+
+    it("withdrawAllowedFunds(): Correct quantity is withdrawn.", async function () {
+        let txResponse = await buddyFightersNFTContract.withdrawFunds();
+        let txReceipt = await txResponse.wait();
+        let txBlock = txReceipt.blockNumber;
+        let query = await buddyFightersNFTContract.queryFilter(
+            withdrawalEventFilter,
+            txBlock
+        );
+        let quantity = query[0].args[0];
+        assert.equal(quantity, priceToChangeStats);
+
+        txResponse = await buddyFightersNFTContract.withdrawFunds();
+        txReceipt = await txResponse.wait();
+        txBlock = txReceipt.blockNumber;
+        query = await buddyFightersNFTContract.queryFilter(
+            withdrawalEventFilter,
+            txBlock
+        );
+        quantity = query[0].args[0];
+        assert.equal(quantity, await ethers.parseEther("0"));
     });
 
     it("changeStats: You must have tickets and they are spent correctly.", async function () {

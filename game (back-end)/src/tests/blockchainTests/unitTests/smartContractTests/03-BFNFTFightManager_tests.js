@@ -1,16 +1,20 @@
 const { assert, expect } = require("chai");
-const { ethers, getNamedAccounts, deployments } = require("hardhat");
+const { ethers, getNamedAccounts, deployments, network } = require("hardhat");
 
 const { prices } = require("../../../../businessConstants.json");
 
 describe("BFNFTFightsManager.sol tests", function () {
-    let deployer,
+    const inLocalhost = network.name == "localhost" ? true : false;
+    let provider,
+        deployer,
         client1,
         client2,
         BFNFTFightsManagerContract,
         BFNFTFightsManagerClient1,
         fightStartedEventFilter,
         fightResultEventFilter,
+        withdrawalFilter,
+        betReturnedFilter,
         priceForFightTicket,
         betInEthers,
         startFightValues,
@@ -63,6 +67,16 @@ describe("BFNFTFightsManager.sol tests", function () {
         return tickets;
     }
 
+    async function getRecievedMoneyInWithdrawn(txReceipt) {
+        const txBlock = txReceipt.blockNumber;
+        const query = await BFNFTFightsManagerContract.queryFilter(
+            withdrawalFilter,
+            txBlock
+        );
+        const recieved = query[0].args[0];
+        return recieved;
+    }
+
     function delay(ms) {
         return new Promise((resolve) => {
             setTimeout(resolve, ms);
@@ -71,6 +85,9 @@ describe("BFNFTFightsManager.sol tests", function () {
 
     // Tests
     beforeEach(async function () {
+        if (inLocalhost) {
+            provider = new ethers.JsonRpcProvider("http://localhost:8545");
+        }
         const {
             deployer: d,
             client1: c,
@@ -100,6 +117,10 @@ describe("BFNFTFightsManager.sol tests", function () {
             .BFNFT__FManager__FightStarted;
         fightResultEventFilter = await BFNFTFightsManagerContract.filters
             .BFNFT__FManager__FightResult;
+        withdrawalFilter = await BFNFTFightsManagerContract.filters
+            .BFNFT__FManager__FundsWithdrawn;
+        betReturnedFilter = await BFNFTFightsManagerContract.filters
+            .BFNFT__FManager__BetReturned;
 
         // Prices
         priceForFightTicket = await ethers.parseEther(
@@ -257,9 +278,11 @@ describe("BFNFTFightsManager.sol tests", function () {
     });
 
     it("declareWinner(): Player set as winner recieves the price and event is emitted correctly.", async () => {
-        const provider = new ethers.JsonRpcProvider("http://localhost:8545");
-        const prevBalanceC1 = await provider.getBalance(client1);
-        const prevBalanceC2 = await provider.getBalance(client2);
+        let prevBalanceC1, prevBalanceC2;
+        if (inLocalhost) {
+            prevBalanceC1 = await provider.getBalance(client1);
+            prevBalanceC2 = await provider.getBalance(client2);
+        }
         const txResponse = await BFNFTFightsManagerContract.declareWinner(
             fightId,
             client1,
@@ -274,14 +297,20 @@ describe("BFNFTFightsManager.sol tests", function () {
         );
         const fightIdSet = query[0].args[0];
         const winner = query[0].args[1];
+        const prize = query[0].args[2];
         assert.deepEqual(fightId, fightIdSet);
         assert.deepEqual(client1, winner);
-        await delay(1000);
-        const currentBalanceC1 = await provider.getBalance(client1);
-        assert.isAbove(currentBalanceC1, prevBalanceC1);
+        // Expect both bets from players added together. In this tests players always bet 0.1 sETH
+        const expectedPrice = await ethers.parseEther("0.2");
+        assert.equal(prize, expectedPrice);
+        if (inLocalhost) {
+            await delay(1000);
+            const currentBalanceC1 = await provider.getBalance(client1);
+            assert.isAbove(currentBalanceC1, prevBalanceC1);
 
-        const currentBalanceC2 = await provider.getBalance(client2);
-        assert.equal(currentBalanceC2, prevBalanceC2);
+            const currentBalanceC2 = await provider.getBalance(client2);
+            assert.equal(currentBalanceC2, prevBalanceC2);
+        }
     });
 
     it("declareWinner(): Fight settings are reseted.", async () => {
@@ -296,6 +325,7 @@ describe("BFNFTFightsManager.sol tests", function () {
         await BFNFTFightsManagerClient1.setBet({ value: betInEthers });
         await BFNFTFightsManagerClient2.setBet({ value: betInEthers });
         await allowStartFight(client1, startFightValues);
+
         await expect(
             BFNFTFightsManagerClient1.startFight(
                 [client1, client2],
@@ -308,7 +338,7 @@ describe("BFNFTFightsManager.sol tests", function () {
         );
     });
 
-    it("startFight(): If a bet sent is lower than agreed, tickets to 0 penalty is applied all bets are returned.", async () => {
+    it("startFight(): If a bet sent is lower than agreed, tickets to 0 penalty is applied all bets are returned and event emited correctly.", async () => {
         // Player 1 wont set the bet correctly, should eventually be punished.
         await BFNFTFightsManagerClient1.setBet({ value: 0 });
         await buyXTickets(client1, 3);
@@ -319,17 +349,31 @@ describe("BFNFTFightsManager.sol tests", function () {
         await buyXTickets(client2, 1);
         await BFNFTFightsManagerClient2.setBet({ value: betInEthers });
 
-        const provider = new ethers.JsonRpcProvider("http://localhost:8545");
-        const prevBalanceC1 = await provider.getBalance(client1);
-        const prevBalanceC2 = await provider.getBalance(client2);
-
+        let prevBalanceC1, prevBalanceC2;
+        if (inLocalhost) {
+            prevBalanceC1 = await provider.getBalance(client1);
+            // If await delay(1000); is written from here or below the tests will just halt idk why.
+            // --> await delay(1000);
+            prevBalanceC2 = await provider.getBalance(client2);
+        }
         const ticketsOfC2prev = await getTicketsOfAsInt(client2);
+
         // Client2 which bet as it should wants to start but 1 doesn't bet.
-        await BFNFTFightsManagerClient2.startFight(
+        const txResponse = await BFNFTFightsManagerClient2.startFight(
             [client1, client2],
             [1, 0],
             [betInEthers, betInEthers]
         );
+        const txReceipt = await txResponse.wait();
+        const txBlock = txReceipt.blockNumber;
+        const query = await BFNFTFightsManagerContract.queryFilter(
+            betReturnedFilter,
+            txBlock
+        );
+        const recievedBack = query[1].args[1];
+        assert.equal(recievedBack, betInEthers);
+        const recievedBackP1 = query[0].args[1];
+        assert.equal(recievedBackP1, await ethers.parseEther("0"));
 
         // Client 1 can't call startFight now.
         await expect(
@@ -341,10 +385,15 @@ describe("BFNFTFightsManager.sol tests", function () {
         ).to.be.reverted;
 
         // Client 2 behave properly so it's bet is returned.
-        const currentBalanceC2 = await provider.getBalance(client2);
-        assert.equal(currentBalanceC2, prevBalanceC2);
-        const currentBalanceC1 = await provider.getBalance(client1);
-        assert.equal(currentBalanceC1, prevBalanceC1);
+        if (inLocalhost) {
+            // Super weird, if added a delay higher than 78, in any part above this test
+            // then code just halts in line pointed with an arrow ->
+            // await delay(1000);
+            const currentBalanceC2 = await provider.getBalance(client2);
+            /* --> */ assert.equal(currentBalanceC2, prevBalanceC2);
+            const currentBalanceC1 = await provider.getBalance(client1);
+            assert.equal(currentBalanceC1, prevBalanceC1);
+        }
 
         // Client 1 didnt bet what he said, punishment tickets go to 0.
         const ticketsOfC1 = await getTicketsOfAsInt(client1);
@@ -366,20 +415,30 @@ describe("BFNFTFightsManager.sol tests", function () {
         );
     });
 
-    it("withdrawAllowedFunds(): Only owner withdraws and only withdraws funds from ticket income.", async () => {
+    it("withdrawAllowedFunds(): Only owner withdraws and only withdraws funds from ticket income and event emitted correctly..", async () => {
         // Clients can't call withdraw
         await expect(BFNFTFightsManagerClient1.withdrawAllowedFunds()).to.be
             .reverted;
 
         // Checking if money arrives to address.
-        const provider = new ethers.JsonRpcProvider("http://localhost:8545");
-        let prevBalance = await provider.getBalance(deployer);
+        let prevBalance;
+        if (inLocalhost) {
+            prevBalance = await provider.getBalance(deployer);
+        }
         await buyXTickets(client1, 1);
         await buyXTickets(client2, 1);
-        await BFNFTFightsManagerContract.withdrawAllowedFunds();
-        await delay(1000);
-        let newBalance = await provider.getBalance(deployer);
-        assert.isAbove(newBalance, prevBalance);
+        let txResponse =
+            await BFNFTFightsManagerContract.withdrawAllowedFunds();
+        let txReceipt = await txResponse.wait();
+        let recieved = await getRecievedMoneyInWithdrawn(txResponse);
+        assert.notEqual(recieved, await ethers.parseEther("0"));
+
+        let newBalance;
+        if (inLocalhost) {
+            await delay(1000);
+            newBalance = await provider.getBalance(deployer);
+            assert.isAbove(newBalance, prevBalance);
+        }
 
         // Withdrawal before fight, only withdraws ticket amounts.
         prevBalance = newBalance;
@@ -387,12 +446,16 @@ describe("BFNFTFightsManager.sol tests", function () {
         await buyXTickets(client2, 1);
         await BFNFTFightsManagerClient1.setBet({ value: betInEthers });
         await BFNFTFightsManagerClient2.setBet({ value: betInEthers });
-        await BFNFTFightsManagerContract.withdrawAllowedFunds();
-        await delay(1000);
-        newBalance = await provider.getBalance(deployer);
-        let retired = newBalance - prevBalance;
-        assert.isAtMost(retired, await ethers.parseEther("0.2"));
-
+        txResponse = await BFNFTFightsManagerContract.withdrawAllowedFunds();
+        txReceipt = await txResponse.wait();
+        recieved = await getRecievedMoneyInWithdrawn(txResponse);
+        assert.equal(recieved, await ethers.parseEther("0.2"));
+        if (inLocalhost) {
+            await delay(1000);
+            newBalance = await provider.getBalance(deployer);
+            let retired = newBalance - prevBalance;
+            assert.isAtMost(retired, await ethers.parseEther("0.2"));
+        }
         // Withdrawal during fight, only withdraws ticket amounts.
         prevBalance = newBalance;
         await buyXTickets(client1, 1);
@@ -404,13 +467,17 @@ describe("BFNFTFightsManager.sol tests", function () {
             [1, 0],
             [betInEthers, betInEthers]
         );
-        await BFNFTFightsManagerContract.withdrawAllowedFunds();
-        await delay(1000);
-        newBalance = await provider.getBalance(deployer);
-        assert.isAbove(newBalance, prevBalance);
-        retired = newBalance - prevBalance;
-        assert.isAtMost(retired, await ethers.parseEther("0.2"));
-
+        txResponse = await BFNFTFightsManagerContract.withdrawAllowedFunds();
+        txReceipt = await txResponse.wait();
+        recieved = await getRecievedMoneyInWithdrawn(txResponse);
+        assert.equal(recieved, await ethers.parseEther("0.2"));
+        if (inLocalhost) {
+            await delay(1000);
+            newBalance = await provider.getBalance(deployer);
+            assert.isAbove(newBalance, prevBalance);
+            retired = newBalance - prevBalance;
+            assert.isAtMost(retired, await ethers.parseEther("0.2"));
+        }
         // Withdrawal after fight, only withdraws ticket amounts.
         prevBalance = newBalance;
         await buyXTickets(client1, 1);
@@ -419,13 +486,17 @@ describe("BFNFTFightsManager.sol tests", function () {
             client1,
             client2,
         ]);
-        await BFNFTFightsManagerContract.withdrawAllowedFunds();
-        await delay(1000);
-        newBalance = await provider.getBalance(deployer);
-        assert.isAbove(newBalance, prevBalance);
-        retired = newBalance - prevBalance;
-        assert.isAtMost(retired, await ethers.parseEther("0.2"));
-
+        txResponse = await BFNFTFightsManagerContract.withdrawAllowedFunds();
+        txReceipt = await txResponse.wait();
+        recieved = await getRecievedMoneyInWithdrawn(txResponse);
+        assert.equal(recieved, await ethers.parseEther("0.2"));
+        if (inLocalhost) {
+            await delay(1000);
+            newBalance = await provider.getBalance(deployer);
+            assert.isAbove(newBalance, prevBalance);
+            retired = newBalance - prevBalance;
+            assert.isAtMost(retired, await ethers.parseEther("0.2"));
+        }
         // Withdrawal before fight with invalid bets, only withdraws ticket amounts.
         prevBalance = newBalance;
         await delay(1500);
@@ -434,7 +505,10 @@ describe("BFNFTFightsManager.sol tests", function () {
         await BFNFTFightsManagerClient1.setBet({ value: betInEthers });
         await allowStartFight(client1, startFightValues);
         await allowStartFight(client2, startFightValues);
-        await BFNFTFightsManagerContract.withdrawAllowedFunds();
+        txResponse = await BFNFTFightsManagerContract.withdrawAllowedFunds();
+        txReceipt = await txResponse.wait();
+        recieved = await getRecievedMoneyInWithdrawn(txResponse);
+        assert.equal(recieved, await ethers.parseEther("0.2"));
         await BFNFTFightsManagerClient2.startFight(
             [client1, client2],
             [1, 0],
@@ -447,11 +521,13 @@ describe("BFNFTFightsManager.sol tests", function () {
                 [betInEthers, betInEthers]
             )
         ).to.be.reverted;
-        await delay(2000);
-        newBalance = await provider.getBalance(deployer);
-        assert.isAbove(newBalance, prevBalance);
-        retired = newBalance - prevBalance;
-        assert.isAtMost(retired, await ethers.parseEther("0.2"));
+        if (inLocalhost) {
+            await delay(2000);
+            newBalance = await provider.getBalance(deployer);
+            assert.isAbove(newBalance, prevBalance);
+            retired = newBalance - prevBalance;
+            assert.isAtMost(retired, await ethers.parseEther("0.2"));
+        }
 
         // Withdrawal after fight with invalid bets, only withdraws ticket amounts.
         prevBalance = newBalance;
@@ -472,11 +548,16 @@ describe("BFNFTFightsManager.sol tests", function () {
                 [betInEthers, betInEthers]
             )
         ).to.be.reverted;
-        await BFNFTFightsManagerContract.withdrawAllowedFunds();
-        await delay(1000);
-        newBalance = await provider.getBalance(deployer);
-        assert.isAbove(newBalance, prevBalance);
-        retired = newBalance - prevBalance;
-        assert.isAtMost(retired, await ethers.parseEther("0.2"));
+        txResponse = await BFNFTFightsManagerContract.withdrawAllowedFunds();
+        txReceipt = await txResponse.wait();
+        recieved = await getRecievedMoneyInWithdrawn(txResponse);
+        assert.equal(recieved, await ethers.parseEther("0.2"));
+        if (inLocalhost) {
+            await delay(1000);
+            newBalance = await provider.getBalance(deployer);
+            assert.isAbove(newBalance, prevBalance);
+            retired = newBalance - prevBalance;
+            assert.isAtMost(retired, await ethers.parseEther("0.2"));
+        }
     });
 });
