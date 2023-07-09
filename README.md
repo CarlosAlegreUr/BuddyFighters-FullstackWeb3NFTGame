@@ -119,13 +119,13 @@ There must also be a function that validates next fight states, if different fig
 
 Hardhat localhost network 🟡 :
 
-- Manual testing ✅
-- High Manual Tests' Coverage ✅
-- Slither syntact analysis ✅
+- Manual testing 🟢
+- High Manual Tests' Coverage 🟢
+- Slither syntax analysis 🟢
 - Contracts Fuzz testing ⛔🕵️ (learning with Foundry)
 - Symbolic analysis ⛔🕵️ (learning with trailOfBits Manticore)
 
-Any testnet network 🔴 ⛔⛔⛔⛔
+Any testnet 🔴 ⛔⛔⛔⛔
 
 <hr/>
 
