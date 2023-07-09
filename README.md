@@ -21,6 +21,7 @@
 - **About the App ℹ️**
   - Potential Misuse of Power 💢
   - **A Trustless Fully Decentralized Scenario 👼**
+- **Self-Audit state 💥**
 - **App So Far Demo Video: 📹**
 - **Packages & Technologies Utilized 🧰**
 - **How the System Functions ⚙️**
@@ -111,6 +112,20 @@ There must also be a function that validates next fight states, if different fig
 > **Note**: For game mechanics with **luck based moves**, **VRF Chainlink** contracts should be used to determine the **random luck based result**. So users can validate the next fight state, even if the
 > process is deterministic, now they can **use a verified
 > random value for the deterministically computed next state.**
+
+<hr/>
+
+# **Self-Audit state 💥**
+
+Hardhat localhost network 🟡 :
+
+- Manual testing ✅
+- High Manual Tests' Coverage ✅
+- Slither syntact analysis ✅
+- Contracts Fuzz testing ⛔🕵️ (learning with Foundry)
+- Symbolic analysis ⛔🕵️ (learning with trailOfBits Manticore)
+
+Any testnet network 🔴 ⛔⛔⛔⛔
 
 <hr/>
 
@@ -246,12 +261,13 @@ Source of the pokemon fusions images used in this project. <br>
 
 # **TODO 🚧**
 
-1. Apply static analysis, fuzz testing and symbolic analysis in smart contracts.
-2. Try to improve smart contract tests.
-3. Finish and test frontend, API and backend services.
-4. Improve READMEs: intructions for local usage.
-5. Try to improve tests' readability.
-6. Create the completely decentralized trustless version of BuddyFighters!
+1. Apply fuzz testing and symbolic analysis in smart contracts.
+2. Try to improve manual smart contract tests.
+3. Improve routes security type checking in backed.
+4. Finish and test frontend, API and backend services.
+5. Improve READMEs: intructions for local usage.
+6. Try to improve tests' readability.
+7. Create the completely decentralized trustless version of BuddyFighters!
 
 ---
 

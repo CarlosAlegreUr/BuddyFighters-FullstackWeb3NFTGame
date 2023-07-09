@@ -15,3 +15,6 @@ cache
 artifacts
 gasReport.txt
 deployments
+
+#Echidna
+crytic-export
