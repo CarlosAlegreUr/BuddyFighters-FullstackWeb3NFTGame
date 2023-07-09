@@ -36,9 +36,15 @@ function mixNames(id1, id2) {
     return mixedName;
 }
 
+// TODO:
+async function getNftTraits(metadataUrl) {
+    return [100];
+}
+
 module.exports = {
     getRarity,
     mixNames,
+    getNftTraits,
 };
 
 const pokemonNames = [

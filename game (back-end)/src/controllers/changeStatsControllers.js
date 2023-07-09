@@ -29,6 +29,10 @@ exports.generateNewURIAndAllowClient = async (req, res, next) => {
         const { nftId, rndmNumsReqId } = req.body;
         const playerAddress = req.user.address;
 
+        if (typeof nftId === "number" && (await Number.isInteger(nftId))) {
+            nftId = await nftId.toString();
+        }
+
         if (!nftId || !rndmNumsReqId) {
             return res.status(400).json({
                 message:

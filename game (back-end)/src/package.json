@@ -19,7 +19,7 @@
         "npm": "^9.7.2",
         "openzeppelin-contracts": "^4.0.0",
         "prettier": "^2.7.1",
-        "solidity-coverage": "^0.7.21",
+        "solidity-coverage": "^0.8.4",
         "supertest": "^6.3.3"
     },
     "dependencies": {

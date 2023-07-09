@@ -2,7 +2,7 @@ const { ethers } = require("ethers");
 
 async function verifySignature(address, message, signature) {
     try {
-        const signingAddress = await ethers.utils.verifyMessage(
+        const signingAddress = await ethers.verifyMessage(
             `${message}`,
             signature
         );

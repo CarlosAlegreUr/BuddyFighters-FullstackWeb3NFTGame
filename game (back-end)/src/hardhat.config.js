@@ -4,8 +4,8 @@ require("@nomiclabs/hardhat-etherscan");
 require("@nomicfoundation/hardhat-chai-matchers");
 require("./tasks/tasks");
 require("hardhat-gas-reporter");
-require("solidity-coverage");
 require("hardhat-deploy");
+require("solidity-coverage");
 
 const RINKEBY_RPC_URL = process.env.GOERLI_RPC_URL;
 const RINKEBY_SK_01 = process.env.RINKEBY_SK_01;

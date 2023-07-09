@@ -15,10 +15,13 @@ router.use(checkSSEConnection);
 
 router.post("/postChallenge", matchmackingController.postChallenge);
 router.post("/deleteChallenge", matchmackingController.removeChallenge);
-router.post("/acceptChallenge", matchmackingController.acceptChallenge);
 router.post(
-    "/acceptSomeonesChallenge",
-    matchmackingController.acceptSomeonesChallenge
+    "/sendOfferToChallenger",
+    matchmackingController.sendOfferToChallenger
+);
+router.post(
+    "/acceptOfferStartFight",
+    matchmackingController.acceptOfferStartFight
 );
 
 module.exports = router;

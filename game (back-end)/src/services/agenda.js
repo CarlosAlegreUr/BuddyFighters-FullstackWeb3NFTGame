@@ -3,8 +3,15 @@ dotenv.config();
 
 const Agenda = require("agenda");
 
+const {
+    allowStartFight,
+    disallowStartFight,
+    isFightActive,
+} = require("../blockchainScripts/fightManagerFuncs");
+
 const NewUri = require("../database/models/newUriModel");
 const BlockchainAuthNonce = require("../database/models/blockchainAuthNonceModel");
+const Fight = require("../database/models/fightModel");
 
 const {
     disallowStatsChange,
@@ -43,6 +50,26 @@ agenda.define("updateStatsChangeAllowance", async (job) => {
     }
     await unpinByHashPinata(token_Hash);
     await NewUri.deleteOne({ address: playerAddress });
+});
+
+// After both players accept each other challenges and they are notified they get permissions to start the fight.
+agenda.define("giveStartFightPermissions", async (job) => {
+    const { playerAddress, opponentAddress, nftId1, nftId2, bet1, bet2 } =
+        job.attrs.data;
+    await allowStartFight(
+        [playerAddress, opponentAddress],
+        [nftId1, nftId2],
+        [bet1, bet2]
+    );
+});
+
+agenda.define("deleteIfFightNotStarted", async (job) => {
+    const { playerAddress, opponentAddress, fId } = job.attrs.data;
+    const isActive = await isFightActive(fId);
+    if (!isActive) {
+        await disallowStartFight([playerAddress, opponentAddress]);
+        await Fight.deleteOne({ fightId: fId });
+    }
 });
 
 (async () => {

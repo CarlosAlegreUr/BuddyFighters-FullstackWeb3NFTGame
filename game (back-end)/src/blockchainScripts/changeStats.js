@@ -29,7 +29,7 @@ async function allowRandomStatsGeneration(clientAddress) {
         );
 
         let funcSig = "requestRandomNumbers(uint32)";
-        let hash = await ethers.utils.solidityKeccak256(["string"], [funcSig]);
+        let hash = await ethers.id(funcSig);
         const funcSelec = await hash.substring(0, 10);
         await bfnftRndmWordsContract.callAllowFuncCallsFor(
             clientAddress,
@@ -87,7 +87,6 @@ async function allowChangeOfStats(
             const { stats } = onDevNet
                 ? await geteRandomNumsLocalhost(false, true, rndmReqId)
                 : await getRandmNumsFromEvents(rndmReqId, clientAddress);
-
             let newToken_URI;
             if (savedOnBlockchain) {
                 // TODO:
@@ -111,13 +110,12 @@ async function allowChangeOfStats(
 
                 // Pin new metadata
                 newToken_URI = await uploadMetadataJSONPinata(metadataJSON);
-
                 // Give client permission to call changeStats() with input value newToken_URI
-                validInputs = await ethers.utils.defaultAbiCoder.encode(
-                    ["string", "uint256"],
-                    [newToken_URI, tokenId]
-                );
-                validInputs = await ethers.utils.keccak256(validInputs);
+                const types = [{ type: "string" }, { type: "uint256" }];
+                const inputs = [newToken_URI, tokenId];
+                const coder = new ethers.AbiCoder();
+                const abiEncodedInput = await coder.encode(types, inputs);
+                const validInputs = await ethers.keccak256(abiEncodedInput);
                 await buddyFightersNFTContract.allowInputs(
                     clientAddress,
                     [validInputs],

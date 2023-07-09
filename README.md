@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-  <a><img src="https://image.shutterstock.com/image-photo/pattaya-thailand-2-sep-2016-600w-477402835.jpg" width="200"></a>
+  <a><img src="./readme-images/pokeball.png" width="200"></a>
   <br>
   <strong>BuddyFighters (IN DEVELOPMENT)</strong>
   <br>
@@ -21,7 +21,8 @@
 - **About the App ℹ️**
   - Potential Misuse of Power 💢
   - **A Trustless Fully Decentralized Scenario 👼**
-- **App Demonstration Video: 📹** (TODO)
+- **Self-Audit state 💥**
+- **App So Far Demo Video: 📹**
 - **Packages & Technologies Utilized 🧰**
 - **How the System Functions ⚙️**
 - **Project Structure 📁**
@@ -35,7 +36,13 @@
 
 # **Purpose of this Repository 🤔**
 
-This repository hosts the code required to run a robust full-stack web application. Besides interacting with traditional full-stack web systems, it also interfaces with EVM-compatible blockchains and decentralized networks like IPFS for certain services.
+This repository serves multiple purposes in my **learning journey**. It has been created with the purpose of **learning how to develop a robust full-stack web application**. Involving traditional full-stack web systems and **interactions with EVM-compatible blockchains** and **decentralized networks such as IPFS**.
+
+The **primary focus** of this repository is to gain **practical experience** in **designing and implementing smart contracts** while **testing** their **functionality** and **security**.
+
+While smart contracts have been the main focus, I have also developed the foundational code for developing a **full-stack app**. However, please note that the current implementation does not have extensive functionality or have the highest standards of bug-free and versatile code. The focus has been on simulating the initial stages and conclusion of a 2 players battle, allowing me to better **understand the intricate interactions and workings of all components in a full-stack system**.
+
+I'm aware of all the following steps I have to take in order to make the fullstack app secure and clean, for now the only **secure and clean code** will be the one **related to smart contracts and it's testing**. I might develop this project properly in the future 😄.
 
 <hr/>
 
@@ -108,7 +115,21 @@ There must also be a function that validates next fight states, if different fig
 
 <hr/>
 
-# **App Demonstration Video: 📹*** (TODO)
+# **Self-Audit state 💥**
+
+Hardhat localhost network 🟡 :
+
+- Manual testing ✅
+- High Manual Tests' Coverage ✅
+- Slither syntact analysis ✅
+- Contracts Fuzz testing ⛔🕵️ (learning with Foundry)
+- Symbolic analysis ⛔🕵️ (learning with trailOfBits Manticore)
+
+Any testnet network 🔴 ⛔⛔⛔⛔
+
+<hr/>
+
+# **App So Far Demo Video: 📹\*** (TODO)
 
 <hr/>
 
@@ -240,12 +261,13 @@ Source of the pokemon fusions images used in this project. <br>
 
 # **TODO 🚧**
 
-1. Apply static analysis, fuzz testing and symbolic analysis in smart contracts.
-2. Try to improve smart contract tests.
-3. Finish and test frontend, API and backend services.
-4. Improve READMEs: intructions for local usage.
-5. Try to improve tests' readability.
-6. Create the completely decentralized trustless version of BuddyFighters!
+1. Apply fuzz testing and symbolic analysis in smart contracts.
+2. Try to improve manual smart contract tests.
+3. Improve routes security type checking in backed.
+4. Finish and test frontend, API and backend services.
+5. Improve READMEs: intructions for local usage.
+6. Try to improve tests' readability.
+7. Create the completely decentralized trustless version of BuddyFighters!
 
 ---
 

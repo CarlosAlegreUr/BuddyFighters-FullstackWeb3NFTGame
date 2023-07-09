@@ -6,9 +6,7 @@ const {
 
 async function broadcastMatchmakingState() {
     for (const [playerAddress, sse] of Object.entries(sseConnections)) {
-        console.log(playerAddress);
         const challenges = await getRandomChallenges(playerAddress);
-
         if (challenges && challenges.length) {
             await sse.send({
                 event: "challengesList",
@@ -23,25 +21,57 @@ async function broadcastMatchmakingState() {
     }
 }
 
-async function notifyAcceptance(addressOfClientToNotify) {
-    const sse = sseConnections[addressOfClientToNotify];
-    console.log(`Notifying: ${addressOfClientToNotify}`);
-    const challenges = await getAcceptedChallenges(addressOfClientToNotify);
-    if (challenges) {
-        console.log("Accepting challnges");
-        console.log(challenges);
+async function notifyClient(addresOfClient, message) {
+    try {
+        const send = { message: message };
+        const sse = sseConnections[addresOfClient];
         await sse.send({
-            event: "acceptedChallenge",
-            data: challenges,
+            event: "takeActionsInfo",
+            data: send,
         });
         return true;
-    } else {
-        await sse.send({
-            event: "error",
-            data: "Oponent doesnt have any challenge posted!",
-        });
-        return false;
+    } catch (err) {
+        throw err;
     }
 }
 
-module.exports = { broadcastMatchmakingState, notifyAcceptance };
+async function notifyAcceptance(addressOfClientToNotify) {
+    try {
+        const sse = sseConnections[addressOfClientToNotify];
+        const challenges = await getAcceptedChallenges(addressOfClientToNotify);
+        if (challenges) {
+            await sse.send({
+                event: "acceptedChallenge",
+                data: challenges,
+            });
+            return true;
+        } else {
+            await sse.send({
+                event: "error",
+                data: "Oponent doesnt have any challenge posted!",
+            });
+            return false;
+        }
+    } catch (err) {
+        throw err;
+    }
+}
+
+async function notifySendYourBet(addresOfClient) {
+    try {
+        const sse = sseConnections[addresOfClient];
+        await sse.send({
+            event: "sendBet",
+        });
+        return true;
+    } catch (err) {
+        throw err;
+    }
+}
+
+module.exports = {
+    broadcastMatchmakingState,
+    notifyClient,
+    notifySendYourBet,
+    notifyAcceptance,
+};
