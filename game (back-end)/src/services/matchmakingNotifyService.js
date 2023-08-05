@@ -4,6 +4,8 @@ const {
     getAcceptedChallenges,
 } = require("./matchmakingServices");
 
+const { formatReturn } = require("../utils/returns");
+
 async function broadcastMatchmakingState() {
     for (const [playerAddress, sse] of Object.entries(sseConnections)) {
         const challenges = await getRandomChallenges(playerAddress);
@@ -57,13 +59,16 @@ async function notifyAcceptance(addressOfClientToNotify) {
     }
 }
 
-async function notifySendYourBet(addresOfClient) {
+async function notifySendYourBet(addresOfClient, fightData) {
     try {
+        const notification = `Your offer has been accepted! Send your bet quick! Any player
+        can start the fight in 15 seconds from now!`;
         const sse = sseConnections[addresOfClient];
         await sse.send({
             event: "sendBet",
+            data: { notification: notification, fightData: fightData },
         });
-        return true;
+        return await formatReturn(true, "Notification sent");
     } catch (err) {
         throw err;
     }

@@ -7,6 +7,7 @@ const { getTokenUri } = require("../blockchainScripts/changeStats");
 const {
     retrieveJsonFromIpfs,
 } = require("../utils/blockchainUtils/getIPFSData");
+const { formatReturn } = require("../utils/returns");
 
 const agenda = require("./agenda");
 
@@ -58,28 +59,52 @@ async function getRandomChallenges(addressToAvoid = "", count = 3) {
     }
 }
 
-async function acceptChallenge(
+async function sendOfferToChallenge(
     playerAddress,
-    opponentAddress,
+    challengerAddress,
     offeredBetAmount,
-    ourNftId
+    challengueeNftId
 ) {
     try {
+        const challenge = await Challenge.findOne({
+            playerAddress: challengerAddress,
+        });
+
+        // Limit set so databse occupies little space.
+        if (challenge.accepted.length >= 4) {
+            return await formatReturn(
+                false,
+                "Challenge doesn't accept more offers."
+            );
+        }
+
+        // Only 1 offer per player.
+        const acceptances = await challenge.accepted;
+        const onlyOneOfferPerPlayer = await acceptances.find(
+            (obj) => obj.opponentAddress === playerAddress
+        );
+        if (onlyOneOfferPerPlayer) {
+            return await formatReturn(false, "You already sent an offer.");
+        }
+
         const result = await Challenge.updateOne(
-            { playerAddress: opponentAddress },
+            { playerAddress: challengerAddress },
             {
                 $push: {
                     accepted: {
                         opponentAddress: playerAddress,
                         offeredBetAmount: offeredBetAmount,
-                        opponentNftId: ourNftId,
+                        opponentNftId: challengueeNftId,
                     },
                 },
             }
         );
+
         if (result.modifiedCount === 1) {
-            return true;
-        } else return false;
+            return await formatReturn(true, "Offer updated correctly.");
+        } else {
+            return await formatReturn(false, "Error updating offers array.");
+        }
     } catch (err) {
         throw err;
     }
@@ -101,16 +126,24 @@ async function getAcceptedChallenges(playerAddress) {
 async function dealDoneHanldeStartFightPermissions(
     playerAddress,
     opponentAddress,
-    nftId1,
     nftId2
 ) {
     try {
+        const numberOfFights = await Fight.countDocuments();
+        if (numberOfFights >= 2) {
+            return await formatReturn(
+                false,
+                "System doesn't support more fights."
+            );
+        }
+
         // Save in DB corresponding Fight object
+        // Gathering the data for the Fight object
         const challenge = await Challenge.findOne({
             playerAddress: playerAddress,
-            nftId: nftId1,
         });
         if (!challenge) return false;
+        const nftId1 = challenge.nftId;
         const bet1 = challenge.betAmount;
 
         const acceptances = challenge.accepted;
@@ -133,6 +166,7 @@ async function dealDoneHanldeStartFightPermissions(
         let nftMetadata1 = await retrieveJsonFromIpfs(token1_Hash);
         let nftMetadata2 = await retrieveJsonFromIpfs(token2_Hash);
 
+        // Saving the Fight object
         const now = new Date();
         const newFight = new Fight({
             fightId: fId,
@@ -146,10 +180,14 @@ async function dealDoneHanldeStartFightPermissions(
         });
         await newFight.save();
 
-        // Execute after 1 minute. Gives permissions to players but first lets them time to
-        //send the bets and get ready.
+        // Executes after 15:
+        // Gives permissions to players but first
+        // lets them time to send the bets and get ready.
+        // If clients don't send the bets and this executes,
+        // the other client can call startFight() in the contract and if
+        // one of them didnt send the bet yet, he will lose his fight tickets.
         const waitTime = new Date();
-        await waitTime.setMinutes(waitTime.getSeconds() + 3);
+        waitTime.setSeconds(waitTime.getSeconds() + 2);
         await agenda.schedule(waitTime, "giveStartFightPermissions", {
             playerAddress,
             opponentAddress,
@@ -159,39 +197,44 @@ async function dealDoneHanldeStartFightPermissions(
             bet2,
         });
 
-        // 45 seconds later permissions check if they started the fight,
-        // if didnt, delete permissions and delete fight from database
+        // 40 seconds later permissions check if they started the fight,
+        // if didnt, deletes permissions and deletes Fight from database
         const waitTime2 = new Date();
-        await waitTime2.setMinutes(waitTime.getMinutes() + 1);
+        waitTime2.setSeconds(waitTime2.getSeconds() + 55);
         await agenda.schedule(waitTime2, "deleteIfFightNotStarted", {
             playerAddress,
             opponentAddress,
             fId,
         });
+
+        const fightDataForStartFightOnChain = {
+            fightId: fId,
+            p1: playerAddress,
+            p2: opponentAddress,
+            nft1: nftId1,
+            nft2: nftId2,
+            bet1: bet1,
+            bet2: bet2,
+        };
         // Everything was set correctly
-        return true;
+        return {
+            success: true,
+            message:
+                "All god starting fight in backend, now you start it on the blockchain.",
+            data: {
+                fightOnChainData: fightDataForStartFightOnChain,
+            },
+        };
     } catch (err) {
         throw err;
     }
-}
-
-async function faildToNotifyRetireAllowance(player1, player2, nftId1, nftId2) {
-    const fId = await getFightId([player1, player2], [nftId1, nftId2]);
-    const waitTime2 = new Date();
-    await waitTime2.setMinutes(waitTime.getSeconds() + 1);
-    await agenda.schedule(waitTime2, "deleteIfFightNotStarted", {
-        player1,
-        player2,
-        fId,
-    });
 }
 
 module.exports = {
     createChallenge,
     deleteChallenge,
     getRandomChallenges,
-    acceptChallenge,
+    sendOfferToChallenge,
     getAcceptedChallenges,
     dealDoneHanldeStartFightPermissions,
-    faildToNotifyRetireAllowance,
 };

@@ -1,7 +1,10 @@
 // ChallengesTable.js
 import React from "react";
 
-export default function ChallengesTable({ challenges, onAccept }) {
+export default function ChallengesTable({
+  challenges,
+  updateOfferParamenters,
+}) {
   return (
     <table>
       <thead>
@@ -17,10 +20,14 @@ export default function ChallengesTable({ challenges, onAccept }) {
           <tr key={key}>
             <td>{challenges[key].playerAddress}</td>
             <td>{challenges[key].nftId}</td>
-            <td>{challenges[key].bidAmount}</td>
+            <td>{challenges[key].betAmount}</td>
             <td>
-              <button onClick={() => onAccept(challenges[key].playerAddress)}>
-                Accept
+              <button
+                onClick={async () => {
+                  await updateOfferParamenters(challenges[key].playerAddress);
+                }}
+              >
+                CHOOSE CHALLENGE
               </button>
             </td>
           </tr>
@@ -29,3 +36,9 @@ export default function ChallengesTable({ challenges, onAccept }) {
     </table>
   );
 }
+
+// sendOffer(
+// challenges[key].playerAddress,
+// challenges[key].betAmount,
+// challenges[key].nftId
+// )

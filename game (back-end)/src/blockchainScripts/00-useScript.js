@@ -22,9 +22,9 @@ async function callMint(onBlockchain, quantity) {
 // Mints 2 NFTs and transfer them to the first 2 hardhat addresses.
 // Nft Id 0 => address 1 && Nft Id 1 => address 2
 async function callMinting() {
-    const numToMint = 2;
+    const numToMint = 3;
     await callMint(false, numToMint);
-    const { deployer, client1, client2 } = await getNamedAccounts();
+    const { deployer, client1, client2, client3 } = await getNamedAccounts();
     const buddyFightersContract = await ethers.getContract(
         "BuddyFightersNFT",
         deployer
@@ -35,12 +35,15 @@ async function callMinting() {
 
     txResponse = await buddyFightersContract.transferFrom(deployer, client2, 1);
     txReceipt = await txResponse.wait();
+
+    txResponse = await buddyFightersContract.transferFrom(deployer, client3, 2);
+    txReceipt = await txResponse.wait();
     console.log("Ownership transfered.");
 }
 
-const execute = "mint";
+const execute = "declareWinner";
 async function exe() {
-    const { deployer, client1, client2 } = await getNamedAccounts();
+    const { deployer, client1, client2, client3 } = await getNamedAccounts();
     switch (execute) {
         case "mint":
             await callMinting();
@@ -49,8 +52,8 @@ async function exe() {
             console.log(await getFightId([client1, client2], [0, 1]));
             break;
         case "declareWinner":
-            const fId = await getFightId([client1, client2], [0, 1]);
-            await declareWinner(fId, client1, [client1, client2]);
+            const fId = await getFightId([client2, client3], [1, 2]);
+            await declareWinner(fId, client2, [client2, client3]);
             break;
         case "withdraw":
             await withdrawAllowedFunds(deployer);
