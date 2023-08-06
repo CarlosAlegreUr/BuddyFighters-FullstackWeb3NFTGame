@@ -33,9 +33,8 @@ async function isFightActive(fightId) {
             "BFNFTFightsManager",
             deployer
         );
-        const result = await bfnftFightManager.getIsFightActive(fightId);
-        await txResponse.wait();
-        return result;
+        const fightState = await bfnftFightManager.getIsFightActive(fightId);
+        return fightState;
     } catch (error) {
         throw error;
     }
@@ -43,10 +42,6 @@ async function isFightActive(fightId) {
 
 async function allowStartFight(players, tokenIds, bets) {
     try {
-        console.log("Allow start fight entered with:");
-        console.log(players);
-        console.log(tokenIds);
-        console.log(bets);
         const { deployer } = await getNamedAccounts();
         const bfnftFightManager = await ethers.getContract(
             "BFNFTFightsManager",
@@ -65,10 +60,8 @@ async function allowStartFight(players, tokenIds, bets) {
             [bet1Eth, bet2Eth],
         ];
         const coder = new ethers.AbiCoder();
-        console.log("Before encoding");
         const abiEncodedInput = await coder.encode(types, inputs);
         const validInput = await ethers.keccak256(abiEncodedInput);
-        console.log(`Giving input permissions to ${players[0]}`);
         let txResponse = await bfnftFightManager.allowInputs(
             players[0],
             [validInput],
@@ -76,8 +69,6 @@ async function allowStartFight(players, tokenIds, bets) {
             false
         );
         await txResponse.wait();
-        console.log("Player 1 permission given");
-        console.log(`Giving input permissions to ${players[1]}`);
         txResponse = await bfnftFightManager.allowInputs(
             players[1],
             [validInput],
@@ -85,7 +76,7 @@ async function allowStartFight(players, tokenIds, bets) {
             false
         );
         await txResponse.wait();
-        console.log("Player 2 permission given");
+        console.log("Permissions given in blockchain...");
     } catch (error) {
         throw error;
     }
@@ -112,6 +103,7 @@ async function disallowStartFight(players) {
             false
         );
         await txResponse.wait();
+        console.log("Disallowing fight pemissions in blockchain...");
     } catch (error) {
         throw error;
     }

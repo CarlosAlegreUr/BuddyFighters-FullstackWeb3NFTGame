@@ -3,15 +3,15 @@ const {
     createChallenge,
     deleteChallenge,
     getRandomChallenges,
-    acceptChallenge,
+    sendOfferToChallenge,
+    deleteOfferToChallenge,
     dealDoneHanldeStartFightPermissions,
-    faildToNotifyRetireAllowance,
 } = require("../services/matchmakingServices");
 
 const {
     broadcastMatchmakingState,
-    notifyAcceptance,
-    notifySendYourBet
+    notifyAcceptedChallengesUpdate,
+    notifySendYourBet,
 } = require("../services/matchmakingNotifyService");
 
 const SSE = require("express-sse");
@@ -49,6 +49,7 @@ exports.postChallenge = async (req, res, next) => {
         const { nftId, betAmount } = req.body;
         const nftIdS = await nftId.toString();
         const playerAddress = req.user.address;
+
         if (!nftIdS || !betAmount) {
             return res.status(400).json({
                 message: "All fields required, fields are: nftId, betAmount",
@@ -57,7 +58,7 @@ exports.postChallenge = async (req, res, next) => {
         const response = await createChallenge(playerAddress, nftId, betAmount);
         if (!response) {
             return res.status(400).json({
-                message: "All fields required, fields are: nftId, betAmount",
+                message: "An error occured creating the challenge",
             });
         }
         await broadcastMatchmakingState();
@@ -89,27 +90,33 @@ exports.removeChallenge = async (req, res, next) => {
 
 exports.sendOfferToChallenger = async (req, res, next) => {
     try {
-        const { opponentAddress, nftId, betAmount } = req.body;
-        const nftIdS = await nftId.toString();
+        const { challengerAddress, challengeeNftId, challengeeBetAmount } =
+            req.body;
+        const nftIdS = await challengeeNftId.toString();
         const playerAddress = req.user.address;
 
-        if (!opponentAddress || !nftIdS || !betAmount) {
+        if (!challengerAddress || !nftIdS || !challengeeBetAmount) {
             return res.status(400).json({
                 message:
-                    "All fields required, fields are: opponentAddress, nftId, betAmount",
+                    "All fields required, fields are: challengerAddress, challengeeNftId, challengeeBetAmount",
             });
         }
-        let result = await acceptChallenge(
+        let response = await sendOfferToChallenge(
             playerAddress,
-            opponentAddress,
-            betAmount,
-            nftId
+            challengerAddress,
+            challengeeBetAmount,
+            nftIdS
         );
-        result = await notifyAcceptance(opponentAddress);
-        if (!result) {
+        if (!response.success) {
             return res.status(400).json({
-                message:
-                    "Failed to accept the challenge, either server couldnt notify the oponent or the challenge is not available anymore.",
+                message: response.message,
+            });
+        }
+        response = await notifyAcceptedChallengesUpdate(challengerAddress);
+        if (!response.success) {
+            // Add function to undeo sendOfferTOCHallnege
+            return res.status(400).json({
+                message: response.message,
             });
         }
         res.status(200).json({
@@ -121,59 +128,86 @@ exports.sendOfferToChallenger = async (req, res, next) => {
     }
 };
 
-exports.acceptOfferStartFight = async (req, res, next) => {
+exports.removeOfferToChallenger = async (req, res, next) => {
     try {
-        const { opponentAddress, nftId1, nftId2 } = req.body;
-        const nftIdS1 = await nftId1.toString();
-        const nftIdS2 = await nftId2.toString();
+        // Getting data
+        const { challengerAddress } = req.body;
         const playerAddress = req.user.address;
-
-        if (!playerAddress || !opponentAddress || !nftIdS1 || !nftIdS2) {
+        if (!challengerAddress) {
             return res.status(400).json({
-                message:
-                    "All fields required, fields are: opponentAddress, nftId1, nftId2",
+                message: "All fields required, fields are: challengerAddress",
             });
         }
 
-        const notification = `You have 1min!!! For calling setBet() with the money as value and when
-        the minute passes call startFight() with the correct inputs.`;
-        let notified = await notifyAcceptance(playerAddress, notification);
-        notified = await notifyAcceptance(opponentAddress, notification);
-        if (!notified) {
+        // Function calls
+        let response = await deleteOfferToChallenge(
+            playerAddress,
+            challengerAddress
+        );
+        // Modularize this checks?
+        if (!response.success) {
+            return res.status(400).json({
+                message: response.message,
+            });
+        }
+        const finalMessage = response.message;
+        response = await notifyAcceptedChallengesUpdate(challengerAddress);
+        if (!response.success) {
+            return res.status(400).json({
+                message: response.message,
+            });
+        }
+        res.status(200).json({
+            message: finalMessage,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.acceptOfferStartFight = async (req, res, next) => {
+    try {
+        const { opponentAddress, nftId2 } = req.body;
+        const nftIdS2 = await nftId2.toString();
+        const playerAddress = req.user.address;
+
+        if (!playerAddress || !opponentAddress || !nftIdS2) {
             return res.status(400).json({
                 message:
-                    "Failed to notify, no start fight permissions will be given.",
+                    "All fields required, fields are: opponentAddress, nftId2",
             });
         }
 
         const result = await dealDoneHanldeStartFightPermissions(
             playerAddress,
             opponentAddress,
-            nftIdS1,
             nftIdS2
         );
-        if (!result) {
+        if (!result.success) {
             return res.status(400).json({
-                goFight: false,
-                message: "Something failed whrn accepting the challenge.",
+                message: result.message,
             });
         }
-        notified = await notifySendYourBet(opponentAddress);
-        if (!notified) {
-            await faildToNotifyRetireAllowance(
-                playerAddress,
-                opponentAddress,
-                nftId1,
-                nftId2
-            );
+        // console.log(result)
+        const fightOnChainData = result.data.fightOnChainData;
+        console.log("Controller on chain data recieved");
+        console.log(fightOnChainData);
+        notified = await notifySendYourBet(opponentAddress, fightOnChainData);
+        if (!notified.success) {
             return res.status(400).json({
                 message:
-                    "Failed to notify bets setting. No start fight permissions will be given.",
+                    "Failed to notify bets sendings. Try again in around 1 minute.",
+            });
+        }
+        notified = await notifySendYourBet(playerAddress, fightOnChainData);
+        if (!notified.success) {
+            return res.status(400).json({
+                message:
+                    "Failed to notify bets sendings. Try again in around 1 minute.",
             });
         }
         res.status(200).json({
-            goFight: true,
-            message: "Challenge accepted get ready to fight!",
+            message: "All ready get ready to fight!",
         });
     } catch (error) {
         next(error);

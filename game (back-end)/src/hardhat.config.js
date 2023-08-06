@@ -57,6 +57,11 @@ module.exports = {
             5: 2,
             31337: 2,
         },
+        client3: {
+            default: 3,
+            5: 3,
+            31337: 3,
+        },
     },
 
     etherscan: {

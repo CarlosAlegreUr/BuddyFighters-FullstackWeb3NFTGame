@@ -12,6 +12,7 @@ const {
 const NewUri = require("../database/models/newUriModel");
 const BlockchainAuthNonce = require("../database/models/blockchainAuthNonceModel");
 const Fight = require("../database/models/fightModel");
+const Challenge = require("../database/models/matchmakingModel");
 
 const {
     disallowStatsChange,
@@ -65,6 +66,12 @@ agenda.define("giveStartFightPermissions", async (job) => {
 
 agenda.define("deleteIfFightNotStarted", async (job) => {
     const { playerAddress, opponentAddress, fId } = job.attrs.data;
+    // Challenge is no longer needed.
+    const result = await Challenge.deleteOne({ playerAddress: playerAddress });
+    if (result.deletedCount) {
+        console.log("Delted challenge for " + playerAddress);
+    }
+
     const isActive = await isFightActive(fId);
     if (!isActive) {
         await disallowStartFight([playerAddress, opponentAddress]);

@@ -19,7 +19,9 @@ async function generateNonce() {
         await agenda.schedule(waitTime, "deleteNonce", {
             nonceCreated,
         });
-        return nonceCreated;
+        const nonceCreatedFinal =
+            "BuddyFighters Log In: " + nonceCreated.toString();
+        return nonceCreatedFinal;
     } catch (err) {
         throw err;
     }
@@ -27,8 +29,13 @@ async function generateNonce() {
 
 async function checkNonceEmitted(nonce) {
     try {
+        const exctractionString = await nonce.replace(
+            "BuddyFighters Log In: ",
+            ""
+        );
+        const nonceExtracted = await parseInt(exctractionString);
         const deletedNonce = await BlockchainAuthNonce.deleteOne({
-            nonce: nonce,
+            nonce: nonceExtracted,
         });
         if (deletedNonce) return true;
         else return false;

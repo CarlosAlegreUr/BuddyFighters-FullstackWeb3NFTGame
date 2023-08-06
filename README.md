@@ -1,3 +1,7 @@
+# What is this repo? 🤔
+
+Please read [**Purpose of this Repository 🤔**](#purpose-of-this-repository-🤔) (1.5 min read)
+
 <h1 align="center">
   <br>
   <a><img src="./readme-images/pokeball.png" width="200"></a>
@@ -10,91 +14,102 @@
 
 <h4 align="center"><strong>A fighting game on the browser using NFT technology that can be played in EVM compatible blockchains.
 
-(completely decentralized version incoming...)</strong></h4>
+(completely decentralized version might come...)</strong></h4>
 
 <hr/>
 
 # Index
 
-- **Purpose of this Repository 🤔**
-
-- **About the App ℹ️**
-  - Potential Misuse of Power 💢
-  - **A Trustless Fully Decentralized Scenario 👼**
-- **Self-Audit state 💥**
-- **App So Far Demo Video: 📹**
-- **Packages & Technologies Utilized 🧰**
-- **How the System Functions ⚙️**
-- **Project Structure 📁**
-- **Capabilities Of Deployed App 🏃**
-- **Instructions for Local Usage ℹ️🏠**
-- **Special Thanks 😄**
-- **TODO 🚧**
-- **License 📎**
+- [**Purpose of this Repository 🤔**](#purpose-of-this-repository-🤔)
+- [**App So Far Demo Video: 📹**](#app-so-far-demo-video-📹)
+- [**About the App ℹ️**](#about-the-app-ℹ️)
+  - [Potential Misuse of Power 💢](#potential-misuse-of-power-💢)
+  - [**A Trustless Fully Decentralized Scenario 👼**](#a-trustless-fully-decentralized-scenario-👼)
+- [**Self-Audit state 💥**](#self-audit-state-💥)
+- [**Packages & Technologies Utilized 🧰**](#packages--technologies-utilized-🧰)
+- [**How the System Functions ⚙️**](#how-the-system-functions-⚙️)
+- [**Project Structure 📁**](#project-structure-📁)
+- [**Capabilities Of Deployed App 🏃**](#capabilities-of-deployed-app-🏃)
+- [**Instructions for Local Usage ℹ️🏠**](#instructions-for-local-usage-ℹ️🏠)
+- [**Special Thanks 😄**](#special-thanks-😄)
+- [**TODO 🚧**](#todo-🚧)
+- [**License 📎**](#license-📎)
 
 <hr/>
 
 # **Purpose of this Repository 🤔**
 
-This repository serves multiple purposes in my **learning journey**. It has been created with the purpose of **learning how to develop a robust full-stack web application**. Involving traditional full-stack web systems and **interactions with EVM-compatible blockchains** and **decentralized networks such as IPFS**.
+Learn and **gain experience in developing a robust full-stack web application** that combines traditional **`client-server-database`** mechanics and cutting-edge interactions with **`EVM-compatible blockchains and`** decentralized networks like **`IPFS`**.
 
-The **primary focus** of this repository is to gain **practical experience** in **designing and implementing smart contracts** while **testing** their **functionality** and **security**.
+## **What I Learned 📘:**
 
-While smart contracts have been the main focus, I have also developed the foundational code for developing a **full-stack app**. However, please note that the current implementation does not have extensive functionality or have the highest standards of bug-free and versatile code. The focus has been on simulating the initial stages and conclusion of a 2 players battle, allowing me to better **understand the intricate interactions and workings of all components in a full-stack system**.
+- **General Insights 🔍**
 
-I'm aware of all the following steps I have to take in order to make the fullstack app secure and clean, for now the only **secure and clean code** will be the one **related to smart contracts and it's testing**. I might develop this project properly in the future 😄.
+  - _**`Systems Design`**_ : Divide and Conquer, Separation of Responsibilities, Don't Repeat Yourself...
+  - _**`Client-Server communication`**_ : request-response, SSE...
+  - **`Database state management`** : CRUD operations, clean-up functions...
+  - **`Blockchain and IPFS interaction`** : with server and client.
+  - _**`Smart Contracts' System Design`**_
+
+- **Backend Development 💻:**
+
+  - Client-Server **`API development`**: routing, controllers, and services.
+  - **`User auth methods`** in Web2 and Web3 : signature-based-auth and token auth.
+  - **`Error handling, logging and job scheduling`**.
+  - **`MongoDB`**.
+  - **`System testing`** using frameworks like Mocha, Chai, and Supertest.
+
+- **Frontend Development 🎨:**
+  - **`Next.js`** for building **`React`** apps.
+  - **`UI/UX design`** for web3.
+
+At this stage, I am content to leave the project in its current state. I've achieved significant learning through practical experience and don't foresee additional learning benefits from further development. However, in the future, I might develop this project for fun. 😄
 
 <hr/>
 
 # **About the App ℹ️**
 
-Essentially, this application is a fighting game where players can battle against each other using NFTs and wager their cryptocurrencies on these fights. It includes a "change stats" feature, allowing you to adjust your NFT's stats in a fully trustless, decentralized manner.
+Essentially, this application is a fighting game where players can battle against each other using NFTs and bet their cryptocurrencies on these fights. It includes a "change stats" feature, allowing you to adjust your NFT's stats in a fully trustless, decentralized manner.
 
-The fighting and betting system isn't completely trustless as it requires a trusted backend to execute off-chain computations when battles occur. However, it's designed in a way that makes any backend misbehavior easy to detect, enhancing the overall trustworthiness of the app's betting system.
+#### (TODO)
+
+# **App So Far Demo Video: 📹**
+
+The fighting and betting system isn't completely trustless, as it requires a trusted backend to execute off-chain computations when battles occur. However, it's designed in a way that makes any backend misbehavior easy to detect, enhancing the overall trustworthiness of the app's betting system.
 
 ## **Potential Misuse of Power 💢**
 
 One point of concern is the declaration of the winner. The backend could potentially declare any winner it prefers, regardless of the actual battle outcome. As the system stands, it's impossible to fully verify via computations alone if the backend is being dishonest. A more resource-intensive system on-chain that resolves this issue could be implemented, as explained below.
 
-So backend can potentially steal your current bet in an active fight if desired.
+So the backend can potentially steal your current bet in an active fight if desired.
 
-The second point of concern is in `startFight()` function, specifically in the `_bets` variable. You have to trust
-the backend will give input permissions with the correct bets and not with higher ones. Backend can potentially
-cooperate with a party player to give permissions saying your bet was higher than the one you deposited which will
-result in you losing your tickets.
+The second point of concern is in the `startFight()` function, specifically in the `_bets` variable. You have to trust that the backend will give input permissions with the correct bets and not with higher ones. The backend can potentially cooperate with a party player to give permissions, saying your bet was higher than the one you deposited, which will result in you losing your tickets.
 
 ## **A Trustless Fully Decentralized Scenario 👼**
 
-Basically the decentralized scenario consists of contracts that implement:
+Basically, the decentralized scenario consists of contracts that implement:
 
 - **Decentralized matchmaking**.
-- **Decentralized activation of events on blockchain**.
+- **Decentralized activation of events on the blockchain**.
 - **Decentralized fight state management**.
 
-All this is already possible, I've just haven't programmed it yet.
-Disadvantage is it results in a more expensive game to play due to the need for more transactions and on-chain
-computations. The following solution just focuses on making
-it truly decentralized and as cheap as possible, but prioritizing always fair play and trustless decentralized gameplay.
+All this is already possible; I just haven't programmed it yet. The disadvantage is that it results in a more expensive game to play due to the need for more transactions and on-chain computations. The following solution just focuses on making it truly decentralized and as cheap as possible, but always prioritizing fair play and trustless decentralized gameplay.
 
 This is how it would be done though:
 
 ### **Decentralized Matchmaking**
 
-You could even decentralize this app more without even requiring a backend to execute
-the matchmaking by doing the following:
+You could even decentralize this app more without even requiring a backend to execute the matchmaking by doing the following:
 
-Using `InputControl` contract you can allow player to give each other permissions to call
-`startFight()` with a previously agreed value so now no bets would be faked.
+Using the `InputControl` contract, you can allow players to give each other permissions to call `startFight()` with a previously agreed value, so now no bets would be faked.
 
-If you mix this with the fight's states management on-chain described above there would
-not even be a need for a trusted backend or a backend at all.
+If you mix this with the fight's states management on-chain described above, there would not even be a need for a trusted backend or a backend at all.
 
 ### **Decentralized Activation of Events on Blockchain**
 
 This feature would be needed in order for fights, turns, or matchmaking not to potentially last forever.
 
-This feature idea has already been explored and implemented by Chainlink team with
-their [Time Based Automation](https://docs.chain.link/chainlink-automation/job-scheduler).
+This feature idea has already been explored and implemented by the Chainlink team with their [Time Based Automation](https://docs.chain.link/chainlink-automation/job-scheduler).
 
 ### **Decentralized Fight State Management**
 
@@ -107,11 +122,9 @@ These would include:
 
 Once the next move is updated, the next fight's state should be predictable by both clients. For the clients to agree on the next state, the game logic must be open-source.
 
-There must also be a function that validates next fight states, if different fight states are calculated by clients this function could be called to figure out the right one and punish just the players who actually didn't behave correctly.
+There must also be a function that validates the next fight states. If different fight states are calculated by clients, this function could be called to figure out the right one and punish only the players who actually didn't behave correctly.
 
-> **Note**: For game mechanics with **luck based moves**, **VRF Chainlink** contracts should be used to determine the **random luck based result**. So users can validate the next fight state, even if the
-> process is deterministic, now they can **use a verified
-> random value for the deterministically computed next state.**
+> **📘 Note ℹ️**: For game mechanics with **luck-based moves**, **VRF Chainlink** contracts should be used to determine the **random luck-based result**. So users can validate the next fight state, even if the process is deterministic. Now they can **use a verified random value for the deterministically computed next state.**
 
 <hr/>
 
@@ -122,51 +135,48 @@ Hardhat localhost network 🟡 :
 - Manual testing 🟢
 - High Manual Tests' Coverage 🟢
 - Slither syntax analysis 🟢
-- Contracts Fuzz testing ⛔🕵️ (learning with Foundry)
-- Symbolic analysis ⛔🕵️ (learning with trailOfBits Manticore)
+- Contracts Fuzz & Invariant testing ⛔🕵️
 
-Any testnet 🔴 ⛔⛔⛔⛔
-
-<hr/>
-
-# **App So Far Demo Video: 📹\*** (TODO)
+Any testnet or mainnet 🔴 ⛔⛔⛔⛔
 
 <hr/>
 
 # **Packages & Technologies Utilized 🧰**
 
-The application uses a range of packages to create a robust and efficient system. The front-end and back-end services rely on different sets of packages, tailored to suit their specific needs.
-
 For the complete list of dependencies, please check the `package.json` file in the respective front-end and back-end directories.
 
-**Back-end dependencies** include:
+<details> <summary> Back-end dependencies 💻 </summary>
 
-- ethers: Ethereum blockchain and smart contracts JavaScript API.
-- @chainlink/contracts: VRF (Verifiable Random Function) Chainlink.
-- @openzeppelin/contracts: Secure open source smart contracts.
-- agenda: For lightweight job scheduling.
-- express: Web server framework.
-- mongoose: For MongoDB object modeling.
-- jsonwebtoken: For JSON Web Token sign and verify.
-- express-sse: Server-side events management in express framework.
-- cors: For enabling CORS in Express.
-- dotenv: Management of environment variables.
-- express-winston: Server-side logging.
+- `ethers`: Ethereum blockchain and smart contracts JavaScript API.
+- `@chainlink/contracts`: VRF (Verifiable Random Function) Chainlink.
+- `@openzeppelin/contracts`: Secure open source smart contracts.
+- `agenda`: For lightweight job scheduling.
+- `express`: Web server framework.
+- `mongoose`: For MongoDB object modeling.
+- `jsonwebtoken`: For JSON Web Token sign and verify.
+- `express-sse`: Server-side events management in express framework.
+- `cors`: For enabling CORS in Express.
+- `dotenv`: Management of environment variables.
+- `express-winston`: Server-side logging.
 
-**Front-end dependencies** include:
+</details>
 
-- @web3uikit/core: UI components for DApps.
-- ethers: Ethereum blockchain and smart contracts JavaScript API.
-- moralis: For fast blockchain development.
-- react: For the UI.
+<details> <summary> Front-end dependencies 🎨 </summary>
+
+- `@web3uikit/core`: UI components for DApps.
+- `ethers`: Ethereum blockchain and smart contracts JavaScript API.
+- `moralis`: For fast blockchain development.
+- `react`: For the UI.
+
+</details>
 
 <hr/>
 
-# **How the System Functions ⚙️**
+# **Brief System Overview ⚙️**
 
 The **front end** handles API calls to the **backend** and also contains blockchain interaction code executed through a **MetaMask** provider.
 
-The **backend** comprises all the services, controllers, and route structures necessary for the **request-response communication** cycle. Additionally, it uses **Server-Side Events (SSE)** to manage matchmaking and fight mechanics services. Moreover, it interacts with the blockchain via **Alchemy** as a provider.
+The **backend** contains all the services, controllers, and route structures necessary for the **request-response communication** cycle. Additionally, it uses **Server-Side Events (SSE)** to manage matchmaking and fight mechanics services. Moreover, it can interact with the blockchain via **Alchemy** as a provider.
 
 And don't forget to mention the front end and backend are designed to be hosted on different servers, therefore utilizing **CORS**.
 
@@ -233,13 +243,13 @@ As a personal portfolio project, the public website and backend are limited to s
 To run the application locally, follow these steps:
 
 1. Download the code.
-2. Start a Hardhat node.
-3. Mint some NFTs using the provided minting script.
-4. Launch the website on two different browsers or in sessions that don't share cookies.
-5. Connect MetaMask to the local Hardhat network using the first two default addresses, one for each browser.
-6. Run the server file.
-7. Start the MongoDB database.
-8. Make sure you have all the `.env` API keys for the services used by the app.
+1. Create an `.env` file and make sure you have all the API keys and variables set. Check them here [.env.example](<https://github.com/CarlosAlegreUr/BuddyFighters-FullstackWeb3NFTGame/blob/main/game%20(back-end)/src/.env.example>)
+1. Start a Hardhat node.
+1. Mint some NFTs using the provided minting script. (blockchainScripts/00-useScript.js)
+1. Launch the website on two different browsers or in sessions that don't share cookies. Recommended `Brave`, `Chrome`, `Firefox`.
+1. Connect MetaMask to the local Hardhat network using the first two default addresses, one for each browser.
+1. Run the server file.
+1. Start the MongoDB database.
 
 ---
 
@@ -261,9 +271,11 @@ Source of the pokemon fusions images used in this project. <br>
 
 # **TODO 🚧**
 
+## someday...
+
 1. Apply fuzz testing and symbolic analysis in smart contracts.
 2. Try to improve manual smart contract tests.
-3. Improve routes security type checking in backed.
+3. Improve routes security type checking in backend.
 4. Finish and test frontend, API and backend services.
 5. Improve READMEs: intructions for local usage.
 6. Try to improve tests' readability.

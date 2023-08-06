@@ -24,4 +24,9 @@ router.post(
     matchmackingController.acceptOfferStartFight
 );
 
+router.delete(
+    "/removeOfferToChallenger",
+    matchmackingController.removeOfferToChallenger
+);
+
 module.exports = router;

@@ -1,22 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { ethers } from "ethers";
 import { useMoralis } from "react-moralis";
 import { getContractAddress, getContractAbi } from "../utils/getContractInfo";
 
-import ChallengesTable from "./ChallengesTable";
-import AcceptedChallengesTable from "./AcceptedChallengesTable";
-import { sign } from "crypto";
+import ChallengesSection from "./Challenges/ChallengesSection";
 
-export default function BattleRadarSection() {
+export default function BattleRadarSection({ setShowFightPage, setFightData }) {
   const [sse, setSse] = useState(null);
   const [challenges, setChallenges] = useState({});
-  const [acceptedChallengesDisplay, setAcceptedChallengesDisplay] =
-    useState(false);
-  const [acceptedChallenges, setAcceptedChallenges] = useState({});
+  const [acceptedChallenges, setAcceptedChallenges] = useState([]);
   const [displayFightButton, setDisplayFightButton] = useState(false);
-  const [displayStartFightButton, setDisplayStartFightButton] = useState(false);
 
+  const [upcomingFightData, setUpcomingFightData] = useState({});
+
+  useEffect(() => {
+    console.log("Displaying accepted challenges state...");
+    console.log(acceptedChallenges);
+  }, [acceptedChallenges]);
+
+  // SSE connection functions
   const sseConnect = async () => {
     try {
       const sseInstance = new EventSource(
@@ -28,24 +31,27 @@ export default function BattleRadarSection() {
         const eventData = JSON.parse(event.data);
         console.log("Received SSE Event:", eventData);
         console.log("Analyzing frontend response to event");
+
         if (eventData.event === "challengesList") {
           setChallenges(eventData.data);
           console.log("Challenges available:");
           console.log(challenges);
         }
+
         if (eventData.event === "acceptedChallenge") {
-          if (eventData.data && eventData.data.length === 0) {
-            setAcceptedChallengesDisplay(false);
-          } else {
-            console.log("Displaying accepted challenges...");
-            setAcceptedChallenges(eventData.data);
-            setAcceptedChallengesDisplay(true);
-          }
+          console.log("Accepted challenges recieved...");
+          console.log(eventData.data);
+          setAcceptedChallenges(eventData.data);
         }
 
         if (eventData.event === "sendBet") {
           console.log("Send bet button activated");
-          setDisplayStartFightButton(true);
+          alert(eventData.data.notification);
+          console.log(eventData.data.fightData);
+          // Later when CSS applied, display in the middle of the screen
+          setFightData(eventData.data.fightData);
+          setUpcomingFightData(eventData.data.fightData);
+          setDisplayFightButton(true);
         }
       });
 
@@ -55,157 +61,6 @@ export default function BattleRadarSection() {
     }
   };
 
-  const acceptChallenge = async (opponent) => {
-    console.log(`Accepting challenge from ${opponent}`);
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const address = signer.address;
-    const n = address == "0x70997970C51812dc3A010C7d01b50e0d17dc79C8" ? 0 : 1;
-
-    const response = await fetch(
-      "http://localhost:3005/api/matchmaking/sendOfferToChallenger",
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          opponentAddress: opponent,
-          nftId: n,
-          betAmount: 0.1,
-        }),
-      }
-    );
-    console.log(response);
-  };
-
-  const startFight = async (opAddress, bet, opnftid) => {
-    console.log("Starting fight! Make sure your connection is good!");
-    console.log(`Accepting challenge from ${opAddress} with bet of ${bet}`);
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const address = signer.address;
-    const n1 = address == "0x70997970C51812dc3A010C7d01b50e0d17dc79C8" ? 0 : 1;
-
-    console.log("Calling backend to track fight and get permissions.");
-    const response = await fetch(
-      "http://localhost:3005/api/matchmaking/acceptOfferStartFight",
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          opponentAddress: opAddress,
-          nftId1: n1,
-          nftId2: opnftid,
-        }),
-      }
-    );
-    console.log(response);
-    alert("You got 1 minute to send your bet and start the fight.");
-    setTimeout(async () => {
-      await callStartFightContract(opAddress, n1, opnftid);
-    }, 4200); // Delayed execution for 1 minute (60000 milliseconds = 1 minute)
-  };
-
-  const callStartFightContract = async (opAddress, nftid1, nftid2) => {
-    alert(
-      "The following transactions are for sending the bet and starting the fight."
-    );
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const chainIdBig = await signer.provider.getNetwork();
-    const chainId = Number(chainIdBig.chainId);
-    const contractABI = await getContractAbi(chainId, "BFNFTFightsManager");
-    const contractAddress = await getContractAddress(
-      chainId,
-      "BFNFTFightsManager"
-    );
-    const contract = new ethers.Contract(contractAddress, contractABI, signer);
-    const bet = "0.1";
-    const betValue = await ethers.parseEther(bet);
-    alert("The following payament is for sending the bet.");
-    let tx = await contract.setBet({ value: betValue });
-    await tx.wait();
-
-    // Makes the following code execute after 1 minute
-    alert(`The following payment is for starting fight. Don't worry if reverts,
-        that means your fight was already started. But if no one starts it you both will
-        lose all your tickets. :D`);
-    console.log("Tx in coming");
-    console.log(signer.address);
-    console.log(opAddress);
-    console.log(nftid1);
-    console.log(nftid2);
-    console.log(betValue);
-    tx = await contract.startFight(
-      [signer.address, opAddress],
-      [nftid1, nftid2],
-      [betValue, betValue]
-    );
-    console.log(tx);
-    setDisplayFightButton(true);
-    console.log("All done don't worry about last tx not succeeding. GO FIGHT!");
-  };
-
-  const sendBet = async () => {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const chainIdBig = await signer.provider.getNetwork();
-    const chainId = Number(chainIdBig.chainId);
-    const contractABI = await getContractAbi(chainId, "BFNFTFightsManager");
-    const contractAddress = await getContractAddress(
-      chainId,
-      "BFNFTFightsManager"
-    );
-    const contract = new ethers.Contract(contractAddress, contractABI, signer);
-    const bet = "0.1";
-    const betValue = await ethers.parseEther(bet);
-    alert("The following payament is for sending the bet.");
-    let tx = await contract.setBet({ value: betValue });
-    await tx.wait();
-  };
-
-  const postC = async () => {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const address = signer.address;
-    const nftId =
-      address == "0x70997970C51812dc3A010C7d01b50e0d17dc79C8" ? 0 : 1;
-    const response = await fetch(
-      "http://localhost:3005/api/matchmaking/postChallenge",
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nftId: nftId,
-          betAmount: 0.1,
-        }),
-      }
-    );
-    console.log(response);
-  };
-
-  const deleteC = async () => {
-    const response = await fetch(
-      "http://localhost:3005/api/matchmaking/deleteChallenge",
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    console.log(response);
-  };
-
   const closeConnection = () => {
     if (sse) {
       sse.close();
@@ -213,10 +68,10 @@ export default function BattleRadarSection() {
       setChallenges({});
       setAcceptedChallenges({});
       setDisplayFightButton(false);
-      setDisplayStartFightButton(false);
     }
   };
 
+  // Buy ticket function
   const payForTicket = async () => {
     alert("This payment is to cover the cost of the project's backend.");
     const provider = new ethers.BrowserProvider(window.ethereum);
@@ -237,6 +92,99 @@ export default function BattleRadarSection() {
     await tx.wait();
   };
 
+  const getAllowedInputs = async () => {
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const chainIdBig = await signer.provider.getNetwork();
+    const chainId = Number(chainIdBig.chainId);
+    const contractABI = await getContractAbi(chainId, "InputControlModular");
+    const contractAddress = await getContractAddress(
+      chainId,
+      "InputControlModular"
+    );
+    const contract = new ethers.Contract(contractAddress, contractABI, signer);
+    let tx = await contract.getAllowedInputs(
+      "startFight(address[2],uint256[2],uint256[2])",
+      signer.address
+    );
+    return tx;
+  };
+
+  // Start fight functions
+  const sendBetAndStartFight = async () => {
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const chainIdBig = await signer.provider.getNetwork();
+    const chainId = Number(chainIdBig.chainId);
+    const contractABI = await getContractAbi(chainId, "BFNFTFightsManager");
+    const contractAddress = await getContractAddress(
+      chainId,
+      "BFNFTFightsManager"
+    );
+    const contract = new ethers.Contract(contractAddress, contractABI, signer);
+    const betValue1 = await ethers.parseEther(
+      await upcomingFightData.bet1.toString()
+    );
+    const betValue2 = await ethers.parseEther(
+      await upcomingFightData.bet2.toString()
+    );
+    alert("The following payment is for sending the bet.");
+    if (signer.address === upcomingFightData.p1) {
+      let tx = await contract.setBet({ value: betValue1 });
+      await tx.wait();
+    } else {
+      let tx = await contract.setBet({ value: betValue2 });
+      await tx.wait();
+    }
+
+    setTimeout(async () => {
+      console.log("Trying to call tx to start fight...");
+      console.log(upcomingFightData.p1);
+      console.log(upcomingFightData.p2);
+      console.log(upcomingFightData.nft1);
+      console.log(upcomingFightData.nft2);
+      console.log(betValue1);
+      console.log(betValue2);
+
+      const types = [
+        { type: "address[2]" },
+        { type: "uint256[2]" },
+        { type: "uint256[2]" },
+      ];
+      const inputs = [
+        [upcomingFightData.p1, upcomingFightData.p2],
+        [upcomingFightData.nft1, upcomingFightData.nft2],
+        [betValue1, betValue2],
+      ];
+      const coder = new ethers.AbiCoder();
+      const abiEncodedInput = await coder.encode(types, inputs);
+      const validInput = await ethers.keccak256(abiEncodedInput);
+      console.log("VALID INPUT IS");
+      console.log(validInput);
+
+      const inputss = await getAllowedInputs();
+      console.log("Inputs recieved by control");
+      console.log(inputss);
+
+      try {
+        const tx2 = await contract.startFight(
+          [upcomingFightData.p1, upcomingFightData.p2],
+          [upcomingFightData.nft1, upcomingFightData.nft2],
+          [betValue1, betValue2]
+        );
+      } catch (error) {
+        console.log(error);
+      }
+      // console.log(tx2);
+      // console.log(
+      // "All done don't worry about last tx not succeeding. GO FIGHT!"
+      // );
+    }, 5000); // 15000 milliseconds equals 15 seconds
+
+    alert(`In 15 seconds you will be asked to start the fight. Don't worry if 
+    the tx reverts, that means your opponent already started it. If you sent your bet you are fine.`);
+  };
+
   return (
     <section>
       <button
@@ -247,81 +195,40 @@ export default function BattleRadarSection() {
         ACTIVATE BATTLE RADAR
       </button>
       <button onClick={closeConnection}>TURN OFF BATTLE RADAR</button>
-      {sse ? (
-        <div>
-          <button
-            onClick={async () => {
-              await payForTicket();
-            }}
-          >
-            BUY FIGHT TICKET
-          </button>
-          <button
-            onClick={async () => {
-              await postC();
-            }}
-          >
-            POST CHALLENGE
-          </button>
-          <button
-            onClick={async () => {
-              await deleteC();
-            }}
-          >
-            DELETE CHALLENGE
-          </button>
+      <button
+        onClick={async () => {
+          await payForTicket();
+        }}
+      >
+        BUY FIGHT TICKET
+      </button>
+      {!sse && <h1> Fight radar not active </h1>}
 
-          {acceptedChallengesDisplay ? (
-            <div>
-              <h1> SOMEONE ACCEPTED CHALLENGE </h1>
-              <section>
-                <h1>Accepted Challenges list</h1>
-                <AcceptedChallengesTable
-                  challenges={acceptedChallenges}
-                  onAccept={startFight}
-                />
-              </section>
-            </div>
-          ) : (
-            <h1> NONE OF YOUR POSTED CHALLENGES HAS BEEN ACCEPTED YET </h1>
-          )}
-        </div>
-      ) : (
-        <></>
+      {sse && (
+        <ChallengesSection
+          challenges={challenges}
+          acceptedChallenges={acceptedChallenges}
+        />
       )}
 
-      {sse ? (
-        Object.keys(challenges).length > 0 ? (
-          <section>
-            <h1>Challenges list</h1>
-            <ChallengesTable
-              challenges={challenges}
-              onAccept={acceptChallenge}
-            />
-          </section>
-        ) : (
-          <h1> No challenges available </h1>
-        )
-      ) : (
-        <h1> Fight radar not active </h1>
-      )}
-
-      {displayFightButton ? (
-        <button> GO FIGHT! </button>
-      ) : (
-        <button> NO FIGHT FOR NOW MATE </button>
-      )}
-
-      {displayStartFightButton ? (
+      {displayFightButton && (
         <button
           onClick={async () => {
-            await sendBet();
+            await sendBetAndStartFight();
           }}
         >
-          SEND YOUR BET
+          SEND BET!
         </button>
-      ) : (
-        <button> . </button>
+      )}
+
+      {displayFightButton && (
+        <button
+          onClick={async () => {
+            await setShowFightPage(true);
+          }}
+        >
+          GO FIGHT!
+        </button>
       )}
     </section>
   );
