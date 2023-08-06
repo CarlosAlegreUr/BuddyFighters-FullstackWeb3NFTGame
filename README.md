@@ -1,6 +1,6 @@
 # What is this repo? 🤔
 
-Please read [**Purpose of this Repository 🤔**](#purpose-of-this-repository-🤔) (1 min read)
+Please read [**Purpose of this Repository 🤔**](#purpose-of-this-repository) (1 min read)
 
 <h1 align="center">
   <br>
@@ -37,6 +37,7 @@ Please read [**Purpose of this Repository 🤔**](#purpose-of-this-repository-�
 
 <hr/>
 
+<a name="purpose-of-this-repository"></a>
 # **Purpose of this Repository 🤔**
 
 Learn and **gain experience in developing a robust full-stack web application** that combines traditional **`client-server-database`** mechanics and cutting-edge interactions with **`EVM-compatible blockchains and`** decentralized networks like **`IPFS`**.
