@@ -20,7 +20,7 @@ Please read [**Purpose of this Repository 🤔**](#purpose-of-this-repository-�
 
 # Index
 
-- [**Purpose of this Repository 🤔**](#purpose-of-this-repository-🤔)
+- [**Purpose of this Repository 🤔**](#purpose-of-this-repository)
 - [**App So Far Demo Video: 📹**](#app-so-far-demo-video-📹)
 - [**About the App ℹ️**](#about-the-app-ℹ️)
   - [Potential Misuse of Power 💢](#potential-misuse-of-power-💢)
