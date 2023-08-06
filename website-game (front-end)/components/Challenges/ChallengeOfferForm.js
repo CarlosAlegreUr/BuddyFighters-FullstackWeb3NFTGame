@@ -41,6 +41,32 @@ export default function ChallengeOfferForm({ opponent, updateFormSignal }) {
     }
   };
 
+  const cancelOffer = async () => {
+    const { opponent } = offerDetails;
+
+    console.log(`Canceling offer made to ${opponent}`);
+
+    const response = await fetch(
+      "http://localhost:3005/api/matchmaking/removeOfferToChallenger",
+      {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          challengerAddress: opponent,
+        }),
+      }
+    );
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Error:", errorData.message);
+    } else {
+      console.log("Offer deleted.");
+    }
+  };
+
   const handleInputChange = (e) => {
     setOfferDetails({
       ...offerDetails,
@@ -87,6 +113,14 @@ export default function ChallengeOfferForm({ opponent, updateFormSignal }) {
           />
         </label>
         <button type="submit">Send Offer</button>
+        <button
+          type="button"
+          onClick={async () => {
+            await cancelOffer();
+          }}
+        >
+          Cancel Offer
+        </button>
       </form>
     </section>
   );

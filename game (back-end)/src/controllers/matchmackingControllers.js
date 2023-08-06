@@ -4,12 +4,13 @@ const {
     deleteChallenge,
     getRandomChallenges,
     sendOfferToChallenge,
+    deleteOfferToChallenge,
     dealDoneHanldeStartFightPermissions,
 } = require("../services/matchmakingServices");
 
 const {
     broadcastMatchmakingState,
-    notifyAcceptance,
+    notifyAcceptedChallengesUpdate,
     notifySendYourBet,
 } = require("../services/matchmakingNotifyService");
 
@@ -111,16 +112,53 @@ exports.sendOfferToChallenger = async (req, res, next) => {
                 message: response.message,
             });
         }
-        response = await notifyAcceptance(challengerAddress);
-        if (!response) {
+        response = await notifyAcceptedChallengesUpdate(challengerAddress);
+        if (!response.success) {
             // Add function to undeo sendOfferTOCHallnege
             return res.status(400).json({
-                message: "Couldnt notify the oponent.",
+                message: response.message,
             });
         }
         res.status(200).json({
             message:
                 "Challenge accepted and oponent notified, wait for it's answer.",
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.removeOfferToChallenger = async (req, res, next) => {
+    try {
+        // Getting data
+        const { challengerAddress } = req.body;
+        const playerAddress = req.user.address;
+        if (!challengerAddress) {
+            return res.status(400).json({
+                message: "All fields required, fields are: challengerAddress",
+            });
+        }
+
+        // Function calls
+        let response = await deleteOfferToChallenge(
+            playerAddress,
+            challengerAddress
+        );
+        // Modularize this checks?
+        if (!response.success) {
+            return res.status(400).json({
+                message: response.message,
+            });
+        }
+        const finalMessage = response.message;
+        response = await notifyAcceptedChallengesUpdate(challengerAddress);
+        if (!response.success) {
+            return res.status(400).json({
+                message: response.message,
+            });
+        }
+        res.status(200).json({
+            message: finalMessage,
         });
     } catch (error) {
         next(error);

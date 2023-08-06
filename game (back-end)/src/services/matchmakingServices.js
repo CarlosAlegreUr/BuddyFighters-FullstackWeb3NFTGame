@@ -110,6 +110,37 @@ async function sendOfferToChallenge(
     }
 }
 
+async function deleteOfferToChallenge(playerAddress, challengerAddress) {
+    try {
+        const challenge = await Challenge.findOne({
+            playerAddress: challengerAddress,
+        });
+
+        if (challenge.accepted.length === 0) {
+            return await formatReturn(false, "No offers to delete.");
+        }
+
+        const result = await Challenge.updateOne(
+            { playerAddress: challengerAddress },
+            {
+                $pull: {
+                    accepted: {
+                        opponentAddress: playerAddress,
+                    },
+                },
+            }
+        );
+
+        if (result.modifiedCount === 1) {
+            return await formatReturn(true, "Offer deleted.");
+        } else {
+            return await formatReturn(false, "No offer was found.");
+        }
+    } catch (err) {
+        throw err;
+    }
+}
+
 async function getAcceptedChallenges(playerAddress) {
     try {
         const challenge = await Challenge.findOne({
@@ -180,7 +211,7 @@ async function dealDoneHanldeStartFightPermissions(
         });
         await newFight.save();
 
-        // Executes after 15:
+        // Executes after 15 seconds in real enviroments (2 now while developing):
         // Gives permissions to players but first
         // lets them time to send the bets and get ready.
         // If clients don't send the bets and this executes,
@@ -197,10 +228,12 @@ async function dealDoneHanldeStartFightPermissions(
             bet2,
         });
 
+        // Same here, for development just 30 seconds
         // 40 seconds later permissions check if they started the fight,
         // if didnt, deletes permissions and deletes Fight from database
+        // also deletes whatever it happens the challenge that started the fight
         const waitTime2 = new Date();
-        waitTime2.setSeconds(waitTime2.getSeconds() + 55);
+        waitTime2.setSeconds(waitTime2.getSeconds() + 30);
         await agenda.schedule(waitTime2, "deleteIfFightNotStarted", {
             playerAddress,
             opponentAddress,
@@ -235,6 +268,7 @@ module.exports = {
     deleteChallenge,
     getRandomChallenges,
     sendOfferToChallenge,
+    deleteOfferToChallenge,
     getAcceptedChallenges,
     dealDoneHanldeStartFightPermissions,
 };

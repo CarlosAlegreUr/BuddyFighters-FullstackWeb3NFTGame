@@ -1,6 +1,6 @@
 import React from "react";
 
-import AcceptedChallengesTable from "./AcceptedChallengesTable";
+import AcceptedChallengesTable from "./ChallengesTables/AcceptedChallengesTable";
 
 export default function AcceptedChallengesSection({ acceptedChallenges }) {
   return (

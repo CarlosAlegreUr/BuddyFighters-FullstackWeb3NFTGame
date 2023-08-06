@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import ChallengeManagement from "./ChallengeManagement";
-import ChallengesTable from "./ChallengesTable";
+import ChallengesTable from "./ChallengesTables/ChallengesTable";
 import ChallengeOfferForm from "./ChallengeOfferForm";
 import AcceptedChallengesSection from "./AcceptedChallengesSection";
 

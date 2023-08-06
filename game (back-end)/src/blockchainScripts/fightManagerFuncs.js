@@ -62,10 +62,6 @@ async function allowStartFight(players, tokenIds, bets) {
         const coder = new ethers.AbiCoder();
         const abiEncodedInput = await coder.encode(types, inputs);
         const validInput = await ethers.keccak256(abiEncodedInput);
-        console.log("VALID INPUT SET");
-        console.log(validInput);
-        console.log(typeof validInput);
-        console.log(typeof players[0]);
         let txResponse = await bfnftFightManager.allowInputs(
             players[0],
             [validInput],

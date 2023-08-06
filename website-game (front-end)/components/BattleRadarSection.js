@@ -6,7 +6,7 @@ import { getContractAddress, getContractAbi } from "../utils/getContractInfo";
 
 import ChallengesSection from "./Challenges/ChallengesSection";
 
-export default function BattleRadarSection() {
+export default function BattleRadarSection({ setShowFightPage, setFightData }) {
   const [sse, setSse] = useState(null);
   const [challenges, setChallenges] = useState({});
   const [acceptedChallenges, setAcceptedChallenges] = useState([]);
@@ -39,11 +39,9 @@ export default function BattleRadarSection() {
         }
 
         if (eventData.event === "acceptedChallenge") {
-          if (eventData.data && eventData.data.length != 0) {
-            console.log("Accepted challenges recieved...");
-            console.log(eventData.data);
-            setAcceptedChallenges(eventData.data);
-          }
+          console.log("Accepted challenges recieved...");
+          console.log(eventData.data);
+          setAcceptedChallenges(eventData.data);
         }
 
         if (eventData.event === "sendBet") {
@@ -51,6 +49,7 @@ export default function BattleRadarSection() {
           alert(eventData.data.notification);
           console.log(eventData.data.fightData);
           // Later when CSS applied, display in the middle of the screen
+          setFightData(eventData.data.fightData);
           setUpcomingFightData(eventData.data.fightData);
           setDisplayFightButton(true);
         }
@@ -92,6 +91,7 @@ export default function BattleRadarSection() {
     const tx = await contract.buyTicket(args);
     await tx.wait();
   };
+
   const getAllowedInputs = async () => {
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
@@ -163,7 +163,7 @@ export default function BattleRadarSection() {
       console.log(validInput);
 
       const inputss = await getAllowedInputs();
-      console.log("Inputs recieved by control")
+      console.log("Inputs recieved by control");
       console.log(inputss);
 
       try {
@@ -217,7 +217,17 @@ export default function BattleRadarSection() {
             await sendBetAndStartFight();
           }}
         >
-          SEND BET AND GO FIGHT!
+          SEND BET!
+        </button>
+      )}
+
+      {displayFightButton && (
+        <button
+          onClick={async () => {
+            await setShowFightPage(true);
+          }}
+        >
+          GO FIGHT!
         </button>
       )}
     </section>

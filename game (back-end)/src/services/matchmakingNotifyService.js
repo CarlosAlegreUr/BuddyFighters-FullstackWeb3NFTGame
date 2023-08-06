@@ -37,23 +37,26 @@ async function notifyClient(addresOfClient, message) {
     }
 }
 
-async function notifyAcceptance(addressOfClientToNotify) {
+async function notifyAcceptedChallengesUpdate(addressOfClientToNotify) {
     try {
         const sse = sseConnections[addressOfClientToNotify];
-        const challenges = await getAcceptedChallenges(addressOfClientToNotify);
-        if (challenges) {
+        if (sse) {
+            const challenges = await getAcceptedChallenges(
+                addressOfClientToNotify
+            );
             await sse.send({
                 event: "acceptedChallenge",
                 data: challenges,
             });
-            return true;
-        } else {
-            await sse.send({
-                event: "error",
-                data: "Oponent doesnt have any challenge posted!",
-            });
-            return false;
+            return await formatReturn(
+                true,
+                "Accepted challenges update notified."
+            );
         }
+        return await formatReturn(
+            false,
+            "Failed not notify challenger, SSE not established."
+        );
     } catch (err) {
         throw err;
     }
@@ -78,5 +81,5 @@ module.exports = {
     broadcastMatchmakingState,
     notifyClient,
     notifySendYourBet,
-    notifyAcceptance,
+    notifyAcceptedChallengesUpdate,
 };
