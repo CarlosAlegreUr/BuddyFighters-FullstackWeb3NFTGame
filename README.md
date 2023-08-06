@@ -21,19 +21,19 @@ Please read [**Purpose of this Repository 🤔**](#purpose-of-this-repository) (
 # Index
 
 - [**Purpose of this Repository 🤔**](#purpose-of-this-repository)
-- [**App So Far Demo Video: 📹**](#app-so-far-demo-video-📹)
-- [**About the App ℹ️**](#about-the-app-ℹ️)
-  - [Potential Misuse of Power 💢](#potential-misuse-of-power-💢)
-  - [**A Trustless Fully Decentralized Scenario 👼**](#a-trustless-fully-decentralized-scenario-👼)
-- [**Self-Audit state 💥**](#self-audit-state-💥)
-- [**Packages & Technologies Utilized 🧰**](#packages--technologies-utilized-🧰)
-- [**How the System Functions ⚙️**](#how-the-system-functions-⚙️)
-- [**Project Structure 📁**](#project-structure-📁)
-- [**Capabilities Of Deployed App 🏃**](#capabilities-of-deployed-app-🏃)
-- [**Instructions for Local Usage ℹ️🏠**](#instructions-for-local-usage-ℹ️🏠)
-- [**Special Thanks 😄**](#special-thanks-😄)
-- [**TODO 🚧**](#todo-🚧)
-- [**License 📎**](#license-📎)
+- [**App So Far Demo Video: 📹**](#app-so-far-demo-video)
+- [**About the App ℹ️**](#about-the-app)
+  - Potential Misuse of Power 💢
+  - A Trustless Fully Decentralized Scenario 👼
+- [**Self-Audit state 💥**](#self-audit-state)
+- [**Packages & Technologies Utilized 🧰**](#packages--technologies-utilized)
+- [**Brief System Overview ⚙️**](#brief-system-overview)
+- [**Project Structure 📁**](#project-structure)
+- [**Capabilities Of Deployed App 🏃**](#capabilities-of-deployed-app)
+- [**Instructions for Local Usage ℹ️🏠**](#instructions-for-local-usage)
+- [**Special Thanks 😄**](#special-thanks)
+- [**TODO 🚧**](#todo)
+- [**License 📎**](#license)
 
 <hr/>
 
@@ -68,12 +68,16 @@ At this stage, I am content to leave the project in its current state. I've achi
 
 <hr/>
 
+
+<a name="about-the-app"></a>
 # **About the App ℹ️**
 
 Essentially, this application is a fighting game where players can battle against each other using NFTs and bet their cryptocurrencies on these fights. It includes a "change stats" feature, allowing you to adjust your NFT's stats in a fully trustless, decentralized manner.
 
 #### (TODO)
 
+
+<a name="app-so-far-demo-video"></a>
 # **App So Far Demo Video: 📹**
 
 The fighting and betting system isn't completely trustless, as it requires a trusted backend to execute off-chain computations when battles occur. However, it's designed in a way that makes any backend misbehavior easy to detect, enhancing the overall trustworthiness of the app's betting system.
@@ -129,6 +133,8 @@ There must also be a function that validates the next fight states. If different
 
 <hr/>
 
+
+<a name="self-audit-state"></a>
 # **Self-Audit state 💥**
 
 Hardhat localhost network 🟡 :
@@ -142,6 +148,8 @@ Any testnet or mainnet 🔴 ⛔⛔⛔⛔
 
 <hr/>
 
+
+<a name="packages--technologies-utilized"></a>
 # **Packages & Technologies Utilized 🧰**
 
 For the complete list of dependencies, please check the `package.json` file in the respective front-end and back-end directories.
@@ -173,6 +181,7 @@ For the complete list of dependencies, please check the `package.json` file in t
 
 <hr/>
 
+<a name="brief-system-overview"></a>
 # **Brief System Overview ⚙️**
 
 The **front end** handles API calls to the **backend** and also contains blockchain interaction code executed through a **MetaMask** provider.
@@ -181,6 +190,7 @@ The **backend** contains all the services, controllers, and route structures nec
 
 And don't forget to mention the front end and backend are designed to be hosted on different servers, therefore utilizing **CORS**.
 
+<a name="project-structure"></a>
 # **Project Structure 📁**
 
 Here is the **overall structure** of the project. It's divided into **two main parts**: `game` (back-end) and `website-game` (front-end).
@@ -233,12 +243,13 @@ This structure allows for **modular development**, **easy maintainability**, and
 
 <hr/>
 
+<a name="capabilities-of-deployed-app"></a>
 # **Capabilities of the Deployed App 🏃**
 
 As a personal portfolio project, the public website and backend are limited to supporting only **4 authenticated users** playing or using backend services simultaneously. This restriction allows me to host the project for free. (:D)
 
 ---
-
+<a name="instructions-for-local-usage"></a>
 # **Instructions for Local Usage ℹ️🏠**
 
 To run the application locally, follow these steps:
@@ -253,7 +264,7 @@ To run the application locally, follow these steps:
 1. Start the MongoDB database.
 
 ---
-
+<a name="special-thanks"></a>
 ## **Special thanks 😄**
 
 Thanks to <a href="https://twitter.com/aonsager" target="_blank"> @aonsager </a> for <a href="https://twitter.com/charlescheerfu1/status/1546925876494929927" target="_blank"> allowing </a> me to use his images as long as I don't create a commercial product out of them.
@@ -270,6 +281,7 @@ Source of the pokemon fusions images used in this project. <br>
 
 ---
 
+<a name="todo"></a>
 # **TODO 🚧**
 
 ## someday...
@@ -283,7 +295,7 @@ Source of the pokemon fusions images used in this project. <br>
 7. Create the completely decentralized trustless version of BuddyFighters!
 
 ---
-
+<a name="license"></a>
 ## **License 📎**
 
 MIT
