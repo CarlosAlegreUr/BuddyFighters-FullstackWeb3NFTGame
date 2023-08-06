@@ -1,6 +1,6 @@
 # What is this repo? 🤔
 
-Please read [**Purpose of this Repository 🤔**](#purpose-of-this-repository-🤔) (1.5 min read)
+Please read [**Purpose of this Repository 🤔**](#purpose-of-this-repository-🤔) (1 min read)
 
 <h1 align="center">
   <br>
