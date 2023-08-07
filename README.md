@@ -74,11 +74,9 @@ At this stage, I am content to leave the project in its current state. I've achi
 
 Essentially, this application is a fighting game where players can battle against each other using NFTs and bet their cryptocurrencies on these fights. It includes a "change stats" feature, allowing you to adjust your NFT's stats in a fully trustless, decentralized manner.
 
-#### (TODO)
-
-
 <a name="app-so-far-demo-video"></a>
 # **App So Far Demo Video: 📹**
+[![Watch the video](https://img.youtube.com/vi/TgujuvXj8WM/maxresdefault.jpg)](https://youtu.be/TgujuvXj8WM)
 
 The fighting and betting system isn't completely trustless, as it requires a trusted backend to execute off-chain computations when battles occur. However, it's designed in a way that makes any backend misbehavior easy to detect, enhancing the overall trustworthiness of the app's betting system.
 
