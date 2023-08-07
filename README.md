@@ -76,7 +76,12 @@ Essentially, this application is a fighting game where players can battle agains
 
 <a name="app-so-far-demo-video"></a>
 # **App So Far Demo Video: 📹**
-[![Watch the video](https://img.youtube.com/vi/TgujuvXj8WM/maxresdefault.jpg)](https://youtu.be/TgujuvXj8WM)
+
+Click on the image to watch the video on **`Youtube`**.
+
+<a href="https://youtu.be/TgujuvXj8WM" target="_blank"><img src="https://img.youtube.com/vi/TgujuvXj8WM/maxresdefault.jpg" width="400"></a>
+
+---
 
 The fighting and betting system isn't completely trustless, as it requires a trusted backend to execute off-chain computations when battles occur. However, it's designed in a way that makes any backend misbehavior easy to detect, enhancing the overall trustworthiness of the app's betting system.
 
